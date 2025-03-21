@@ -1,0 +1,306 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteRideStop = exports.resolveRideStop = exports.getRideStop = exports.getAllRideStops = exports.updateRideStop = exports.createRideStop = void 0;
+const RideStop_1 = require("../models/RideStop");
+/**
+ * @typedef {Object} Coordinates
+ * @property {number} latitude - The latitude of the stop location.
+ * @property {number} longitude - The longitude of the stop location.
+ */
+/**
+ * @typedef {Object} RideStop
+ * @property {string} id - The unique identifier for the ride stop.
+ * @property {string} rideId - The ID of the associated ride.
+ * @property {string} userId - The ID of the user who reported the stop.
+ * @property {"rest" | "accident" | "mechanical_fault"} reason - The reason for the stop.
+ * @property {Coordinates} location - The GPS coordinates of the stop location.
+ * @property {boolean} isResolved - Whether the stop has been resolved.
+ *
+ * @example
+ *
+ * // Request:
+ * POST /api/stop/ride123
+ *
+ * const rideStop = {
+ *   id: "stop123",
+ *   rideId: "ride456",
+ *   userId: "user789",
+ *   reason: "mechanical_fault",
+ *   location: { latitude: 40.7128, longitude: -74.0060 },
+ *   isResolved: false
+ * };
+ */
+const createRideStop = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { rideId } = req.params;
+        const { reason, location } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const rideStop = yield RideStop_1.RideStop.create({
+            rideId,
+            userId,
+            reason,
+            location,
+        });
+        res.status(201).json({ message: "Ride stop recorded", rideStop });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+exports.createRideStop = createRideStop;
+const updateRideStop = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { stopId } = req.params;
+        const { reason, location } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const stop = yield RideStop_1.RideStop.findByPk(stopId);
+        if (!stop) {
+            res.status(404).json({ message: "Stop not found." });
+        }
+        else if (!reason && !location) {
+            res.status(400).json({ message: "Missing required fields" });
+        }
+        else if (userId !== stop.userId) {
+            res.status(403).json({ message: "You are not authorized to update this stop." });
+        }
+        else {
+            if (reason)
+                stop.reason = reason;
+            if (location)
+                stop.location = location;
+            yield stop.save();
+            res.status(200).json({ message: "Ride stop has been updated", stop });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+exports.updateRideStop = updateRideStop;
+/**
+ * Get all stops for a specific ride.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next middleware function.
+ * @returns {Promise<Response>} A JSON response containing the ride stops.
+ *
+ * @route GET /stop/ride/:rideId
+ * @access Private (Requires authentication)
+ *
+ * @example
+ * // Request: GET /stop/ride/ride123
+ * // Response:
+ * {
+ *   "stops": [
+ *     {
+ *       "id": "stop123",
+ *       "rideId": "ride123",
+ *       "userId": "user789",
+ *       "reason": "mechanical_fault",
+ *       "location": { "latitude": 40.7128, "longitude": -74.0060 },
+ *       "isResolved": false
+ *     }
+ *   ]
+ * }
+ */
+const getAllRideStops = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { rideId } = req.params;
+        const stops = yield RideStop_1.RideStop.findAll({
+            where: { rideId, isResolved: false },
+            include: [{ association: "user", attributes: ["id", "username"] }],
+        });
+        if (stops.length < 1) {
+            res.status(404).json({ message: "No stops found for this ride." });
+        }
+        else {
+            res.status(200).json({ stops });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+exports.getAllRideStops = getAllRideStops;
+/**
+ * Get stop details by stop Id
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next middleware function.
+ * @returns {Promise<Response>} A JSON response containing the ride stops.
+ *
+ * @route GET /stop/:stopId
+ * @access Private (Requires authentication)
+ *
+ * @example
+ * // Request: GET /stop/stop232
+ * // Response:
+*     {
+*       "id": "stop123",
+*       "rideId": "ride123",
+*       "userId": "user789",
+*       "reason": "mechanical_fault",
+*       "location": { "latitude": 40.7128, "longitude": -74.0060 },
+*       "isResolved": false
+
+ *    }
+ */
+const getRideStop = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { stopId } = req.params;
+        const stop = yield RideStop_1.RideStop.findByPk(stopId, {
+            include: [{ association: "user", attributes: ["id", "username"] }],
+        });
+        if (!stop) {
+            res.status(404).json({ message: "Ride stop not found." });
+        }
+        else {
+            res.status(200).json({ stop });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+exports.getRideStop = getRideStop;
+/**
+ * Set a ride stop to resolved.
+ *
+ * @param {Request} req - The Express request object is the stopID in the params
+ * @param {Response} res - The Express response object.
+ * @returns {Promise<Response<Ride | ErrorResponse>>} JSON response with updated ride details or an error message.
+ *
+ * @example
+ * // Request Body:
+ * * // Request: PUT /stop/stop232
+ * @response 200 - Ride stop has been resolved
+ * {
+ *   "message": "Ride stop has been resolved",
+ *   "rideStop": {
+*       "id": "stop123",
+*       "rideId": "ride123",
+*       "userId": "user789",
+*       "reason": "mechanical_fault",
+*       "location": { "latitude": 40.7128, "longitude": -74.0060 },
+*       "isResolved": true
+ *   }
+ * }
+ *
+ * @response 400 - Bad Request (Invalid data)
+ * {
+ *   "error": "Invalid ride data provided"
+ * }
+ *
+ * @response 404 - Ride stop not found
+ * {
+ *   "error": "Ride not found"
+ * }
+ *
+ *  @response 403 - Not authorized to update this stop
+ * {
+ *   "error": "Not authorized to update this stop"
+ * }
+ * @response 500 - Internal Server Error
+ * {
+ *   "error": "Internal Server Error"
+ * }
+ */
+const resolveRideStop = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { stopId } = req.params;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const rideStop = yield RideStop_1.RideStop.findByPk(stopId);
+        if (!rideStop) {
+            res.status(404).json({ message: "Ride stop not found" });
+        }
+        else if (rideStop.userId !== userId) {
+            res.status(403).json({ message: "Not authorized to update this stop" });
+        }
+        else if (rideStop.isResolved) {
+            res.status(400).json({ message: "Ride stop is already resolved." });
+        }
+        else {
+            rideStop.isResolved = true;
+            yield rideStop.save();
+            res.status(200).json({ message: "Ride stop has been resolved", rideStop });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+exports.resolveRideStop = resolveRideStop;
+/**
+ * @typedef {Object} SuccessResponse
+ * @property {string} message - The success message.
+ */
+/**
+ * @typedef {Object} ErrorResponse
+ * @property {string} error - The error message.
+ */
+/**
+ * Deletes a ride stop by its ID.
+ *
+ * @param {Request} req - The Express request object with stop id in params.
+ * @param {Response} res - The Express response object.
+ * @returns {Promise<Response<SuccessResponse | ErrorResponse>>} JSON response indicating success or failure.
+ *
+ * @example
+ * // Request:
+ * DELETE /api/stop/route/stop123
+ *
+ * @response 200 - Ride stop deleted successfully
+ * {
+ *   "message": "Ride stop deleted successfully"
+ * }
+ *@response 403 - Not authorized to delete this stop
+ * {
+ *   "message": "Not authorized to delete this stop"
+ * }
+ *
+ * @response 404 - Ride stop not found
+ * {
+ *   "error": "Ride stop not found"
+ * }
+ *
+ * @response 500 - Internal Server Error
+ * {
+ *   "error": "Internal Server Error"
+ * }
+ */
+const deleteRideStop = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { stopId } = req.params;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const rideStop = yield RideStop_1.RideStop.findByPk(stopId);
+        if (!rideStop) {
+            res.status(404).json({ message: "Ride stop not found" });
+        }
+        else if (rideStop.userId !== userId) {
+            res.status(403).json({ message: "Not authorized to delete this stop" });
+        }
+        else {
+            yield rideStop.destroy();
+            res.status(200).json({ message: "Ride stop deleted successfully." });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+exports.deleteRideStop = deleteRideStop;
