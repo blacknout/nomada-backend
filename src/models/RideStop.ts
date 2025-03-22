@@ -14,7 +14,7 @@ export interface RideStopAttributes {
   id: string;
   rideId: string;
   userId: string;
-  reason: "rest" | "accident" | "mechanical_fault";
+  reason: "safe" | "accident" | "mechanical_fault";
   location: Coordinates;
   isResolved: boolean;
   createdAt?: Date;
@@ -29,7 +29,7 @@ export class RideStop extends Model<RideStopAttributes, RideStopCreationAttribut
   public id!: string;
   public rideId!: string;
   public userId!: string;
-  public reason!: "rest" | "accident" | "mechanical_fault";
+  public reason!: "safe" | "accident" | "mechanical_fault";
   public location!: Coordinates;
   public isResolved!: boolean;
   public readonly createdAt!: Date;
@@ -54,7 +54,7 @@ RideStop.init(
       references: { model: User, key: "id" },
     },
     reason: {
-      type: DataTypes.ENUM("rest", "accident", "mechanical_fault"),
+      type: DataTypes.ENUM("safe", "accident", "mechanical_fault"),
       allowNull: false,
     },
     location: {
