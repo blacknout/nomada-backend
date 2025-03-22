@@ -5,7 +5,7 @@ export const validateRideStopInfo: RequestHandler[] = [
   param("rideId").isUUID().withMessage("Ride ID must be a valid UUID"),
   param("stopId").isUUID().withMessage("Stop ID must be a valid UUID"),
   check("reason").isString().withMessage("Reason must be a string")
-  .isIn(["rest", "accident", "mechanical_fault"]).withMessage("Reason must be one of: rest, accident, mechanical_fault"),
+  .isIn(["safe", "accident", "mechanical_fault"]).withMessage("Reason must be one of: safe, accident, mechanical_fault"),
   check("location").isObject().withMessage("Location must be an object")
   .custom((value) => {
     if (!value.latitude || !value.longitude) {

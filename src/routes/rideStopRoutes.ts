@@ -52,7 +52,7 @@ const router = express.Router();
  *                 example: "b6a1c3d7-2e8a-4b5f-b9c3-1e5d7f2a4c6b"
  *               reason:
  *                 type: string
- *                 enum: ["rest", "accident", "mechanical_fault"]
+ *                 enum: ["safe", "accident", "mechanical_fault"]
  *                 description: The reason for the stop.
  *                 example: "mechanical_fault"
  *               location:
@@ -170,7 +170,7 @@ router.post("/:rideId",
  *             properties:
  *               reason:
  *                 type: string
- *                 enum: ["rest", "accident", "mechanical_fault"]
+ *                 enum: ["safe", "accident", "mechanical_fault"]
  *                 description: The reason for the stop.
  *                 example: "mechanical_fault"
  *               location:
@@ -378,7 +378,7 @@ router.get("/:stopId",
  *                         type: string
  *                       reason:
  *                         type: string
- *                         enum: ["rest", "accident", "mechanical_fault"]
+ *                         enum: ["safe", "accident", "mechanical_fault"]
  *                       location:
  *                         type: object
  *                         properties:
@@ -478,7 +478,7 @@ router.get("/ride/:rideId",
  *                       example: "b6a1c3d7-2e8a-4b5f-b9c3-1e5d7f2a4c6b"
  *                     reason:
  *                       type: string
- *                       enum: ["rest", "accident", "mechanical_fault"]
+ *                       enum: ["safe", "accident", "mechanical_fault"]
  *                       example: "mechanical_fault"
  *                     location:
  *                       type: object

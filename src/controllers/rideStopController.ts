@@ -12,7 +12,7 @@ import { RideStop } from "../models/RideStop";
  * @property {string} id - The unique identifier for the ride stop.
  * @property {string} rideId - The ID of the associated ride.
  * @property {string} userId - The ID of the user who reported the stop.
- * @property {"rest" | "accident" | "mechanical_fault"} reason - The reason for the stop.
+ * @property {"safe" | "accident" | "mechanical_fault"} reason - The reason for the stop.
  * @property {Coordinates} location - The GPS coordinates of the stop location.
  * @property {boolean} isResolved - Whether the stop has been resolved.
  *
