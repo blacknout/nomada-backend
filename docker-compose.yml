@@ -8,26 +8,30 @@ services:
     depends_on:
       - db
     environment:
-      - DB_HOST=db 
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
     networks:
       - my_network
+    env_file:
+      - .env
 
   db:
-    image: postgres:15
+    image: postgres:16
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - my_network
+volumes:
+  pgdata:
 
 networks:
   my_network:
