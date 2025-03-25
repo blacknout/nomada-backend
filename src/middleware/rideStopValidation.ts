@@ -26,6 +26,7 @@ export const validateRideStopInfo: RequestHandler[] = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
+      return
     }
     next();
   }) as RequestHandler,
@@ -38,6 +39,7 @@ export const validateStopQuery: RequestHandler[] = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
+      return
     }
     next();
   }) as RequestHandler,

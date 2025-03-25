@@ -101,7 +101,7 @@ export const addUserToGroup = async (req: Request, res: Response) => {
         res.status(201).json({ message: "User added to group successfully" });
       }
     } else {
-      res.status(401).json({ message: "You are not allowed to add users to this group." });
+      res.status(403).json({ message: "You are not allowed to add users to this group." });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });

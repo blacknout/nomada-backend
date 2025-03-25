@@ -122,10 +122,10 @@ const router = express.Router();
  *                       type: string
  *                       enum: ["pending", "ongoing", "completed"]
  *                       example: "pending"
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       400:
  *         description: Group not found
- *       401:
- *         description: Unauthorized
  *       500:
  *         description: Internal server error
  */
@@ -223,6 +223,8 @@ router.post("/",
  *                             example: -122.4194
  *       400:
  *         description: Ride not found
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       403:
  *         description: You are not allowed to update this ride.
  *       404:
@@ -303,6 +305,8 @@ router.put("/:rideId",
  *                   type: string
  *                   format: date-time
  *                   example: "2025-03-19T14:00:00.000Z"
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride not found
  *       500:
@@ -341,6 +345,8 @@ router.get("/:rideId",
  *                 message:
  *                   type: string
  *                   example: "Ride deleted successfully."
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       403:
  *         description: Unauthorized to delete this ride
  *         content:
@@ -436,6 +442,8 @@ router.delete("/:rideId",
  *                 message:
  *                   type: string
  *                   example: "Cannot save ride route until ride is completed."
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride not found.
  *         content:
@@ -502,6 +510,8 @@ router.post("/route/:rideId",
  *                       longitude:
  *                         type: number
  *                         example: -122.4194
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride not found OR No route data available for this ride.
  *         content:
@@ -565,6 +575,8 @@ router.get("/route/:rideId",
  *                 message:
  *                   type: string
  *                   example: "Ride route deleted successfully"
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride not found
  *         content:

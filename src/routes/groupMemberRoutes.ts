@@ -80,6 +80,8 @@ router.post("/:groupId/join", authenticateUser, validateGroupQuery, joinGroup);
  *                   type: string
  *                 lastname:
  *                   type: string
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Group not found
  *       500:
@@ -115,6 +117,8 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
  *       400:
  *         description: User is already in the group
  *       401:
+ *         description: Access Denied. No Token Provided.
+ *       403:
  *         description: You are not allowed to add users to this group.
  *       404:
  *         description: User not found or Group not found
@@ -148,6 +152,8 @@ router.post("/add-user", authenticateUser, addUserToGroup);
  *     responses:
  *       200:
  *         description: User removed from group successfully
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: User is not in the group or Group not found
  *       500:

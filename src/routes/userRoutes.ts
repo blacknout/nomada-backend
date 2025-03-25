@@ -1,7 +1,8 @@
 import express from "express";
 import { 
   register, 
-  login, 
+  login,
+  verifyOtp,
   getCurrentUser,
   getUser,
   searchUsers,
@@ -60,11 +61,34 @@ const router = express.Router();
  *                 type: string
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: User registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 firstname:
+ *                   type: string
+ *                 lastname:
+ *                   type: string
+ *                 isDisabled:
+ *                   type: string
+ *                 state:
+ *                   type: string
+ *                 country:
+ *                   type: string
  *       409:
  *         description: Email already in use
  *       400:
  *         description: Password must be at least 6 characters.
+ *       500:
+ *         description: Internal server error
  * 
  */
 router.post("/register", validateRegisterUser, register);
@@ -99,10 +123,56 @@ router.post("/register", validateRegisterUser, register);
  *         description: Email already in use
  *       400:
  *         description: Invalid credentials
+ *       500:
+ *         description: Internal server error
  * 
  */
 router.post("/login", validateLoginUser, login);
 
+
+/**
+ * @swagger
+ * /api/user/verify-otp:
+ *   post:
+ *     summary: Verify OTP
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email verified.
+ *       400: 
+ *         description: |
+ *           Invalid OTP or OTP expired
+ *           Possible reasons:
+ *           - The OTP is invalid
+ *           - The OTP has expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Internal server error
+ * 
+ */
+router.post("/verify-otp", verifyOtp);
 
 /**
  * @swagger
@@ -139,6 +209,8 @@ router.post("/login", validateLoginUser, login);
  *                   type: string
  *       401:
  *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
  */
 router.get("/me", authenticateUser, getCurrentUser);
 
@@ -180,6 +252,8 @@ router.get("/me", authenticateUser, getCurrentUser);
  *                   type: string
  *       401:
  *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
  */
 router.get("/:userId", authenticateUser, getUser);
 

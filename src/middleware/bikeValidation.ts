@@ -10,6 +10,7 @@ export const validateBikeInfo: RequestHandler[] = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
+      return
     }
     next();
   }) as RequestHandler,
@@ -22,6 +23,7 @@ export const validateBikeQuery: RequestHandler[] = [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
+      return
     }
     next();
   }) as RequestHandler,

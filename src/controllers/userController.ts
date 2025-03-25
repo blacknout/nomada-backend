@@ -3,6 +3,8 @@ import { Op } from "sequelize";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { sendOtpEmail } from "../utils/sendOtp";
+import { filterUser } from "../utils/filterUser";
 
 
 /**
@@ -16,8 +18,17 @@ import bcrypt from "bcryptjs";
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const user = await User.create(req.body);
-    res.status(201).json({ message: "User registered", user });
+    const { email } = req.body;
+
+    let user = await User.findOne({ where: { email } });
+    if (user) {
+      res.status(400).json({ message: "Email already exists" });
+    } else {
+      const createdUser = await User.create(req.body);
+      await sendOtpEmail(email);
+      const filteredUser = filterUser(createdUser);
+      res.status(201).json({ message: "User registered", user: filteredUser });
+    }
   } catch (err) {
     next(err);
   }
@@ -35,19 +46,44 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
   try {
     const user = await User.findOne({ where: { email: req.body.email } });
 
-    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+    if (!user.isVerified) {
+      res.status(400).json({ message: "This user is has not verified the account." });
+    } else if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
       res.status(400).json({ message: "Invalid credentials" });
-      return;
+    } else {
+      const token = jwt.sign({ id: user.id, user: user.username}, process.env.JWT_SECRET as string, { expiresIn: "1h" });
+      res.status(200).json({ message: "This user has been logged in", token });
     }
-
-    const token = jwt.sign({ id: user.id, user: user.username}, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-
-    res.json({ token });
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * Verify OTP.
+ *
+ * @param {Request} req - Express request object containing user data in req.body
+ * @param {Response} res - Express response object
+ * @param {NextFunction} next - Null
+ * @returns {Promise<Response>} - Returns JSON response
+ */
+export const verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ where: { email } });
+
+    if (!user || user.otp !== otp) {
+      res.status(400).json({ message: "Invalid OTP" });
+    } else if (new Date() > user.otpExpires) {
+      res.status(400).json({ message: "OTP expired" });
+    } else {
+      await User.update({ isVerified: true, otp: null, otpExpires: null }, { where: { email } });
+      res.status(200).json({ message: "Email verified." });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 /**
  * Get the currently authenticated user.
@@ -79,9 +115,10 @@ export const getUser = async (req: Request, res: Response, next: NextFunction): 
     if (!user) {
       res.status(404).json({ message: "User not found." });
       return;
+    } else {
+      const filteredUser = filterUser(user);
+      res.status(200).json({ user: filteredUser });
     }
-
-    res.json({ user });
   } catch (err) {
     next(err);
   }
@@ -144,7 +181,8 @@ export const updateUser: RequestHandler = async (req, res, next) => {
       res.status(401).json({ message: "Unauthorized action" });
     } else {
       await user.update({ username, email, firstname, lastname, state, country });
-     res.status(200).json({ message: "User updated successfully", user });
+      const filteredUser = filterUser(user);
+     res.status(200).json({ message: "User updated successfully", user: filteredUser });
     }
   } catch (error) {
     next(error);

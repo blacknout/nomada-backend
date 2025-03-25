@@ -17,7 +17,7 @@ docker-compose up
 
 ## Usage
 
-If changes are made to the app and it is not reflecting, delete the dist folder and then run these commands:
+If changes are made to the app and it is not reflecting, run these commands:
 
 ```bash
 docker-compose down
