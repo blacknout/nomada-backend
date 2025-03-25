@@ -13,6 +13,9 @@ interface UserAttributes {
   state: string;
   country: string;
   isAdmin: boolean;
+  otp?: string;
+  otpExpires?: Date;
+  isVerified: boolean;
 }
 
 export class User extends Model<UserAttributes> {
@@ -26,6 +29,9 @@ export class User extends Model<UserAttributes> {
   public state!: string;
   public country!: string;
   public isAdmin!: boolean;
+  public otp?: string;
+  public otpExpires?: Date;
+  public isVerified!: boolean;
 }
 
 User.init(
@@ -40,6 +46,9 @@ User.init(
     state: { type: DataTypes.STRING, allowNull: false },
     country: { type: DataTypes.STRING, allowNull: false },
     isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    otp: { type: DataTypes.STRING,},
+    otpExpires: { type: DataTypes.DATE,},
+    isVerified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   },
   {
     sequelize,

@@ -49,6 +49,8 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Bike created successfully.
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       500:
  *         description: Internal server error
  * 
@@ -87,7 +89,7 @@ router.post("/", authenticateUser, validateBikeInfo, createBike);
  *                 year:
  *                   type: string
  *       401:
- *         description: Unauthorized - Invalid or missing token
+ *         description: Access Denied. No Token Provided.
  *       400:
  *         description: Bike ID is required
  *       404:
@@ -145,6 +147,8 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *                   example: Bike updated successfully
  *                 user:
  *                   $ref: '#/components/schemas/Bike'
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       400:
  *         description: Bike ID is required
  *       404:
@@ -186,6 +190,8 @@ router.put("/:bikeId", authenticateUser, validateBikeQuery, validateBikeInfo, up
  *                   type: string
  *       400:
  *         description: User ID is required
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: No bikes found for this user
  *       500:
@@ -222,6 +228,8 @@ router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
  *                   type: string
  *       400:
  *         description: User ID is required
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: No bikes found for this user
  *       500:
@@ -263,6 +271,8 @@ router.get("/userbike", authenticateUser, getCurrentUserBikes);
  *                   $ref: '#/components/schemas/Bike'
  *       404:
  *         description: Bike not found
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       400:
  *         description: Bike ID is required
  *       500:

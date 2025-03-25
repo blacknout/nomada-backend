@@ -113,6 +113,8 @@ const router = express.Router();
  *                 message:
  *                   type: string
  *                   example: "Missing required fields"
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride not found.
  *         content:
@@ -227,6 +229,8 @@ router.post("/:rideId",
  *                 message:
  *                   type: string
  *                   example: "Missing required fields"
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Stop not found.
  *         content:
@@ -323,6 +327,8 @@ router.put("/:stopId",
  *                 message:
  *                   type: string
  *                   example: "Ride stop not found."
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       500:
  *         description: Server error.
  *         content:
@@ -391,6 +397,8 @@ router.get("/:stopId",
  *                       isResolved:
  *                         type: boolean
  *                         example: false
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: No stops found for this ride.
  *         content:
@@ -502,6 +510,8 @@ router.get("/ride/:rideId",
  *                 message:
  *                   type: string
  *                   example: "Ride stop is already resolved."
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride stop not found
  *         content:
@@ -569,6 +579,8 @@ router.patch("/:stopId",
  *                status:
  *                  type: string
  *                  enum: ["pending", "ongoing", "completed"]
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Ride stop not found.
  *         content:

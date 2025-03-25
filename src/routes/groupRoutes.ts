@@ -72,6 +72,8 @@ router.post("/", authenticateUser, validateGroupInfo, createGroup);
  *                   type: string
  *                 description:
  *                   type: string
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       400:
  *         description: Group ID is required
  *       404:
@@ -124,6 +126,8 @@ router.get("/:groupId", authenticateUser, validateGroupQuery, getGroup);
  *                   $ref: '#/components/schemas/Group'
  *       400:
  *         description: Group ID is required
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Group not found
  *       500:
@@ -159,8 +163,8 @@ router.put("/:groupId",
  *                   type: string
  *                 description:
  *                   type: string
- *       403:
- *         description: Unauthorized
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: No groups found for this user
  *       500:
@@ -200,6 +204,8 @@ router.get("/usergroup", authenticateUser, getCurrentUserGroups);
  *                   example: Group has been deleted.
  *                 bike:
  *                   $ref: '#/components/schemas/Group'
+ *       401:
+ *         description: Access Denied. No Token Provided.
  *       404:
  *         description: Group not found
  *       400:

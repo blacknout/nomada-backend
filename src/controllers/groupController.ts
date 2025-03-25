@@ -101,19 +101,17 @@ export const updateGroupDetails = async (req: Request, res: Response) => {
  */
 export const getCurrentUserGroups = async (req: Request, res: Response) => {
   try {
-    if (!req.user || !req.user.id) {
-      res.status(403).json({ message: "Unauthorized" });
-    } else {
-      const createdBy = req.user?.id;
+    const createdBy = req.user?.id;
 
-      const groups = await Group.findAll({ where: { createdBy } });
+    const groups = await Group.findAll({ where: { createdBy } });
 
-      if (!groups.length) {
-        res.status(404).json({ message: "No groups found for this user" });
-      }
-
-      res.status(200).json({ groups });
+    if (!groups.length) {
+      res.status(404).json({ message: "No groups found for this user" });
+      return;
     }
+
+    res.status(200).json({ groups });
+  
   } catch (error) {
       console.error("Error fetching current user's groups:", error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -130,17 +128,16 @@ export const getCurrentUserGroups = async (req: Request, res: Response) => {
  */
 export const deleteGroup = async (req: Request, res: Response) => {
   try {
-      const { groupId } = req.params;
+    const { groupId } = req.params;
 
-      const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(groupId);
 
-      if (!group) {
-        res.status(404).json({ message: "Group not found" });
-      } else if (req.user && req.user.id === group.createdBy) {
-        await group.destroy();
-        res.status(200).json({ message: "Group has been deleted."});
-      }
-
+    if (!group) {
+      res.status(404).json({ message: "Group not found" });
+    } else if (req.user && req.user.id === group.createdBy) {
+      await group.destroy();
+      res.status(200).json({ message: "Group has been deleted."});
+    }
   } catch (error) {
       console.error("Error updating bike:", error);
       res.status(500).json({ message: "Internal Server Error" });
