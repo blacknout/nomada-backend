@@ -80,6 +80,21 @@ export const validateResetPassword: RequestHandler[] = [
   }) as RequestHandler,
 ];
 
+export const validatePasswordOTP: RequestHandler[] = [
+  check("otp").isLength({ min: 6, max: 6 }).withMessage("Invalid OTP")
+  .isNumeric().withMessage("Invalid OTP"),
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    next();
+  }) as RequestHandler,
+];
+
+
+
 export const validateUserQuery: RequestHandler[] = [
   param("userId").notEmpty().withMessage("User ID is required")
   .isUUID().withMessage("User ID must be a valid UUID"),

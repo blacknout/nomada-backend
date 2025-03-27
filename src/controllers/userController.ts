@@ -23,11 +23,12 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     let user = await User.findOne({ where: { email } });
     if (user && user.isVerified) {
       res.status(400).json({ message: "Email already exists" });
+      return;
     } else if (user && !user.isVerified) {
-      res.status(200).json({ message: (await sendOtpEmail(email)).message });
+      res.status(200).json({ message: (await sendOtpEmail(user)).message });
     } else {
       await User.create(req.body);
-      res.status(201).json({ message: (await sendOtpEmail(email)).message });
+      res.status(201).json({ message: (await sendOtpEmail(user)).message });
     }
   } catch (err) {
     next(err);
@@ -52,7 +53,8 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       res.status(400).json({ message: "Invalid credentials" });
     } else {
       const token = jwt.sign({ id: user.id, user: user.username}, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-      res.status(200).json({ message: "This user has been logged in", token });
+      await user.update({ token: token })
+      res.status(200).json({ message: "This user has been logged in", token, user });
     }
   } catch (err) {
     next(err);
@@ -77,8 +79,10 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
     } else if (new Date() > user.otpExpires) {
       res.status(400).json({ message: "OTP expired" });
     } else {
-      await User.update({ isVerified: true, otp: null, otpExpires: null }, { where: { email } });
-      res.status(200).json({ message: "Email verified." });
+      const token = jwt.sign({ id: user.id, user: user.username}, process.env.JWT_SECRET as string, { expiresIn: "1h" });
+
+      await user.update({ isVerified: true, otp: null, otpExpires: null, token: token });
+      res.status(200).json({ message: "Email verified.", token, user });
     }
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -241,13 +245,37 @@ export const resetPassword : RequestHandler = async (req, res, next) => {
     }
   
     const token = jwt.sign({ email }, process.env.JWT_SECRET!, { expiresIn: "15m" });
-    const resetLink = `${process.env.CLIENT_ORIGIN}/reset-password?token=${token}`;
   
-    const sent = sendPasswordResetEmail(email, resetLink);
+    const sent = sendPasswordResetEmail(user, token);
     res.status(200).json({ message: (await sent).message });
   } catch (error) {
     res.status(500).json({ message: "Error sending email", error });
+  }
+}
 
+
+/**
+ * Password Reset with OTP
+ *
+ * @param {Request} req - Express request object containing OTP in req.body
+ * @param {Response} res - Express response object.
+ * @param {NextFunction} next - Express next middleware function.
+ * @returns {Promise<Response>} - Returns message to reset password with the user object.
+ */
+
+export const passwordResetOTP : RequestHandler = async (req, res, next) => {
+  try {
+    const { otp } = req.body;
+    let user = await User.findOne({ where: { otp } });
+    
+    if (!user) {
+      res.status(404).json({ message: "Invalid OTP" });
+      return;
+    }
+    res.status(200).json({ message: "Please reset your password", user });
+    return;
+  } catch (error) {
+    res.status(500).json({ message: "Error sending email", error });
   }
 }
 

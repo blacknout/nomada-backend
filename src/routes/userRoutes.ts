@@ -9,6 +9,7 @@ import {
   updateUser,
   changePassword,
   resetPassword,
+  passwordResetOTP,
   disableUser
 } from "../controllers/userController";
 import { 
@@ -16,7 +17,8 @@ import {
   validateLoginUser, 
   validateUpdateUser,
   validateChangePassword,
-  validateResetPassword
+  validateResetPassword,
+  validatePasswordOTP
 } from "../middleware/userValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -421,6 +423,7 @@ router.put("/change-password",  authenticateUser, validateChangePassword, change
  */
 router.post("/reset-password", validateResetPassword, resetPassword);
 
+router.post("/password-reset-otp", validatePasswordOTP, passwordResetOTP);
 
 /**
  * @swagger
