@@ -8,13 +8,15 @@ import {
   searchUsers,
   updateUser,
   changePassword,
+  resetPassword,
   disableUser
 } from "../controllers/userController";
 import { 
   validateRegisterUser, 
   validateLoginUser, 
   validateUpdateUser,
-  validateChangePassword
+  validateChangePassword,
+  validateResetPassword
 } from "../middleware/userValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -59,30 +61,11 @@ const router = express.Router();
  *                 type: string
  *               country:
  *                 type: string
+ *               phone:
+ *                 type: string
  *     responses:
  *       201:
- *         description: User registered
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 username:
- *                   type: string
- *                 email:
- *                   type: string
- *                 firstname:
- *                   type: string
- *                 lastname:
- *                   type: string
- *                 isDisabled:
- *                   type: string
- *                 state:
- *                   type: string
- *                 country:
- *                   type: string
+ *         description: Check your email for a confirmation code.
  *       409:
  *         description: Email already in use
  *       400:
@@ -398,6 +381,45 @@ router.put("/:userId", authenticateUser, validateUpdateUser, updateUser);
  *         description: Internal server error
  */
 router.put("/change-password",  authenticateUser, validateChangePassword, changePassword);
+
+/**
+ * @swagger
+ * /api/user/reset-password:
+ *   post:
+ *     summary: Reset password
+ *     description: Sends the user a reset password link.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: body
+ *         name: email
+ *         description: Fields to update
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             email:
+ *               type: string
+ *               example: samd2121@gmail.com
+ *     responses:
+ *       200:
+ *         description: Password reset link sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password reset link sent successfully
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: No user with this email exists.
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/reset-password", validateResetPassword, resetPassword);
 
 
 /**

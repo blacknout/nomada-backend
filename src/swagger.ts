@@ -16,7 +16,7 @@ const options = {
     servers: [
       {
         url: `${process.env.CLIENT_ORIGIN}`,
-        description: "Local server",
+        description: `${process.env.NODE_ENV == "development" ? "Local server" : "Runtime Environment"}`,
       },
     ],
   },

@@ -12,6 +12,8 @@ export const validateRegisterUser: RequestHandler[] = [
   .matches(/\d/).withMessage("Password must contain at least one number")
   .matches(/[A-Z]/).withMessage("Password must contain at least one uppercase letter")
   .matches(/[a-z]/).withMessage("Password must contain at least one lowercase letter"),
+  check("phone").isLength({ min: 7 }).withMessage("This is not a valid Phone number.")
+  .matches(/\d/).withMessage("This is not a valid phone number.").optional(),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -42,6 +44,8 @@ export const validateUpdateUser: RequestHandler[] = [
   check("state").isLength({ min: 2 }).withMessage("Enter a valid state."),
   check("country").isLength({ min: 3 }).withMessage("Select a valid country."),
   check("email").isEmail().withMessage("Invalid email format."),
+  check("phone").isLength({ min: 7 }).withMessage("This is not a valid Phone number.")
+  .matches(/\d/).withMessage("This is not a valid phone number.").optional(),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -54,6 +58,18 @@ export const validateUpdateUser: RequestHandler[] = [
 
 export const validateChangePassword: RequestHandler[] = [
   check("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    next();
+  }) as RequestHandler,
+];
+
+export const validateResetPassword: RequestHandler[] = [
+  check("email").isEmail().withMessage("Invalid email format."),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

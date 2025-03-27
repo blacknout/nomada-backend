@@ -9,13 +9,14 @@ interface UserAttributes {
   lastname: string;
   email: string;
   password: string;
-  isDisabled: boolean;
   state: string;
   country: string;
+  phone: string;
   isAdmin: boolean;
   otp?: string;
   otpExpires?: Date;
   isVerified: boolean;
+  isDisabled: boolean;
 }
 
 export class User extends Model<UserAttributes> {
@@ -25,13 +26,14 @@ export class User extends Model<UserAttributes> {
   public password!: string;
   public firstname!: string;
   public lastname!: string;
-  public isDisabled!: boolean;
   public state!: string;
   public country!: string;
+  public phone?: string;
   public isAdmin!: boolean;
   public otp?: string;
   public otpExpires?: Date;
   public isVerified!: boolean;
+  public isDisabled!: boolean;
 }
 
 User.init(
@@ -42,13 +44,14 @@ User.init(
     password: { type: DataTypes.STRING, allowNull: false },
     firstname: { type: DataTypes.STRING, allowNull: false },
     lastname: { type: DataTypes.STRING, allowNull: false },
-    isDisabled: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     state: { type: DataTypes.STRING, allowNull: false },
     country: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING },
     isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     otp: { type: DataTypes.STRING,},
     otpExpires: { type: DataTypes.DATE,},
     isVerified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    isDisabled: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   },
   {
     sequelize,
