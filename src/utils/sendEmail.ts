@@ -1,7 +1,5 @@
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import fs from "fs";
-import path from "path";
 import dotenv from "dotenv";
 import User from "../models/User";
 
@@ -15,15 +13,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendOtpEmail = async (userEmail: string) => {
+export const sendOtpEmail = async (user: User) => {
   const otp = crypto.randomInt(100000, 999999).toString();
   const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // Expires in 15 minutes
 
-  await User.update({ otp, otpExpires }, { where: { email: userEmail } });
+  await user.update({ otp, otpExpires });
 
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
-    to: userEmail,
+    to: user.email,
     subject: "Your OTP Code",
     text: `Your OTP code is: ${otp}. Please use within 15 minutes.`,
   });
@@ -33,27 +31,33 @@ export const sendOtpEmail = async (userEmail: string) => {
 
 
 
-export const sendPasswordResetEmail = async (userEmail: string, link: string) => {
+export const sendPasswordResetEmail = async (user: User, token: string) => {
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // Expires in 15 minutes
+
+  await user.update({ otp, otpExpires, token });
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: userEmail,
+    to: user.email,
     subject: "Reset Your Password",
     text: `You have made a request to reset your password. If this was not you, please ignore this email. 
-          
-    ${link}
+    Here is yout OTP.
+
+            ${otp}
     
     Please use within 15 minutes.
     
     The Nomada Team.`,
-};
+  };
 
-transporter.sendMail(mailOptions, (error, info) => {
+  transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
         console.log("Error:", error);
     } else {
         console.log("Email sent:", info.response);
     }
-});
+  });
 
   return { message: "Password reset link sent successfully" };
 };

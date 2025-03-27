@@ -11,7 +11,8 @@ interface UserAttributes {
   password: string;
   state: string;
   country: string;
-  phone: string;
+  phone?: string;
+  token?: string;
   isAdmin: boolean;
   otp?: string;
   otpExpires?: Date;
@@ -29,6 +30,7 @@ export class User extends Model<UserAttributes> {
   public state!: string;
   public country!: string;
   public phone?: string;
+  public token?: string;
   public isAdmin!: boolean;
   public otp?: string;
   public otpExpires?: Date;
@@ -47,6 +49,7 @@ User.init(
     state: { type: DataTypes.STRING, allowNull: false },
     country: { type: DataTypes.STRING, allowNull: false },
     phone: { type: DataTypes.STRING },
+    token: { type: DataTypes.STRING },
     isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     otp: { type: DataTypes.STRING,},
     otpExpires: { type: DataTypes.DATE,},
