@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
 import dotenv from "dotenv";
 import User from "../models/User";
 
@@ -26,5 +28,32 @@ export const sendOtpEmail = async (userEmail: string) => {
     text: `Your OTP code is: ${otp}. Please use within 15 minutes.`,
   });
 
-  return { message: "OTP sent successfully" };
+  return { message: `OTP sent successfully` };
+};
+
+
+
+export const sendPasswordResetEmail = async (userEmail: string, link: string) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: userEmail,
+    subject: "Reset Your Password",
+    text: `You have made a request to reset your password. If this was not you, please ignore this email. 
+          
+    ${link}
+    
+    Please use within 15 minutes.
+    
+    The Nomada Team.`,
+};
+
+transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+        console.log("Error:", error);
+    } else {
+        console.log("Email sent:", info.response);
+    }
+});
+
+  return { message: "Password reset link sent successfully" };
 };

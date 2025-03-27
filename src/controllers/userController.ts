@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { sendOtpEmail } from "../utils/sendOtp";
+import { sendOtpEmail, sendPasswordResetEmail } from "../utils/sendEmail";
 import { filterUser } from "../utils/filterUser";
 
 
@@ -21,13 +21,13 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const { email } = req.body;
 
     let user = await User.findOne({ where: { email } });
-    if (user) {
+    if (user && user.isVerified) {
       res.status(400).json({ message: "Email already exists" });
+    } else if (user && !user.isVerified) {
+      res.status(200).json({ message: (await sendOtpEmail(email)).message });
     } else {
-      const createdUser = await User.create(req.body);
-      await sendOtpEmail(email);
-      const filteredUser = filterUser(createdUser);
-      res.status(201).json({ message: "User registered", user: filteredUser });
+      await User.create(req.body);
+      res.status(201).json({ message: (await sendOtpEmail(email)).message });
     }
   } catch (err) {
     next(err);
@@ -172,7 +172,7 @@ export const searchUsers = async (req: Request, res: Response) => {
 export const updateUser: RequestHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { username, email, firstname, lastname, state, country } = req.body;
+    const { username, email, firstname, lastname, state, country, phone } = req.body;
 
     const user = await User.findByPk(id);
     if (!user) {
@@ -180,7 +180,7 @@ export const updateUser: RequestHandler = async (req, res, next) => {
     } else if (id !== req.user.id && !user.isAdmin) {
       res.status(401).json({ message: "Unauthorized action" });
     } else {
-      await user.update({ username, email, firstname, lastname, state, country });
+      await user.update({ username, email, firstname, lastname, state, country, phone });
       const filteredUser = filterUser(user);
      res.status(200).json({ message: "User updated successfully", user: filteredUser });
     }
@@ -220,6 +220,38 @@ export const changePassword: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+
+/**
+ * Reset password.
+ *
+ * @param {Request} req - Express request object containing user email in req.body
+ * @param {Response} res - Express response object.
+ * @param {NextFunction} next - Express next middleware function.
+ * @returns {Promise<Response>} - Returns success message.
+ */
+export const resetPassword : RequestHandler = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    let user = await User.findOne({ where: { email } });
+    
+    if (!user || !user.isVerified) {
+      res.status(404).json({ message: "User does not exist or has not verified their email." });
+      return;
+    }
+  
+    const token = jwt.sign({ email }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+    const resetLink = `${process.env.CLIENT_ORIGIN}/reset-password?token=${token}`;
+  
+    const sent = sendPasswordResetEmail(email, resetLink);
+    res.status(200).json({ message: (await sent).message });
+  } catch (error) {
+    res.status(500).json({ message: "Error sending email", error });
+
+  }
+}
+
+
 /**
  * Disable account.
  *
