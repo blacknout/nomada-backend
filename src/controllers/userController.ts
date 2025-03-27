@@ -27,7 +27,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     } else if (user && !user.isVerified) {
       res.status(200).json({ message: (await sendOtpEmail(user)).message });
     } else {
-      await User.create(req.body);
+      user = await User.create(req.body);
       res.status(201).json({ message: (await sendOtpEmail(user)).message });
     }
   } catch (err) {
