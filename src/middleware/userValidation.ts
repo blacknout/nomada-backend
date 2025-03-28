@@ -57,7 +57,8 @@ export const validateUpdateUser: RequestHandler[] = [
 ];
 
 export const validateChangePassword: RequestHandler[] = [
-  check("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  check("oldPassword").isLength({ min: 6 }).withMessage("Old password must be at least 6 characters"),
+  check("newPassword").isLength({ min: 6 }).withMessage("New password must be at least 6 characters"),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

@@ -283,7 +283,8 @@ export const changePassword: RequestHandler = async (req, res, next) => {
     const user = await User.findByPk(userId);
     if (!user) {
       res.status(404).json({ message: "User not found" });
-    } else if (!(await bcrypt.compare(oldPassword, user.password))) {
+    }
+    else if (!(await bcrypt.compare(oldPassword, user.password))) {
       res.status(400).json({ message: "Invalid old password" });
     } else {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
