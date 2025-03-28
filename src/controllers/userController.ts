@@ -274,7 +274,7 @@ export const updateUser: RequestHandler = async (req, res, next) => {
 export const changePassword: RequestHandler = async (req, res, next) => {
   try {
     const { newPassword, oldPassword } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.id || req.params.userId;
 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
