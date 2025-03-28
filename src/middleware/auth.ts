@@ -15,7 +15,6 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
-    console.log("🚀 ~ authenticateUser ~ decoded:", decoded)
     if (!decoded.id) {
       res.status(400).json({ message: "Invalid Token Structure" });
       return;

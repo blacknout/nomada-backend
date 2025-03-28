@@ -55,7 +55,6 @@ export const login = async (
   try {
     const user = await User.findOne({ where: { email: req.body.email } });
 
-    console.log("🚀 ~ user:", user);
     if (!user?.isVerified) {
       res
         .status(400)
@@ -240,7 +239,6 @@ export const updateUser: RequestHandler = async (req, res, next) => {
       req.body;
 
     const user = await User.findByPk(userId);
-    console.log("🚀 ~ constupdateUser:RequestHandler= ~ user:", user);
     if (!user) {
       res.status(404).json({ message: "User not found" });
     } else if (userId !== req.user.id && !user.isAdmin) {

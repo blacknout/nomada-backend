@@ -48,7 +48,6 @@ export const validateUpdateUser: RequestHandler[] = [
   .matches(/\d/).withMessage("This is not a valid phone number.").optional(),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
-    console.log("errors >>>> ", errors.array());
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
       return;
