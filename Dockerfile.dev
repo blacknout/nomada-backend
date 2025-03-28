@@ -1,0 +1,18 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+RUN apk add --no-cache postgresql-client
+
+# Don't copy node_modules or dist
+COPY . .
+
+# Use nodemon for development
+RUN npm install -g nodemon
+
+# Use ts-node for development
+CMD ["npm", "run", "dev"]

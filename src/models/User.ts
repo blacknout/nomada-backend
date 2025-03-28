@@ -49,7 +49,10 @@ User.init(
     state: { type: DataTypes.STRING, allowNull: false },
     country: { type: DataTypes.STRING, allowNull: false },
     phone: { type: DataTypes.STRING },
-    token: { type: DataTypes.STRING },
+    token: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     otp: { type: DataTypes.STRING,},
     otpExpires: { type: DataTypes.DATE,},

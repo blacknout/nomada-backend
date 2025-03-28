@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { sendOtpEmail, sendPasswordResetEmail } from "../utils/sendEmail";
 import { filterUser } from "../utils/filterUser";
-
+import { TOKEN_EXPIRATION_TIME } from "../utils/constants";
 
 /**
  * Registers a new user.
@@ -16,7 +16,11 @@ import { filterUser } from "../utils/filterUser";
  * @returns {Promise<Response>} - Returns JSON response with user details or error
  */
 
-export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { email } = req.body;
 
@@ -43,18 +47,44 @@ export const register = async (req: Request, res: Response, next: NextFunction):
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} - Returns JSON response with user token
  */
-export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const user = await User.findOne({ where: { email: req.body.email } });
 
-    if (!user.isVerified) {
-      res.status(400).json({ message: "This user is has not verified the account." });
-    } else if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+    console.log("🚀 ~ user:", user);
+    if (!user?.isVerified) {
+      res
+        .status(400)
+        .json({ message: "This user has not verified the account." });
+    } else if (
+      !user ||
+      !(await bcrypt.compare(req.body.password, user.password))
+    ) {
       res.status(400).json({ message: "Invalid credentials" });
     } else {
-      const token = jwt.sign({ id: user.id, user: user.username}, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-      await user.update({ token: token })
-      res.status(200).json({ message: "This user has been logged in", token, user });
+      const token = jwt.sign(
+        {
+          id: user.id,
+          user: user.username,
+          firstname: user.firstname,
+          email: user.email,
+          lastname: user.lastname,
+          isAdmin: user.isAdmin,
+          country: user.country,
+          state: user.state,
+          phone: user.phone,
+        },
+        process.env.JWT_SECRET as string,
+        { expiresIn: TOKEN_EXPIRATION_TIME }
+      );
+      await user.update({ token: token });
+      res
+        .status(200)
+        .json({ message: "This user has been logged in", token, user });
     }
   } catch (err) {
     next(err);
@@ -69,7 +99,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
  * @param {NextFunction} next - Null
  * @returns {Promise<Response>} - Returns JSON response
  */
-export const verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const verifyOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { email, otp } = req.body;
     const user = await User.findOne({ where: { email } });
@@ -79,9 +113,28 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
     } else if (new Date() > user.otpExpires) {
       res.status(400).json({ message: "OTP expired" });
     } else {
-      const token = jwt.sign({ id: user.id, user: user.username}, process.env.JWT_SECRET as string, { expiresIn: "1h" });
+      const token = jwt.sign(
+        {
+          id: user.id,
+          user: user.username,
+          firstname: user.firstname,
+          email: user.email,
+          lastname: user.lastname,
+          isAdmin: user.isAdmin,
+          country: user.country,
+          state: user.state,
+          phone: user.phone,
+        },
+        process.env.JWT_SECRET as string,
+        { expiresIn: TOKEN_EXPIRATION_TIME }
+      );
 
-      await user.update({ isVerified: true, otp: null, otpExpires: null, token: token });
+      await user.update({
+        isVerified: true,
+        otp: null,
+        otpExpires: null,
+        token: token,
+      });
       res.status(200).json({ message: "Email verified.", token, user });
     }
   } catch (error) {
@@ -97,8 +150,12 @@ export const verifyOtp = async (req: Request, res: Response, next: NextFunction)
  * @param {NextFunction} next - Express next middleware function.
  * @returns {Promise<Response>} - Returns JSON response with user details.
  */
-export const getCurrentUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  res.json({ user: req.user });
+export const getCurrentUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  res.status(200).json({ user: req.user });
 };
 
 /**
@@ -109,9 +166,12 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
  * @param {NextFunction} next - Express next middleware function.
  * @returns {Promise<Response>} - Returns JSON response with user details.
  */
-export const getUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-
     const { userId } = req.params;
 
     const user = await User.findByPk(userId);
@@ -152,7 +212,7 @@ export const searchUsers = async (req: Request, res: Response) => {
           { lastname: { [Op.iLike]: `%${search}%` } },
         ],
       },
-      attributes: ["id", "username", "firstname", "lastname"], 
+      attributes: ["id", "username", "firstname", "lastname"],
     });
 
     if (users.length === 0) {
@@ -175,18 +235,30 @@ export const searchUsers = async (req: Request, res: Response) => {
  */
 export const updateUser: RequestHandler = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { username, email, firstname, lastname, state, country, phone } = req.body;
+    const { userId } = req.params;
+    const { username, email, firstname, lastname, state, country, phone } =
+      req.body;
 
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(userId);
+    console.log("🚀 ~ constupdateUser:RequestHandler= ~ user:", user);
     if (!user) {
-     res.status(404).json({ message: "User not found" });
-    } else if (id !== req.user.id && !user.isAdmin) {
+      res.status(404).json({ message: "User not found" });
+    } else if (userId !== req.user.id && !user.isAdmin) {
       res.status(401).json({ message: "Unauthorized action" });
     } else {
-      await user.update({ username, email, firstname, lastname, state, country, phone });
+      await user.update({
+        username,
+        email,
+        firstname,
+        lastname,
+        state,
+        country,
+        phone,
+      });
       const filteredUser = filterUser(user);
-     res.status(200).json({ message: "User updated successfully", user: filteredUser });
+      res
+        .status(200)
+        .json({ message: "User updated successfully", user: filteredUser });
     }
   } catch (error) {
     next(error);
@@ -203,28 +275,29 @@ export const updateUser: RequestHandler = async (req, res, next) => {
  */
 export const changePassword: RequestHandler = async (req, res, next) => {
   try {
-    const { newPassword } = req.body;
+    const { newPassword, oldPassword } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
-    } 
+    }
 
     const user = await User.findByPk(userId);
     if (!user) {
       res.status(404).json({ message: "User not found" });
+    } else if (!(await bcrypt.compare(oldPassword, user.password))) {
+      res.status(400).json({ message: "Invalid old password" });
     } else {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       await user.update({ password: hashedPassword });
-  
+
       res.status(200).json({ message: "Password updated successfully" });
     }
   } catch (error) {
     next(error);
   }
 };
-
 
 /**
  * Reset password.
@@ -234,25 +307,28 @@ export const changePassword: RequestHandler = async (req, res, next) => {
  * @param {NextFunction} next - Express next middleware function.
  * @returns {Promise<Response>} - Returns success message.
  */
-export const resetPassword : RequestHandler = async (req, res, next) => {
+export const resetPassword: RequestHandler = async (req, res, next) => {
   try {
     const { email } = req.body;
     let user = await User.findOne({ where: { email } });
-    
+
     if (!user || !user.isVerified) {
-      res.status(404).json({ message: "User does not exist or has not verified their email." });
+      res.status(404).json({
+        message: "User does not exist or has not verified their email.",
+      });
       return;
     }
-  
-    const token = jwt.sign({ email }, process.env.JWT_SECRET!, { expiresIn: "15m" });
-  
+
+    const token = jwt.sign({ email }, process.env.JWT_SECRET!, {
+      expiresIn: "15m",
+    });
+
     const sent = sendPasswordResetEmail(user, token);
     res.status(200).json({ message: (await sent).message });
   } catch (error) {
     res.status(500).json({ message: "Error sending email", error });
   }
-}
-
+};
 
 /**
  * Password Reset with OTP
@@ -263,11 +339,11 @@ export const resetPassword : RequestHandler = async (req, res, next) => {
  * @returns {Promise<Response>} - Returns message to reset password with the user object.
  */
 
-export const passwordResetOTP : RequestHandler = async (req, res, next) => {
+export const passwordResetOTP: RequestHandler = async (req, res, next) => {
   try {
     const { otp } = req.body;
     let user = await User.findOne({ where: { otp } });
-    
+
     if (!user) {
       res.status(404).json({ message: "Invalid OTP" });
       return;
@@ -277,8 +353,7 @@ export const passwordResetOTP : RequestHandler = async (req, res, next) => {
   } catch (error) {
     res.status(500).json({ message: "Error sending email", error });
   }
-}
-
+};
 
 /**
  * Disable account.
@@ -291,7 +366,7 @@ export const passwordResetOTP : RequestHandler = async (req, res, next) => {
 
 export const disableUser: RequestHandler = async (req, res, next) => {
   try {
-    const userId = req.user?.id;
+    const userId = req?.user?.id;
 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
@@ -300,7 +375,7 @@ export const disableUser: RequestHandler = async (req, res, next) => {
     const user = await User.findByPk(userId);
     if (!user) {
       res.status(404).json({ message: "User not found" });
-    }  else if (user.isAdmin) {
+    } else if (user.isAdmin) {
       const { userId } = req.params;
       const user = await User.findByPk(userId);
       await user.update({ isDisabled: true });

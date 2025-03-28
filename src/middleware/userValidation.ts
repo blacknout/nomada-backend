@@ -38,16 +38,17 @@ export const validateLoginUser: RequestHandler[] = [
 ];
 
 export const validateUpdateUser: RequestHandler[] = [
-  check("username").isLength({ min: 3 }).withMessage("Username must be at least 3 characters."),
-  check("firstname").isLength({ min: 3 }).withMessage("Your first name must be at least 3 characters."),
-  check("lastname").isLength({ min: 3 }).withMessage("Your last name must be at least 3 characters."),
-  check("state").isLength({ min: 2 }).withMessage("Enter a valid state."),
-  check("country").isLength({ min: 3 }).withMessage("Select a valid country."),
-  check("email").isEmail().withMessage("Invalid email format."),
+  check("username").isLength({ min: 3 }).withMessage("Username must be at least 3 characters.").optional(),
+  check("firstname").isLength({ min: 3 }).withMessage("Your first name must be at least 3 characters.").optional(),
+  check("lastname").isLength({ min: 3 }).withMessage("Your last name must be at least 3 characters.").optional(),
+  check("state").isLength({ min: 2 }).withMessage("Enter a valid state.").optional(),
+  check("country").isLength({ min: 3 }).withMessage("Select a valid country.").optional(),
+  check("email").isEmail().withMessage("Invalid email format.").optional(),
   check("phone").isLength({ min: 7 }).withMessage("This is not a valid Phone number.")
   .matches(/\d/).withMessage("This is not a valid phone number.").optional(),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
+    console.log("errors >>>> ", errors.array());
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
       return;

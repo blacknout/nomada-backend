@@ -3,7 +3,7 @@ import sequelize from "./config/sequelize";
 
 const PORT = process.env.PORT || 9000;
 
-sequelize.sync({ force: false }).then(() => {
-  console.log("Database connected");
+sequelize.sync({ alter: true }).then(() => {
+  console.log("Database connected and schema updated");
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

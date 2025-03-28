@@ -86,7 +86,7 @@ export const addUserToGroup = async (req: Request, res: Response) => {
       res.status(404).json({ message: "Group not found" });
     }
 
-    if (req.user && req.user.is == group.createdBy) {
+    if (req.user && req.user.isAdmin) {
       const user = await User.findByPk(userId);
       if (!user) {
         res.status(404).json({ message: "User not found" });
@@ -101,7 +101,7 @@ export const addUserToGroup = async (req: Request, res: Response) => {
         res.status(201).json({ message: "User added to group successfully" });
       }
     } else {
-      res.status(403).json({ message: "You are not allowed to add users to this group." });
+      res.status(403).json({ message: "Only admins can add users to this group." });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });
@@ -125,7 +125,7 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
     if (!group) {
       res.status(404).json({ message: "Group not found" });
     }
-    if (req.user && req.user.is == group.createdBy) {
+    if (req.user && req.user.isAdmin) {
       const membership = await GroupMember.findOne({ where: { groupId, userId } });
       if (!membership) {
         res.status(404).json({ message: "User is not in the group" });
