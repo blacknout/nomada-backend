@@ -86,7 +86,7 @@ export const addUserToGroup = async (req: Request, res: Response) => {
       res.status(404).json({ message: "Group not found" });
     }
 
-    if (req.user && req.user.isAdmin) {
+    if (req.user && req.user.id === group.createdBy) {
       const user = await User.findByPk(userId);
       if (!user) {
         res.status(404).json({ message: "User not found" });
@@ -125,7 +125,7 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
     if (!group) {
       res.status(404).json({ message: "Group not found" });
     }
-    if (req.user && req.user.isAdmin) {
+    if (req.user && req.user.id === group.createdBy) {
       const membership = await GroupMember.findOne({ where: { groupId, userId } });
       if (!membership) {
         res.status(404).json({ message: "User is not in the group" });
