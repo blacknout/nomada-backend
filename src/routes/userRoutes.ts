@@ -382,7 +382,7 @@ router.put("/:userId", authenticateUser, validateUpdateUser, updateUser);
  *       500:
  *         description: Internal server error
  */
-router.put("/change-password",  authenticateUser, validateChangePassword, changePassword);
+router.put("/change-password/:userId",  authenticateUser, validateChangePassword, changePassword);
 
 /**
  * @swagger

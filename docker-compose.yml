@@ -2,17 +2,27 @@ version: "3.8"
 
 services:
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
     container_name: app
     restart: always
     depends_on:
       - db
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: ${NODE_ENV}
     ports:
       - "9000:9000"
     networks:
       - my_network
+    volumes:
+      # Mount the source code
+      - .:/app
+      # Don't mount node_modules from host
+      - /app/node_modules
+      # Don't mount dist from host
+      - /app/dist
     env_file:
       - .env
 
@@ -30,6 +40,7 @@ services:
       - "5432:5432"
     networks:
       - my_network
+
 volumes:
   pgdata:
 

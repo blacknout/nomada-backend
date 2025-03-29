@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { UserPayload } from "../../@types/userPayload";
 
@@ -15,8 +15,7 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
-
-    if (!decoded.id || !decoded.isAdmin) {
+    if (!decoded.id) {
       res.status(400).json({ message: "Invalid Token Structure" });
       return;
     }
@@ -25,6 +24,10 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
     req.user = excludingPassword;
     next();
   } catch (err) {
+    if (err instanceof TokenExpiredError) {
+      res.status(401).json({ message: "Token Expired" });
+      return;
+    }
     res.status(400).json({ message: "Invalid Token" });
   }
 };

@@ -10,6 +10,7 @@ import groupMemberRoutes from "./routes/groupMemberRoutes";
 import rideRoutes from "./routes/rideRoutes";
 import rideStopRoutes from "./routes/rideStopRoutes";
 import dotenv from "dotenv";
+import { requestLogger } from './middleware/logger';
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ setupSwagger(app);
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
+
+app.use(requestLogger);
 
 app.use("/api/", healthRoute);
 app.use("/api/user", userRoutes);

@@ -6,7 +6,11 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
+    "types": ["node", "express"],
+    "skipLibCheck": true
   },
-  "include": ["src", "@types"]
+  "include": ["src/**/*", "src/@types/**/*"],
+  "exclude": ["node_modules"]
 }
