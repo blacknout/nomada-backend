@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import "./models/associations";
 import { setupSwagger } from "./swagger";
 import healthRoute from "./routes/healthRoute";
 import userRoutes from "./routes/userRoutes";
