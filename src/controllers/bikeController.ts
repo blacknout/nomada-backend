@@ -90,7 +90,6 @@ export const updateBike = async (req: Request, res: Response) => {
 
       res.status(200).json({ message: "Bike updated successfully", bike });
       }
-
   } catch (error) {
       console.error("Error updating bike:", error);
       res.status(500).json({ message: "Internal Server Error" });
@@ -107,18 +106,20 @@ export const updateBike = async (req: Request, res: Response) => {
  */
 export const getUserBikes = async (req: Request, res: Response) => {
   try {
-      const { userId } = req.params;
+    const { userId } = req.params;
+    const bikes = await Bike.findAll({ where: { userId, notInUse: false } });
 
-      const bikes = await Bike.findAll({ where: { userId, notInUse: false } });
+    if (!bikes.length) {
+      res.status(404).json({ message: "No bikes found for this user" });
+      return; 
+    }
 
-      if (!bikes.length) {
-        res.status(404).json({ message: "No bikes found for this user" });
-      }
-
-      res.status(200).json({ bikes });
+    res.status(200).json({ bikes });
+    return;
   } catch (error) {
-      console.error("Error fetching user's bikes:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error fetching user's bikes:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+    return;
   }
 };
 
@@ -136,14 +137,15 @@ export const getCurrentUserBikes = async (req: Request, res: Response) => {
       res.status(403).json({ message: "Unauthorized" });
     } else {
       const userId = req.user?.id;
-
       const bikes = await Bike.findAll({ where: { userId, notInUse: false } });
 
       if (!bikes.length) {
         res.status(404).json({ message: "No bikes found for this user" });
+        return;
       }
 
       res.status(200).json({ bikes });
+      return;
     }
   } catch (error) {
       console.error("Error fetching current user's bikes:", error);
@@ -168,14 +170,16 @@ export const removeBike = async (req: Request, res: Response) => {
 
     if (!bike) {
       res.status(404).json({ message: "Bike not found" });
+      return;
     } else if (req.user && req.user.id === bike.userId) {
         await bike.update({
           notInUse: true
       });
       res.status(200).json({ message: "Bike has been removed." });
+      return;
     }
   } catch (error) {
-      console.error("Error updating bike:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error updating bike:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
