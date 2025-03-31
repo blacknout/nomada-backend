@@ -4,18 +4,18 @@ import { User } from "./User";
 import { Group } from "./Group";
 
 interface Coordinates {
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lng: number;
 }
 
 interface RideAttributes {
     id: string;
     groupId: string;
     createdBy: string;
-    roadCaptainId: string;
-    route: Coordinates[];
-    startLocation: Coordinates;
-    destination: Coordinates;
+    roadCaptainId?: string;
+    route?: Coordinates[];
+    startLocation?: Coordinates;
+    destination?: Coordinates;
     status: "pending" | "ongoing" | "completed";
     createdAt?: Date;
     updatedAt?: Date;
@@ -27,10 +27,10 @@ export class Ride extends Model<RideAttributes, RideCreationAttributes>  impleme
     public id!: string;
     public groupId!: string;
     public createdBy!: string;
-    public roadCaptainId!: string;
-    public route!: Coordinates[];
-    public startLocation!: Coordinates;
-    public destination!: Coordinates;
+    public roadCaptainId: string;
+    public route: Coordinates[];
+    public startLocation: Coordinates;
+    public destination: Coordinates;
     public status!: "pending" | "ongoing" | "completed";
 }
 

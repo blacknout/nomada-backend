@@ -9,7 +9,8 @@ import {
 } from "../controllers/rideStopController";
 import { 
   validateRideStopInfo,
-  validateStopQuery
+  validateStopQuery,
+  validateCreateRideStop
 } from "../middleware/rideStopValidation";
 import { 
   validateRideQuery
@@ -21,7 +22,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /stop/rideId:
+ * /stop/{rideId}:
  *   post:
  *     summary: Create a ride stop
  *     description: Records a stop during a ride due to resting, an accident, or a mechanical fault.
@@ -42,7 +43,6 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - userId
  *               - reason
  *               - location
  *             properties:
@@ -52,17 +52,17 @@ const router = express.Router();
  *                 example: "b6a1c3d7-2e8a-4b5f-b9c3-1e5d7f2a4c6b"
  *               reason:
  *                 type: string
- *                 enum: ["safe", "accident", "mechanical_fault"]
+ *                 enum: ["safe", "accident", "mechanical"]
  *                 description: The reason for the stop.
- *                 example: "mechanical_fault"
+ *                 example: "mechanical"
  *               location:
  *                 type: object
  *                 description: The GPS location of the stop.
  *                 properties:
- *                   latitude:
+ *                   lng:
  *                     type: number
  *                     example: 40.7128
- *                   longitude:
+ *                   lat:
  *                     type: number
  *                     example: -74.0060
  *     responses:
@@ -94,10 +94,10 @@ const router = express.Router();
  *                     location:
  *                       type: object
  *                       properties:
- *                         latitude:
+ *                         lng:
  *                           type: number
  *                           example: 40.7128
- *                         longitude:
+ *                         lat:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
@@ -138,15 +138,14 @@ const router = express.Router();
  */
 router.post("/:rideId",
   authenticateUser,
-  validateRideQuery,
-  validateRideStopInfo,
+  validateCreateRideStop,
   createRideStop
 );
 
 
 /**
  * @swagger
- * /stop/stopId:
+ * /stop/{stopId}:
  *   put:
  *     summary: update a ride stop
  *     description: Updates a stop modifying the location or the reason.
@@ -172,17 +171,17 @@ router.post("/:rideId",
  *             properties:
  *               reason:
  *                 type: string
- *                 enum: ["safe", "accident", "mechanical_fault"]
+ *                 enum: ["safe", "accident", "mechanical"]
  *                 description: The reason for the stop.
- *                 example: "mechanical_fault"
+ *                 example: "mechanical"
  *               location:
  *                 type: object
  *                 description: The GPS location of the stop.
  *                 properties:
- *                   latitude:
+ *                   lng:
  *                     type: number
  *                     example: 40.7128
- *                   longitude:
+ *                   lat:
  *                     type: number
  *                     example: -74.0060
  *     responses:
@@ -210,10 +209,10 @@ router.post("/:rideId",
  *                     location:
  *                       type: object
  *                       properties:
- *                         latitude:
+ *                         lng:
  *                           type: number
  *                           example: 40.7128
- *                         longitude:
+ *                         lat:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
@@ -264,7 +263,6 @@ router.post("/:rideId",
  */
 router.put("/:stopId",
   authenticateUser, 
-  validateStopQuery,
   validateRideStopInfo, 
   updateRideStop
 );
@@ -308,10 +306,10 @@ router.put("/:stopId",
  *                     location:
  *                       type: object
  *                       properties:
- *                         latitude:
+ *                         lng:
  *                           type: number
  *                           example: 40.7128
- *                         longitude:
+ *                         lat:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
@@ -349,7 +347,7 @@ router.get("/:stopId",
 
 /**
  * @swagger
- * /ride/{rideId}:
+ * /stop/ride/{rideId}:
  *   get:
  *     summary: Get all ride stops for a ride
  *     description: Fetches all stops that occurred during a specific ride.
@@ -384,14 +382,14 @@ router.get("/:stopId",
  *                         type: string
  *                       reason:
  *                         type: string
- *                         enum: ["safe", "accident", "mechanical_fault"]
+ *                         enum: ["safe", "accident", "mechanical"]
  *                       location:
  *                         type: object
  *                         properties:
- *                           latitude:
+ *                           lng:
  *                             type: number
  *                             example: 40.7128
- *                           longitude:
+ *                           lat:
  *                             type: number
  *                             example: -74.0060
  *                       isResolved:
@@ -486,15 +484,15 @@ router.get("/ride/:rideId",
  *                       example: "b6a1c3d7-2e8a-4b5f-b9c3-1e5d7f2a4c6b"
  *                     reason:
  *                       type: string
- *                       enum: ["safe", "accident", "mechanical_fault"]
- *                       example: "mechanical_fault"
+ *                       enum: ["safe", "accident", "mechanical"]
+ *                       example: "mechanical"
  *                     location:
  *                       type: object
  *                       properties:
- *                         latitude:
+ *                         lng:
  *                           type: number
  *                           example: 40.7128
- *                         longitude:
+ *                         lat:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
