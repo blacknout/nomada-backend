@@ -7,7 +7,7 @@ import { ValidationError } from "sequelize";
 import { SequelizeError } from "../config/sequelize";
 import { sendOtpEmail, sendPasswordResetEmail } from "../utils/sendEmail";
 import { filterUser } from "../utils/filterUser";
-import { TOKEN_EXPIRATION_TIME } from "../utils/constants";
+import { WEEK_TOKEN_EXPIRATION, FIFTEEN_MINUTE_TOKEN } from "../utils/constants";
 
 /**
  * Registers a new user.
@@ -91,12 +91,12 @@ export const login = async (
           phone: user.phone,
         },
         process.env.JWT_SECRET as string,
-        { expiresIn: TOKEN_EXPIRATION_TIME }
+        { expiresIn: WEEK_TOKEN_EXPIRATION }
       );
       await user.update({ token: token });
       res
         .status(200)
-        .json({ message: "This user has been logged in", token, user });
+        .json({ message: "This user has been logged in", token, user: filterUser(user.toJSON()) });
       return;
     }
   } catch (err) {
@@ -126,7 +126,7 @@ export const verifyOtp = async (
 ): Promise<void> => {
   try {
     const { email, otp } = req.body;
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email }});
 
     if (!user || user.otp !== otp) {
       res.status(400).json({ message: "Invalid OTP" });
@@ -146,7 +146,7 @@ export const verifyOtp = async (
           phone: user.phone,
         },
         process.env.JWT_SECRET as string,
-        { expiresIn: TOKEN_EXPIRATION_TIME }
+        { expiresIn: WEEK_TOKEN_EXPIRATION }
       );
 
       await user.update({
@@ -155,7 +155,7 @@ export const verifyOtp = async (
         otpExpires: null,
         token: token,
       });
-      res.status(200).json({ message: "Email verified.", token, user });
+      res.status(200).json({ message: "Email verified.", token, user: filterUser(user.toJSON()) });
     }
   } catch (err) {
     if (err instanceof ValidationError) {
@@ -207,8 +207,7 @@ export const getUser = async (
       res.status(404).json({ message: "User not found." });
       return;
     } else {
-      const filteredUser = filterUser(user);
-      res.status(200).json({ user: filteredUser });
+      res.status(200).json({ user: filterUser(user.toJSON()) });
     }
   } catch (err) {
     if (err instanceof ValidationError) {
@@ -295,10 +294,9 @@ export const updateUser: RequestHandler = async (req, res, next) => {
         country,
         phone,
       });
-      const filteredUser = filterUser(user);
       res
         .status(200)
-        .json({ message: "User updated successfully", user: filteredUser });
+        .json({ message: "User updated successfully", user: filterUser(user.toJSON()) });
     }
   } catch (err) {
     if (err instanceof ValidationError) {
@@ -375,7 +373,7 @@ export const resetPassword: RequestHandler = async (req, res, next) => {
     }
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET!, {
-      expiresIn: "15m",
+      expiresIn: FIFTEEN_MINUTE_TOKEN,
     });
 
     const sent = sendPasswordResetEmail(user, token);
@@ -410,7 +408,7 @@ export const passwordResetOTP: RequestHandler = async (req, res, next) => {
       res.status(404).json({ message: "Invalid OTP" });
       return;
     }
-    res.status(200).json({ message: "Please reset your password", user });
+    res.status(200).json({ message: "Please reset your password", user: filterUser(user.toJSON()) });
     return;
   } catch (err) {
     if (err instanceof ValidationError) {
