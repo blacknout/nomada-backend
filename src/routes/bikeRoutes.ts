@@ -235,11 +235,11 @@ router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
  *       500:
  *          description: Internal Server Error
  */
-router.get("/userbike", authenticateUser, getCurrentUserBikes);
+router.get("/", authenticateUser, getCurrentUserBikes);
 
 /**
  * @swagger
- * /api/bike/{bikeId}:
+ * /api/bike/:
  *   delete:
  *     summary: Remove a bike from user profile
  *     description: This sets a bike to notInUse
