@@ -3,13 +3,14 @@ import { ValidationError } from "sequelize";
 import { SequelizeError } from "../config/sequelize";
 import { Ride } from "../models/Ride";
 import { Group } from "../models/Group";
+import { GroupMember } from "../models/GroupMembers";
 import { User } from "../models/User";
 
 
 /**
  * @typedef {Object} GeoPoint
- * @property {number} latitude - The latitude of the location.
- * @property {number} longitude - The longitude of the location.
+ * @property {number} lat - The lat of the location.
+ * @property {number} lng - The lng of the location.
  */
 
 /**
@@ -39,8 +40,8 @@ import { User } from "../models/User";
  *   "groupId": "12345",
  *   "creatorId": "user123",
  *   "roadCaptainId": "captain567",
- *   "startLocation": { "latitude": 12.345, "longitude": 67.890 },
- *   "destination": { "latitude": 98.765, "longitude": 43.210 },
+ *   "startLocation": { "lat": 12.345, "lng": 67.890 },
+ *   "destination": { "lat": 98.765, "lng": 43.210 },
  * }
  *
  * @response 201 - Ride created successfully
@@ -51,8 +52,8 @@ import { User } from "../models/User";
  *     "groupId": "12345",
  *     "creatorId": "user123",
  *     "roadCaptainId": "captain567",
- *     "startLocation": { "latitude": 12.345, "longitude": 67.890 },
- *     "destination": { "latitude": 98.765, "longitude": 43.210 },
+ *     "startLocation": { "lat": 12.345, "lng": 67.890 },
+ *     "destination": { "lat": 98.765, "lng": 43.210 },
  *     "route": [],
  *     "status": "pending",
  *     "createdAt": "2025-03-19T12:00:00.000Z",
@@ -60,14 +61,10 @@ import { User } from "../models/User";
  *   }
  * }
  *
- * @response 400 - Bad Request (Missing required fields)
- * {
- *   "error": "Missing required fields"
- * }
  *
- *  @response 404 - Bad Request Group not found
+ *  @response 404 - Bad Request Group not foundor not a member
  * {
- *   "error": "Missing required fields"
+ *   "error": "Group does not exist or this user is not part of this group."
  * }
  * 
  * @response 500 - Internal Server Error
@@ -78,19 +75,19 @@ import { User } from "../models/User";
 export const createRide = async (req: Request, res: Response) => {
   try {
     const { groupId, roadCaptainId, startLocation, destination } = req.body;
-    const createdBy = req.user?.id;
+    const userId = req.user?.id;
 
-    if (!createdBy) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
-    } 
-
-    const group = await Group.findByPk(groupId);
-    if (!group) {
-      res.status(404).json({ message: "Group not found" });
+    const isMember = await GroupMember.count({
+      where: { userId, groupId },
+    });
+    if (isMember < 1) {
+      res
+        .status(404)
+        .json({ message: "Group does not exist or this user is not part of this group." });
       return;
     }
 
+    const createdBy = userId;
     const newRide = await Ride.create({
       groupId,
       createdBy,
@@ -100,7 +97,10 @@ export const createRide = async (req: Request, res: Response) => {
       status: "pending",
     });
 
-    res.status(201).json({ message: "Ride created successfully", ride: newRide });
+    res.status(201)
+      .json({ message: "Ride created successfully", 
+      ride: newRide
+    });
     return;
   } catch (err) {
     if (err instanceof ValidationError) {
@@ -117,8 +117,8 @@ export const createRide = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} GeoPoint
- * @property {number} latitude - The latitude of the location.
- * @property {number} longitude - The longitude of the location.
+ * @property {number} lat - The lat of the location.
+ * @property {number} lng - The lng of the location.
  */
 
 /**
@@ -153,8 +153,8 @@ export const createRide = async (req: Request, res: Response) => {
  *   "roadCaptainId": "captain567",
  *   "status": "ongoing",
  *   "route": [
- *     { "latitude": 13.123, "longitude": 68.456 },
- *     { "latitude": 14.789, "longitude": 69.789 }
+ *     { "lat": 13.123, "lng": 68.456 },
+ *     { "lat": 14.789, "lng": 69.789 }
  *   ]
  * }
  *
@@ -166,8 +166,8 @@ export const createRide = async (req: Request, res: Response) => {
  *     "groupId": "12345",
  *     "creatorId": "user123",
  *     "roadCaptainId": "captain567",
- *     "startLocation": { "latitude": 12.345, "longitude": 67.890 },
- *     "destination": { "latitude": 98.765, "longitude": 43.210 },
+ *     "startLocation": { "lat": 12.345, "lng": 67.890 },
+ *     "destination": { "lat": 98.765, "lng": 43.210 },
  *     "status": "ongoing",
  *     "createdAt": "2025-03-19T12:00:00.000Z",
  *     "updatedAt": "2025-03-19T12:30:00.000Z"
@@ -229,8 +229,8 @@ export const updateRide = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} GeoPoint
- * @property {number} latitude - The latitude of the location.
- * @property {number} longitude - The longitude of the location.
+ * @property {number} lat - The lat of the location.
+ * @property {number} lng - The lng of the location.
  */
 
 /**
@@ -269,8 +269,8 @@ export const updateRide = async (req: Request, res: Response) => {
  *   "groupId": "group567",
  *   "creatorId": "user123",
  *   "roadCaptainId": "captain789",
- *   "startLocation": { "latitude": 12.345, "longitude": 67.890 },
- *   "destination": { "latitude": 98.765, "longitude": 43.210 },
+ *   "startLocation": { "lat": 12.345, "lng": 67.890 },
+ *   "destination": { "lat": 98.765, "lng": 43.210 },
  *   "started": "ongoing",
  *   "createdAt": "2025-03-19T12:00:00.000Z",
  *   "updatedAt": "2025-03-19T12:30:00.000Z"
@@ -389,8 +389,8 @@ export const deleteRide = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} Location
- * @property {number} latitude - The latitude of the GPS point.
- * @property {number} longitude - The longitude of the GPS point.
+ * @property {number} lat - The lat of the GPS point.
+ * @property {number} lng - The lng of the GPS point.
  */
 
 /**
@@ -416,8 +416,8 @@ export const deleteRide = async (req: Request, res: Response) => {
  * POST /api/ride/route/ride123
  * {
  *   "route": [
- *     { "latitude": 37.7749, "longitude": -122.4194 },
- *     { "latitude": 37.7750, "longitude": -122.4189 }
+ *     { "lat": 37.7749, "lng": -122.4194 },
+ *     { "lat": 37.7750, "lng": -122.4189 }
  *   ]
  * }
  *
@@ -457,13 +457,14 @@ export const saveRideRoute = async (req: Request, res: Response) => {
       return;
     }
 
-    if (ride.status == "completed" && 
-      ride.route.length < 1 && 
-      route.length) {
+    if (ride.route) {
+      res.status(400).json({ message: "This route has already been saved." });
+      return
+    } else if (ride.status == "completed" && route.length) {
       await ride.update({ route });
       res.status(200).json({ message: "Ride route saved."});
       return;
-    } else {
+    } else if (ride.status !== "completed") {
       res.status(400).json({ message: "Cannot save ride route until ride is completed." });
       return;
     }
@@ -482,8 +483,8 @@ export const saveRideRoute = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} Location
- * @property {number} latitude - The latitude of the GPS point.
- * @property {number} longitude - The longitude of the GPS point.
+ * @property {number} lat - The lat of the GPS point.
+ * @property {number} lng - The lng of the GPS point.
  */
 
 /**
@@ -511,8 +512,8 @@ export const saveRideRoute = async (req: Request, res: Response) => {
  * @response 200 - Route retrieved successfully
  * {
  *   "route": [
- *     { "latitude": 37.7749, "longitude": -122.4194 },
- *     { "latitude": 37.7750, "longitude": -122.4189 }
+ *     { "lat": 37.7749, "lng": -122.4194 },
+ *     { "lat": 37.7750, "lng": -122.4189 }
  *   ]
  * }
  *

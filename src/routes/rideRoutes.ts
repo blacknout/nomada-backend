@@ -10,7 +10,8 @@ import {
 } from "../controllers/rideController";
 import { 
   validateRideInfo,
-  validateRideQuery
+  validateRideQuery,
+  validateRideRoute
 } from "../middleware/rideValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -18,7 +19,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /rides:
+ * /ride:
  *   post:
  *     summary: Create a new ride
  *     description: Allows a group to create a ride with essential details. The route can only be added when the ride is completed.
@@ -34,10 +35,6 @@ const router = express.Router();
  *             type: object
  *             required:
  *               - groupId
- *               - creatorId
- *               - roadCaptainId
- *               - startLocation
- *               - destination
  *             properties:
  *               groupId:
  *                 type: string
@@ -51,19 +48,19 @@ const router = express.Router();
  *               startLocation:
  *                 type: object
  *                 properties:
- *                   latitude:
+ *                   lat:
  *                     type: number
  *                     example: 37.7749
- *                   longitude:
+ *                   lng:
  *                     type: number
  *                     example: -122.4194
  *               destination:
  *                 type: object
  *                 properties:
- *                   latitude:
+ *                   lat:
  *                     type: number
  *                     example: 34.0522
- *                   longitude:
+ *                   lng:
  *                     type: number
  *                     example: -118.2437
  *               status:
@@ -103,19 +100,19 @@ const router = express.Router();
  *                     startLocation:
  *                       type: object
  *                       properties:
- *                         latitude:
+ *                         lat:
  *                           type: number
  *                           example: 37.7749
- *                         longitude:
+ *                         lng:
  *                           type: number
  *                           example: -122.4194
  *                     destination:
  *                       type: object
  *                       properties:
- *                         latitude:
+ *                         lat:
  *                           type: number
  *                           example: 34.0522
- *                         longitude:
+ *                         lng:
  *                           type: number
  *                           example: -118.2437
  *                     status:
@@ -137,8 +134,8 @@ router.post("/",
 
 /**
  * @swagger
- * /rides/{rideId}:
- *   patch:
+ * /ride/{rideId}:
+ *   put:
  *     summary: Update ride details
  *     description: Allows updating the ride status and other details. The route can only be updated if the ride is completed.
  *     tags:
@@ -174,10 +171,10 @@ router.post("/",
  *                 items:
  *                   type: object
  *                   properties:
- *                     latitude:
+ *                     lat:
  *                       type: number
  *                       example: 37.7749
- *                     longitude:
+ *                     lng:
  *                       type: number
  *                       example: -122.4194
  *     responses:
@@ -215,10 +212,10 @@ router.post("/",
  *                       items:
  *                         type: object
  *                         properties:
- *                           latitude:
+ *                           lat:
  *                             type: number
  *                             example: 37.7749
- *                           longitude:
+ *                           lng:
  *                             type: number
  *                             example: -122.4194
  *       400:
@@ -282,19 +279,19 @@ router.put("/:rideId",
  *                 startLocation:
  *                   type: object
  *                   properties:
- *                     latitude:
+ *                     lat:
  *                       type: number
  *                       example: 40.7128
- *                     longitude:
+ *                     lng:
  *                       type: number
  *                       example: -74.0060
  *                 endLocation:
  *                   type: object
  *                   properties:
- *                     latitude:
+ *                     lat:
  *                       type: number
  *                       example: 34.0522
- *                     longitude:
+ *                     lng:
  *                       type: number
  *                       example: -118.2437
  *                 createdAt:
@@ -386,7 +383,7 @@ router.delete("/:rideId",
 
 /**
  * @swagger
- * /route/{rideId}:
+ * /ride/route/{rideId}:
  *   post:
  *     summary: Save ride route
  *     description: Saves the route for a ride as an array of GPS coordinates. The route can only be updated once the ride is completed.
@@ -415,10 +412,10 @@ router.delete("/:rideId",
  *                 items:
  *                   type: object
  *                   properties:
- *                     latitude:
+ *                     lat:
  *                       type: number
  *                       example: 37.7749
- *                     longitude:
+ *                     lng:
  *                       type: number
  *                       example: -122.4194
  *     responses:
@@ -468,12 +465,13 @@ router.delete("/:rideId",
 router.post("/route/:rideId", 
   authenticateUser,
   validateRideQuery,
+  validateRideRoute,
   saveRideRoute
 );
 
 /**
  * @swagger
- * /ride/{rideId}:
+ * /ride/route/{rideId}:
  *   get:
  *     summary: Get ride route
  *     description: Retrieves the saved route for a specific ride, represented as an array of GPS coordinates.
@@ -504,10 +502,10 @@ router.post("/route/:rideId",
  *                   items:
  *                     type: object
  *                     properties:
- *                       latitude:
+ *                       lat:
  *                         type: number
  *                         example: 37.7749
- *                       longitude:
+ *                       lng:
  *                         type: number
  *                         example: -122.4194
  *       401:
@@ -550,7 +548,7 @@ router.get("/route/:rideId",
 
 /**
  * @swagger
- * /ride/{rideId}:
+ * /ride/route/{rideId}:
  *   delete:
  *     summary: Delete ride route
  *     description: Deletes the saved route for a specific ride. Only allowed if the ride has been completed.
