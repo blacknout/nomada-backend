@@ -15,9 +15,9 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 });
 
 export interface SequelizeError {
-  name: string; // Error name (e.g., "SequelizeValidationError")
-  message: string; // Main error message
-  errors: ValidationErrorItem[]; // Array of validation errors
+  name: string;
+  message: string;
+  errors: ValidationErrorItem[];
 }
 
 export default sequelize;
