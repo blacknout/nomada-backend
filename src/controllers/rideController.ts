@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { ValidationError } from "sequelize";
+import { SequelizeError } from "../config/sequelize";
 import { Ride } from "../models/Ride";
 import { Group } from "../models/Group";
 import { User } from "../models/User";
@@ -80,11 +82,13 @@ export const createRide = async (req: Request, res: Response) => {
 
     if (!createdBy) {
       res.status(401).json({ message: "Unauthorized" });
+      return;
     } 
 
     const group = await Group.findByPk(groupId);
     if (!group) {
       res.status(404).json({ message: "Group not found" });
+      return;
     }
 
     const newRide = await Ride.create({
@@ -97,8 +101,16 @@ export const createRide = async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ message: "Ride created successfully", ride: newRide });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    return;
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -185,6 +197,7 @@ export const updateRide = async (req: Request, res: Response) => {
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
+      return;
     }
 
     if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
@@ -196,12 +209,21 @@ export const updateRide = async (req: Request, res: Response) => {
       await ride.save();
   
       res.status(200).json({ message: "Ride updated successfully", ride });
+      return;
     } else {
       res.status(403).json({ message: "You are not allowed to update this ride." });
+      return;
     }
 
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -278,11 +300,19 @@ export const getRideDetails = async (req: Request, res: Response) => {
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
+      return;
     }
-
-      res.status(200).json({ ride });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    res.status(200).json({ ride });
+    return;
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -334,16 +364,26 @@ export const deleteRide = async (req: Request, res: Response) => {
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
+      return;
     }
 
     if (ride.createdBy !== userId && ride.roadCaptainId !== userId) {
       res.status(403).json({ message: "Unauthorized to delete this ride" });
+      return;
     }
     await ride.destroy();
 
     res.status(200).json({ message: "Ride deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    return;
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -414,6 +454,7 @@ export const saveRideRoute = async (req: Request, res: Response) => {
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
+      return;
     }
 
     if (ride.status == "completed" && 
@@ -421,11 +462,20 @@ export const saveRideRoute = async (req: Request, res: Response) => {
       route.length) {
       await ride.update({ route });
       res.status(200).json({ message: "Ride route saved."});
+      return;
     } else {
       res.status(400).json({ message: "Cannot save ride route until ride is completed." });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -491,13 +541,23 @@ export const getRideRoute = async (req: Request, res: Response) => {
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
+      return;
     } else if (!ride.route || ride.route.length === 0) {
       res.status(404).json({ message: "No route data available for this ride" });
+      return;
     } else {
       res.status(200).json({ route: ride.route });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -550,16 +610,26 @@ export const deleteRideRoute = async (req: Request, res: Response) => {
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
+      return;
     }
 
     if (ride.createdBy !== userId) {
       res.status(403).json({ message: "You are not allowed to delete this route" });
+      return;
     } else if (ride.route || ride.route.length > 0) {
       ride.route = [];
       await ride.save();
       res.status(200).json({ message: "Ride route deleted successfully" });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };

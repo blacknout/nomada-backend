@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { ValidationError } from "sequelize";
+import { SequelizeError } from "../config/sequelize";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
 import User from "../models/User";
@@ -30,8 +32,15 @@ export const joinGroup = async (req: Request, res: Response) => {
 
       res.status(200).json({ message: "Successfully joined the group" });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -46,25 +55,31 @@ export const joinGroup = async (req: Request, res: Response) => {
 export const getGroupUsers = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
+    const groupWithUsers = await Group.findOne({
+      where: { id: groupId },
+      include: {
+        model: User,
+        as: "users", 
+        attributes: ["id", "username", "email"],
+      },
+    });
 
-    const group = await Group.findByPk(groupId, {
-      include: [
-        {
-          model: User,
-          attributes: ["id", "username", "firstname", "lastname"],
-          through: { attributes: [] },
-          as: "users",
-        },
-      ],
-  });
-
-  if (!group) {
+    if (!groupWithUsers) {
       res.status(404).json({ message: "Group not found" });
-  }
+      return;
+    }
 
-    res.status(200).json({ users: group.users });
-  } catch (error) {
-      res.status(500).json({ message: "Internal server error", error });
+    res.status(200).json({ groupWithUsers });
+    return;
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -84,27 +99,39 @@ export const addUserToGroup = async (req: Request, res: Response) => {
     const group = await Group.findByPk(groupId);
     if (!group) {
       res.status(404).json({ message: "Group not found" });
+      return;
     }
 
     if (req.user && req.user.id === group.createdBy) {
       const user = await User.findByPk(userId);
       if (!user) {
         res.status(404).json({ message: "User not found" });
+        return;
       }
   
       const existingMembership = await GroupMember.findOne({ where: { groupId, userId } });
       if (existingMembership) {
         res.status(400).json({ message: "User is already in the group" });
+        return;
       } else {
         await GroupMember.create({ groupId, userId });
   
         res.status(201).json({ message: "User added to group successfully" });
+        return;
       }
     } else {
       res.status(403).json({ message: "Only admins can add users to this group." });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -124,19 +151,28 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
     const group = await Group.findByPk(groupId);
     if (!group) {
       res.status(404).json({ message: "Group not found" });
+      return;
     }
     if (req.user && req.user.id === group.createdBy) {
       const membership = await GroupMember.findOne({ where: { groupId, userId } });
       if (!membership) {
         res.status(404).json({ message: "User is not in the group" });
+        return;
       }
 
       await GroupMember.destroy({ where: { groupId, userId } });
-
       res.status(200).json({ message: "User removed from group successfully" });
+      return;
     }
-  } catch (error) {
-      res.status(500).json({ message: "Internal server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -151,22 +187,31 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
  */
 export const leaveGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.body;
+    const { groupId } = req.params;
     const userId = req.user?.id;
 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
+      return;
     } else {
       const membership = await GroupMember.findOne({ where: { groupId, userId } });
       if (!membership) {
         res.status(404).json({ message: "You are not a member of this group" });
+        return;
       }
 
       await GroupMember.destroy({ where: { groupId, userId } });
-
       res.status(200).json({ message: "You have left the group successfully" });
+      return;
     }
-  } catch (error) {
-      res.status(500).json({ message: "Internal server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };

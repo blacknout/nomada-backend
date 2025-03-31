@@ -15,7 +15,7 @@ export const validateGroupInfo: RequestHandler[] = [
 ];
 
 export const validateGroupQuery: RequestHandler[] = [
-  param("groupId").notEmpty().withMessage("Group ID is required")
+  check("groupId").notEmpty().withMessage("Group ID is required")
   .isUUID().withMessage("Group ID must be a valid UUID"),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

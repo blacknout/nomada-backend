@@ -3,6 +3,8 @@ import { Op } from "sequelize";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { ValidationError } from "sequelize";
+import { SequelizeError } from "../config/sequelize";
 import { sendOtpEmail, sendPasswordResetEmail } from "../utils/sendEmail";
 import { filterUser } from "../utils/filterUser";
 import { WEEK_TOKEN_EXPIRATION, FIFTEEN_MINUTE_TOKEN } from "../utils/constants";
@@ -30,12 +32,21 @@ export const register = async (
       return;
     } else if (user && !user.isVerified) {
       res.status(200).json({ message: (await sendOtpEmail(user)).message });
+      return;
     } else {
       user = await User.create(req.body);
       res.status(201).json({ message: (await sendOtpEmail(user)).message });
+      return;
     }
   } catch (err) {
-    next(err);
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -59,11 +70,13 @@ export const login = async (
       res
         .status(400)
         .json({ message: "This user has not verified the account." });
+        return;
     } else if (
       !user ||
       !(await bcrypt.compare(req.body.password, user.password))
     ) {
       res.status(400).json({ message: "Invalid credentials" });
+      return;
     } else {
       const token = jwt.sign(
         {
@@ -83,10 +96,18 @@ export const login = async (
       await user.update({ token: token });
       res
         .status(200)
-        .json({ message: "This user has been logged in", token, user: filterUser(user.toJSON())  });
+        .json({ message: "This user has been logged in", token, user: filterUser(user.toJSON()) });
+      return;
     }
   } catch (err) {
-    next(err);
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -136,8 +157,15 @@ export const verifyOtp = async (
       });
       res.status(200).json({ message: "Email verified.", token, user: filterUser(user.toJSON()) });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -182,7 +210,14 @@ export const getUser = async (
       res.status(200).json({ user: filterUser(user.toJSON()) });
     }
   } catch (err) {
-    next(err);
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -218,8 +253,15 @@ export const searchUsers = async (req: Request, res: Response) => {
     } else {
       res.status(200).json({ users });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -256,8 +298,15 @@ export const updateUser: RequestHandler = async (req, res, next) => {
         .status(200)
         .json({ message: "User updated successfully", user: filterUser(user.toJSON()) });
     }
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -291,8 +340,15 @@ export const changePassword: RequestHandler = async (req, res, next) => {
 
       res.status(200).json({ message: "Password updated successfully" });
     }
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -322,8 +378,15 @@ export const resetPassword: RequestHandler = async (req, res, next) => {
 
     const sent = sendPasswordResetEmail(user, token);
     res.status(200).json({ message: (await sent).message });
-  } catch (error) {
-    res.status(500).json({ message: "Error sending email", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -347,8 +410,15 @@ export const passwordResetOTP: RequestHandler = async (req, res, next) => {
     }
     res.status(200).json({ message: "Please reset your password", user: filterUser(user.toJSON()) });
     return;
-  } catch (error) {
-    res.status(500).json({ message: "Error sending email", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -381,7 +451,14 @@ export const disableUser: RequestHandler = async (req, res, next) => {
       await user.update({ isDisabled: true });
       res.status(200).json({ message: "This account has been disabled." });
     }
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };

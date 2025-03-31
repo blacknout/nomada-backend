@@ -144,7 +144,7 @@ export const validatePasswordOTP: RequestHandler[] = [
 ];
 
 export const validateUserQuery: RequestHandler[] = [
-  param("userId")
+  check("userId")
     .notEmpty()
     .withMessage("User ID is required")
     .isUUID()

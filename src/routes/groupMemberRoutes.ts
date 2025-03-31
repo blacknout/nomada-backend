@@ -7,8 +7,11 @@ import {
   leaveGroup
 } from "../controllers/groupMemberController";
 import {
-  validateGroupQuery
+  validateGroupQuery,
 } from "../middleware/groupValidation";
+import {
+  validateUserQuery
+} from "../middleware/userValidation";
 import { authenticateUser } from '../middleware/auth'
 
 const router = express.Router();
@@ -125,7 +128,11 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
  *       500:
  *         description: Internal server error
  */
-router.post("/add-user", authenticateUser, addUserToGroup);
+router.post("/add-user",
+  authenticateUser,
+  validateUserQuery,
+  validateGroupQuery,
+  addUserToGroup);
 
 /**
  * @swagger
@@ -159,28 +166,32 @@ router.post("/add-user", authenticateUser, addUserToGroup);
  *       500:
  *         description: Internal server error
  */
-router.post("/remove-user", authenticateUser, removeUserFromGroup);
+router.post("/remove-user", 
+  authenticateUser,
+  validateUserQuery,
+  validateGroupQuery,
+  removeUserFromGroup);
 
 
 /**
  * @swagger
- * /api/member/leave-group:
- *   post:
+ * /api/member/leave-group/{groupId}:
+ *   delete:
  *     summary: Leave a group
  *     description: This will make the authenticated user exit a group
  *     tags:
  *       - Members
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - groupId
- *             properties:
- *               groupId:
- *                 type: string
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         description: The Group ID to be deleted
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             groupId:
+ *               type: string
+ *               example: 550e8400-e29b-41d4-a716-446655440000
  *     responses:
  *       200:
  *         description: You have left the group successfully
@@ -191,7 +202,10 @@ router.post("/remove-user", authenticateUser, removeUserFromGroup);
  *       500:
  *         description: Internal server error
  */
-router.post("/leave-group", authenticateUser, leaveGroup);
+router.delete("/leave-group/:groupId", 
+  authenticateUser, 
+  validateGroupQuery,
+  leaveGroup);
 
 
 export default router;

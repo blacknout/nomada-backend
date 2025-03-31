@@ -142,7 +142,7 @@ router.put("/:groupId",
 
 /**
  * @swagger
- * /api/group/usergroup:
+ * /api/group/:
  *   get:
  *     summary: Get all the groups the current user is part of
  *     tags:
@@ -170,7 +170,7 @@ router.put("/:groupId",
  *       500:
  *          description: Internal Server Error
  */
-router.get("/usergroup", authenticateUser, getCurrentUserGroups);
+router.get("/", authenticateUser, getCurrentUserGroups);
 
 /**
  * @swagger
