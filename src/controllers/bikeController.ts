@@ -1,4 +1,6 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
+import { ValidationError } from "sequelize";
+import { SequelizeError } from "../config/sequelize";
 import Bike from "../models/Bike";
 import User from "../models/User";
 
@@ -30,8 +32,16 @@ export const createBike = async (req: Request, res: Response, next: NextFunction
       message: "Bike created successfully.",
       bike: newBike,
     });
+    return;
   } catch (err) {
-    next(err);
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -46,20 +56,25 @@ export const createBike = async (req: Request, res: Response, next: NextFunction
  */
 export const getBike = async (req: Request, res: Response) => {
   try {
-      const { bikeId } = req.params;
+    const { bikeId } = req.params;
 
-      const bike = await Bike.findByPk(bikeId, {
-          include: [{ model: User, attributes: ["id", "username"] }],
-      });
+    const bike = await Bike.findByPk(bikeId, {
+      include: [{ model: User, attributes: ["id", "username"] }],
+    });
 
-      if (!bike) {
-        res.status(404).json({ message: "Bike not found" });
-      }
-
-      res.status(200).json({ bike });
-  } catch (error) {
-      console.error("Error fetching bike:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+    if (!bike) {
+      res.status(404).json({ message: "Bike not found" });
+    }
+    res.status(200).json({ bike });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -90,9 +105,15 @@ export const updateBike = async (req: Request, res: Response) => {
 
       res.status(200).json({ message: "Bike updated successfully", bike });
       }
-  } catch (error) {
-      console.error("Error updating bike:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -116,10 +137,15 @@ export const getUserBikes = async (req: Request, res: Response) => {
 
     res.status(200).json({ bikes });
     return;
-  } catch (error) {
-    console.error("Error fetching user's bikes:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-    return;
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -147,9 +173,15 @@ export const getCurrentUserBikes = async (req: Request, res: Response) => {
       res.status(200).json({ bikes });
       return;
     }
-  } catch (error) {
-      console.error("Error fetching current user's bikes:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -178,8 +210,14 @@ export const removeBike = async (req: Request, res: Response) => {
       res.status(200).json({ message: "Bike has been removed." });
       return;
     }
-  } catch (error) {
-    console.error("Error updating bike:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };

@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize";
+import { Sequelize, ValidationErrorItem } from "sequelize";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -13,5 +13,11 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   },
   logging: false,
 });
+
+export interface SequelizeError {
+  name: string; // Error name (e.g., "SequelizeValidationError")
+  message: string; // Main error message
+  errors: ValidationErrorItem[]; // Array of validation errors
+}
 
 export default sequelize;

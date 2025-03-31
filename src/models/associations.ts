@@ -14,12 +14,15 @@ User.hasMany(Group, { foreignKey: "createdBy", onDelete: "CASCADE" });
 Group.belongsTo(User, { foreignKey: "createdBy" });
 
 // A User can be in many Groups (through GroupMember)
-User.belongsToMany(Group, { through: GroupMember, foreignKey: "userId" });
-Group.belongsToMany(User, { through: GroupMember, foreignKey: "groupId", as: "users" });
+User.belongsToMany(Group, { through: GroupMember, foreignKey: "userId", onDelete: "CASCADE"});
+Group.belongsToMany(User, { through: GroupMember, foreignKey: "groupId", as: "users", onDelete: "CASCADE" });
 
 // A Group has many Rides
 Group.hasMany(Ride, { foreignKey: "groupId", onDelete: "CASCADE" });
+Group.hasMany(GroupMember, { foreignKey: "groupId",onDelete: "CASCADE" });
 Ride.belongsTo(Group, { foreignKey: "groupId" });
+
+GroupMember.belongsTo(Group, { foreignKey: "groupId" });
 
 // A User can create many Rides
 User.hasMany(Ride, { foreignKey: "createdBy", onDelete: "CASCADE" });

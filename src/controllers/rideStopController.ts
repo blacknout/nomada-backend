@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { ValidationError } from "sequelize";
+import { SequelizeError } from "../config/sequelize";
 import { RideStop } from "../models/RideStop";
 
 /**
@@ -44,9 +46,16 @@ export const createRideStop = async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ message: "Ride stop recorded", rideStop });
-    
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    return;
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -59,10 +68,10 @@ export const updateRideStop = async (req: Request, res: Response) => {
     const stop = await RideStop.findByPk(stopId);
     if (!stop) {
       res.status(404).json({ message: "Stop not found." });
-    } else if (!reason && !location) {
-      res.status(400).json({ message: "Missing required fields" });
+      return;
     } else if (userId !== stop.userId) {
       res.status(403).json({ message: "You are not authorized to update this stop." });
+      return;
     } else {
       if (reason) stop.reason = reason;
       if (location) stop.location = location;
@@ -70,9 +79,17 @@ export const updateRideStop = async (req: Request, res: Response) => {
       await stop.save();
   
       res.status(200).json({ message: "Ride stop has been updated", stop });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -115,11 +132,20 @@ export const getAllRideStops = async (req: Request, res: Response) => {
 
     if (stops.length < 1) {
       res.status(404).json({ message: "No stops found for this ride." });
+      return;
     } else {
       res.status(200).json({ stops });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -157,11 +183,20 @@ export const getRideStop = async (req: Request, res: Response) => {
 
     if (!stop) {
       res.status(404).json({ message: "Ride stop not found." });
+      return;
     } else {
       res.status(200).json({ stop });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -217,17 +252,28 @@ export const resolveRideStop = async (req: Request, res: Response) => {
 
     if (!rideStop) {
       res.status(404).json({ message: "Ride stop not found" });
+      return;
     } else if (rideStop.userId !== userId) {
       res.status(403).json({ message: "Not authorized to update this stop" });
+      return;
     } else if (rideStop.isResolved) {
       res.status(400).json({ message: "Ride stop is already resolved." });
+      return;
     } else {
       rideStop.isResolved = true;
       await rideStop.save();
       res.status(200).json({ message: "Ride stop has been resolved", rideStop });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
 
@@ -280,13 +326,23 @@ export const deleteRideStop = async (req: Request, res: Response) => {
 
     if (!rideStop) {
       res.status(404).json({ message: "Ride stop not found" });
+      return;
     } else if (rideStop.userId !== userId) {
       res.status(403).json({ message: "Not authorized to delete this stop" });
+      return;
     } else {
       await rideStop.destroy();
       res.status(200).json({ message: "Ride stop deleted successfully." });
+      return;
     }
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const sequelizeError: SequelizeError = err;
+      res.status(500).json({ error: sequelizeError.errors});
+      return;
+    } else {
+      res.status(500).json({ error: err });
+      return;
+    }
   }
 };
