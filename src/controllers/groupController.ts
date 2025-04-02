@@ -126,7 +126,7 @@ export const getCurrentUserGroups = async (req: Request, res: Response) => {
     const groups = await Group.findAll({ where: { createdBy } });
 
     if (!groups.length) {
-      res.status(404).json({ message: "No groups found for this user" });
+      res.status(204).json({ message: "No groups found for this user" });
       return;
     }
     res.status(200).json({ groups });
