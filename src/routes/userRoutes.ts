@@ -246,8 +246,8 @@ router.get("/:userId", authenticateUser, getUser);
  * @swagger
  * /api/user/:
  *   get:
- *     summary: Search users by username, firstname or lastname
- *     description: Returns a list of users matching the search query.
+ *     summary: Search users by username, firstname, lastname or bike plate number
+ *     description: Returns a list of users or bike matching the search query.
  *     tags:
  *       - Users
  *     parameters:
@@ -256,7 +256,7 @@ router.get("/:userId", authenticateUser, getUser);
  *         schema:
  *           type: string
  *         required: true
- *         description: usernmae of the user to search for
+ *         description: username of the user to search for
  *     responses:
  *       200:
  *         description: List of users matching the search criteria
@@ -279,7 +279,7 @@ router.get("/:userId", authenticateUser, getUser);
  *                       lastname:
  *                         type: string
  *       400:
- *         description: Bad request - missing name query parameter
+ *         description: A query parameter is required
  *       404:
  *         description: No users found
  *       500:

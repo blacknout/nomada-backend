@@ -2,13 +2,16 @@ import express from "express";
 import {
   createGroup,
   getGroup,
+  searchGroup,
   updateGroupDetails,
+  changeGroupPrivacy,
   getCurrentUserGroups,
   deleteGroup
 } from "../controllers/groupController";
 import { 
   validateGroupInfo,
-  validateGroupQuery
+  validateGroupQuery,
+  validateGroupPrivacy
 } from "../middleware/groupValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -35,6 +38,8 @@ const router = express.Router();
  *                 type: string
  *               description:
  *                 type: string
+ *               userIds:
+ *                 type: array
  *     responses:
  *       201:
  *         description: Group created successfully
@@ -82,6 +87,101 @@ router.post("/", authenticateUser, validateGroupInfo, createGroup);
  *          description: Internal Server Error
  */
 router.get("/:groupId", authenticateUser, validateGroupQuery, getGroup);
+
+
+/**
+ * @swagger
+ * /api/group/:
+ *   get:
+ *     summary: Search group by name or description
+ *     description: Returns a list of groups matching the search query.
+ *     tags:
+ *       - Group
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: group name to search for
+ *     responses:
+ *       200:
+ *         description: List of groups matching the search criteria
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *       400:
+ *         description: A query parameter is required
+ *       404:
+ *         description: No groups found
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/", authenticateUser, searchGroup);
+
+/**
+ * @swagger
+ * /api/group/{groupId}:
+ *   patch:
+ *     summary: Update group privacy
+ *     description: Updates the privacy of the group.
+ *     tags:
+ *       - Group
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         schema :
+ *            type: string
+ *         description: The ID of the group to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               privacy:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Group privacy updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Group privacy updated
+ *                 user:
+ *                   $ref: '#/components/schemas/Group'
+ *       400:
+ *         description: Group ID is required
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Group not found
+ *       403:
+ *         descriptoion: You are not allowed to update this group privacy.
+ *       500:
+ *         description: Internal server error
+ */
+router.patch("/:groupId", authenticateUser, validateGroupPrivacy, changeGroupPrivacy);
 
 /**
  * @swagger

@@ -9,7 +9,9 @@
     "strictNullChecks": false,
     "typeRoots": ["./src/@types", "./node_modules/@types"],
     "types": ["node", "express"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*", "src/@types/**/*"],
   "exclude": ["node_modules"]

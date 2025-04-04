@@ -1,11 +1,10 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/sequelize";
-import { User } from "./User";
 
 interface BikeAttributes {
   id: string;
   userId: string;
-	plateNumber: string
+	plate?: string
 	make:  string
 	model: string
 	year : string
@@ -20,7 +19,7 @@ interface BikeCreationAttributes extends Optional<BikeAttributes, "id"> {}
 export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implements BikeAttributes {
   public id!: string;
   public userId!: string;
-  public plateNumber!: string;
+  public plate?: string;
   public make!: string;
   public model!: string;
   public year!: string;
@@ -45,9 +44,8 @@ Bike.init(
       },
       onDelete: "CASCADE",
     },
-    plateNumber: {
+    plate: {
       type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
     },
     make: {

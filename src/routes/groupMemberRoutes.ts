@@ -2,12 +2,16 @@ import express from "express";
 import {
   joinGroup,
   getGroupUsers,
-  addUserToGroup,
+  inviteUserToGroup,
+  respondToInvite,
+  getUserInvites,
   removeUserFromGroup,
   leaveGroup
 } from "../controllers/groupMemberController";
 import {
   validateGroupQuery,
+  validateInviteToGroup,
+  validateRespondToInvite
 } from "../middleware/groupValidation";
 import {
   validateUserQuery
@@ -94,10 +98,10 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
 
 /**
  * @swagger
- * /api/member/add-user:
+ * /api/member/{groupId}/invite:
  *   post:
- *     summary: Add a user to a group
- *     description: A user is added to the group
+ *     summary: Invite a user or users to a group
+ *     description: A user or multiple users are invited to join a group
  *     tags:
  *       - Members
  *     requestBody:
@@ -108,32 +112,113 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
  *             type: object
  *             required:
  *               - groupId
- *               - userId
  *             properties:
  *               groupId:
  *                 type: string
  *               userId:
  *                 type: string
+ *               userIds:
+ *                 type: array
  *     responses:
- *       201:
- *         description: User added to group successfully
+ *       200:
+ *         description: Invitation sent
  *       400:
- *         description: User is already in the group
+ *         description: User already invited or user already in this group.
  *       401:
  *         description: Access Denied. No Token Provided.
  *       403:
- *         description: You are not allowed to add users to this group.
+ *         description: Only admins can add users to this group.
  *       404:
  *         description: User not found or Group not found
  *       500:
  *         description: Internal server error
  */
-router.post("/add-user",
+router.post("/:groupId/invite",
+  authenticateUser,
+  validateInviteToGroup,
+  inviteUserToGroup);
+
+
+/**
+ * @swagger
+ * /api/member/{inviteId}/respond:
+ *   post:
+ *     summary: Respond to an invite request
+ *     description: A user responds to an invite request
+ *     tags:
+ *       - Members
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: inviteId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the invite
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - response
+ *             properties:
+ *               response:
+ *                 type: string
+ *                 enum: ["accepted", "rejected"]
+ *                 example: "pending"
+ *     responses:
+ *       200:
+ *         description: The invite has been accepted or rejected
+ *       400:
+ *         description: This invite is not intended for you.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Invitation not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/:inviteId/respond",
+  authenticateUser,
+  validateRespondToInvite,
+  respondToInvite);
+
+
+/**
+ * @swagger
+ * /api/member/{userId}/invites:
+ *   get:
+ *     summary: Get all user invites
+ *     description: All requests to join a group sent to this user.
+ *     tags:
+ *       - Members
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userID
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the invite
+ *     responses:
+ *       200:
+ *         description: invitations
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Invitation not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/:userId/invites",
   authenticateUser,
   validateUserQuery,
-  validateGroupQuery,
-  addUserToGroup);
-
+  getUserInvites);
+  
 /**
  * @swagger
  * /api/member/remove-user:

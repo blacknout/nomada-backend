@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { ValidationError } from "sequelize";
-import { SequelizeError } from "../config/sequelize";
+import errorResponse from "../errors/errorResponse";
 import Bike from "../models/Bike";
 import User from "../models/User";
 
@@ -15,12 +14,12 @@ import User from "../models/User";
  */
 export const createBike = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { plateNumber, make, model, year } = req.body;
+    const { plate, make, model, year } = req.body;
     const userId = req.user?.id as string;
     const notInUse = false;
 
     const newBike = await Bike.create({
-        plateNumber,
+        plate,
         make,
         model,
         year,
@@ -34,14 +33,7 @@ export const createBike = async (req: Request, res: Response, next: NextFunction
     });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -67,14 +59,7 @@ export const getBike = async (req: Request, res: Response) => {
     }
     res.status(200).json({ bike });
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -90,14 +75,14 @@ export const getBike = async (req: Request, res: Response) => {
 export const updateBike = async (req: Request, res: Response) => {
   try {
       const { bikeId } = req.params;
-      const { plateNumber, make, model, year } = req.body;
+      const { plate, make, model, year } = req.body;
 
       const bike = await Bike.findByPk(bikeId);
       if (!bike) {
         res.status(404).json({ message: "Bike not found" });
       } else if (req.user && req.user.id === bike.userId) {
         await bike.update({
-          plateNumber: plateNumber || bike.plateNumber,
+          plate: plate || bike.plate,
           make: make || bike.make,
           model: model || bike.model,
           year: year || bike.year,
@@ -106,14 +91,7 @@ export const updateBike = async (req: Request, res: Response) => {
       res.status(200).json({ message: "Bike updated successfully", bike });
       }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -138,14 +116,7 @@ export const getUserBikes = async (req: Request, res: Response) => {
     res.status(200).json({ bikes });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -174,14 +145,7 @@ export const getCurrentUserBikes = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -211,13 +175,6 @@ export const removeBike = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
