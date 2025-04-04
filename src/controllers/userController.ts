@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { Op } from "sequelize";
 import User from "../models/User";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { ValidationError } from "sequelize";
-import { SequelizeError } from "../config/sequelize";
-import { sendOtpEmail, sendPasswordResetEmail } from "../utils/sendEmail";
+import errorResponse from "../errors/errorResponse";
+import { sendOtpEmail, sendPasswordResetEmail } from "../services/emailService";
 import { filterUser } from "../utils/filterUser";
+import { mergeUsersAndBikeOwners, searchUser, searchBike } from "../services/searchService";
 import { WEEK_TOKEN_EXPIRATION, FIFTEEN_MINUTE_TOKEN } from "../utils/constants";
+import { generateTokenAndUpdate } from "../services/userService";
 
 /**
  * Registers a new user.
@@ -39,14 +39,7 @@ export const register = async (
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -78,36 +71,14 @@ export const login = async (
       res.status(400).json({ message: "Invalid credentials" });
       return;
     } else {
-      const token = jwt.sign(
-        {
-          id: user.id,
-          user: user.username,
-          firstname: user.firstname,
-          email: user.email,
-          lastname: user.lastname,
-          isAdmin: user.isAdmin,
-          country: user.country,
-          state: user.state,
-          phone: user.phone,
-        },
-        process.env.JWT_SECRET as string,
-        { expiresIn: WEEK_TOKEN_EXPIRATION }
-      );
-      await user.update({ token: token });
+      const token = generateTokenAndUpdate(user);
       res
         .status(200)
         .json({ message: "This user has been logged in", token, user: filterUser(user.toJSON()) });
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -133,39 +104,11 @@ export const verifyOtp = async (
     } else if (new Date() > user.otpExpires) {
       res.status(400).json({ message: "OTP expired" });
     } else {
-      const token = jwt.sign(
-        {
-          id: user.id,
-          user: user.username,
-          firstname: user.firstname,
-          email: user.email,
-          lastname: user.lastname,
-          isAdmin: user.isAdmin,
-          country: user.country,
-          state: user.state,
-          phone: user.phone,
-        },
-        process.env.JWT_SECRET as string,
-        { expiresIn: WEEK_TOKEN_EXPIRATION }
-      );
-
-      await user.update({
-        isVerified: true,
-        otp: null,
-        otpExpires: null,
-        token: token,
-      });
+      const token = generateTokenAndUpdate(user);
       res.status(200).json({ message: "Email verified.", token, user: filterUser(user.toJSON()) });
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -210,14 +153,7 @@ export const getUser = async (
       res.status(200).json({ user: filterUser(user.toJSON()) });
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -234,34 +170,25 @@ export const searchUsers = async (req: Request, res: Response) => {
     const { search } = req.query;
 
     if (!search || typeof search !== "string") {
-      res.status(400).json({ message: "a query parameter is required" });
+      res.status(400).json({ message: "A query parameter is required" });
+      return;
     }
 
-    const users = await User.findAll({
-      where: {
-        [Op.or]: [
-          { username: { [Op.iLike]: `%${search}%` } },
-          { firstname: { [Op.iLike]: `%${search}%` } },
-          { lastname: { [Op.iLike]: `%${search}%` } },
-        ],
-      },
-      attributes: ["id", "username", "firstname", "lastname"],
-    });
+    let [users, bikes] = await Promise.all([
+      searchUser(search),
+      searchBike(search)
+    ]);
 
-    if (users.length === 0) {
+    if (users.length === 0 && bikes.length === 0) {
       res.status(404).json({ message: "No users found" });
+      return;
     } else {
-      res.status(200).json({ users });
+      const mergedSearch = mergeUsersAndBikeOwners(users, bikes);
+      res.status(200).json({ results: mergedSearch });
+      return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -299,14 +226,7 @@ export const updateUser: RequestHandler = async (req, res, next) => {
         .json({ message: "User updated successfully", user: filterUser(user.toJSON()) });
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -341,14 +261,7 @@ export const changePassword: RequestHandler = async (req, res, next) => {
       res.status(200).json({ message: "Password updated successfully" });
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -379,14 +292,7 @@ export const resetPassword: RequestHandler = async (req, res, next) => {
     const sent = sendPasswordResetEmail(user, token);
     res.status(200).json({ message: (await sent).message });
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -408,17 +314,11 @@ export const passwordResetOTP: RequestHandler = async (req, res, next) => {
       res.status(404).json({ message: "Invalid OTP" });
       return;
     }
+    await generateTokenAndUpdate(user);
     res.status(200).json({ message: "Please reset your password", user: filterUser(user.toJSON()) });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -452,13 +352,6 @@ export const disableUser: RequestHandler = async (req, res, next) => {
       res.status(200).json({ message: "This account has been disabled." });
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };

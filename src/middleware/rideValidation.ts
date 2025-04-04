@@ -7,7 +7,7 @@ export const validateRideInfo: RequestHandler[] = [
   .isUUID().withMessage("Invalid UUID format for Road Captain ID")
   .optional(),
   check("status").isString().withMessage("Status must be a string")
-  .isIn(["pending", "ongoing", "completed"]).withMessage("Status must be one of: pending, ongoing, completed")
+  .isIn(["pending", "started", "completed"]).withMessage("Status must be one of: pending, started, completed")
   .optional(),
   check("startLocation").isObject().withMessage("Start location must be an object")
   .custom((value) => {
@@ -42,6 +42,19 @@ export const validateRideInfo: RequestHandler[] = [
     return true;
   }).optional(),
 
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    next();
+  }) as RequestHandler,
+];
+
+export const validateRideStatus: RequestHandler[] = [
+  check("status").isString().withMessage("Status must be a string")
+  .isIn(["pending", "started", "completed"]).withMessage("Status must be one of: pending, started, completed"),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { ValidationError } from "sequelize";
-import { SequelizeError } from "../config/sequelize";
+import errorResponse from "../errors/errorResponse";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
+import GroupInvitation from "../models/GroupInvitation";
 import User from "../models/User";
+import { becomeGroupMember, createInvite, inviteResponse } from "../services/groupServices";
 
 
 /**
@@ -19,28 +20,10 @@ export const joinGroup = async (req: Request, res: Response) => {
     const { groupId } = req.params;
     const userId = req.user?.id;
 
-    const group = await Group.findByPk(groupId);
-    if (!group) {
-      res.status(404).json({ message: "Group not found" });
-    } else {
-      const isMember = await GroupMember.findOne({ where: { userId, groupId } });
-      if (isMember) {
-        res.status(400).json({ message: "User is already in the group" });
-      }
-
-      await GroupMember.create({ userId, groupId });
-
-      res.status(200).json({ message: "Successfully joined the group" });
-    }
+    becomeGroupMember(res, userId, groupId);
+    return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -72,14 +55,7 @@ export const getGroupUsers = async (req: Request, res: Response) => {
     res.status(200).json({ groupWithUsers });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -92,46 +68,42 @@ export const getGroupUsers = async (req: Request, res: Response) => {
  * @returns {Promise<Response>} - Returns JSON response with success message or error
  */
 
-export const addUserToGroup = async (req: Request, res: Response) => {
+export const inviteUserToGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId, userId } = req.body;
+    const { groupId } = req.params;
+    const { userId, userIds } = req.body;
 
-    const group = await Group.findByPk(groupId);
-    if (!group) {
-      res.status(404).json({ message: "Group not found" });
-      return;
-    }
-
-    if (req.user && req.user.id === group.createdBy) {
-      const user = await User.findByPk(userId);
-      if (!user) {
-        res.status(404).json({ message: "User not found" });
-        return;
-      }
-  
-      const existingMembership = await GroupMember.findOne({ where: { groupId, userId } });
-      if (existingMembership) {
-        res.status(400).json({ message: "User is already in the group" });
-        return;
-      } else {
-        await GroupMember.create({ groupId, userId });
-  
-        res.status(201).json({ message: "User added to group successfully" });
-        return;
-      }
-    } else {
-      res.status(403).json({ message: "Only admins can add users to this group." });
-      return;
-    }
+    createInvite(req, res, userId, userIds, groupId);
+    return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
+  }
+};
+
+export const respondToInvite = async (req: Request, res: Response) => {
+  try {
+    const { inviteId } = req.params;
+    const { response } = req.body;
+
+    inviteResponse(req, res, inviteId, response);
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const getUserInvites = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const invitations = await GroupInvitation.findAll({
+      where: { userId },
+      include: [{ model: Group, attributes: ["id", "name"] }],
+    });
+    res.status(200).json({ invitations });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
   }
 };
 
@@ -163,16 +135,12 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
       await GroupMember.destroy({ where: { groupId, userId } });
       res.status(200).json({ message: "User removed from group successfully" });
       return;
+    } else {
+      res.status(200).json({ message: "Only the Admin can remove a user from the group." });
+      return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -205,13 +173,6 @@ export const leaveGroup = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };

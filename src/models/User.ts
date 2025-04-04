@@ -1,6 +1,7 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Association } from "sequelize";
 import sequelize from "../config/sequelize";
 import bcrypt from "bcryptjs";
+import {Ride} from "./Ride";
 
 interface UserAttributes {
   id: string;
@@ -36,6 +37,11 @@ export class User extends Model<UserAttributes> {
   public otpExpires?: Date;
   public isVerified!: boolean;
   public isDisabled!: boolean;
+
+  public static associations: {
+    rides: Association<User, Ride>;
+  };
+
 }
 
 User.init(

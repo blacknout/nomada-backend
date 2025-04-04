@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { ValidationError } from "sequelize";
+import errorResponse from "../errors/errorResponse";
+import { Op, ValidationError } from "sequelize";
 import { SequelizeError } from "../config/sequelize";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
+import { createGroupWithUsers } from "../services/groupServices";
 
 
 /**
@@ -15,30 +17,25 @@ import GroupMember from "../models/GroupMembers";
  */
 export const createGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, description } = req.body;
+    const { name, description, userIds } = req.body;
     const userId = req.user?.id as string;
 
-    if (!userId) {
-      res.status(401).json({ message: "Unauthorized" });
-    }
-    const group = await Group.create({
-      name: String(name),
-      description: description ? String(description) : null,
-      createdBy: String(userId),
-    });
-
-    await GroupMember.create({ groupId: group.id, userId });
-    res.status(201).json({ message: "Group created successfully", group });
-
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
+    if (userIds?.length) {
+      const group = await createGroupWithUsers(userId, name, description, userIds);
+      res.status(201).json({ message: "Group created with users invited.", group });
       return;
     } else {
-      res.status(500).json({ error: err });
-      return;
+      const group = await Group.create({
+        name: String(name),
+        description: description ? String(description) : null,
+        createdBy: String(userId),
+      });
+  
+      await GroupMember.create({ groupId: group.id, userId });
+      res.status(201).json({ message: "Group created successfully", group });
     }
+  } catch (err) {
+    errorResponse(res, err);
   }
 };
 
@@ -63,17 +60,64 @@ export const getGroup = async (req: Request, res: Response) => {
     res.status(200).json({ group });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
+export const searchGroup = async (req: Request, res: Response) => {
+  try {
+
+    const { search } = req.query;
+
+    if (!search || typeof search !== "string") {
+      res.status(400).json({ message: "A query parameter is required" });
+      return;
+    }
+
+    const users = await Group.findAll({
+      where: {
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${search}%` } },
+          { description: { [Op.iLike]: `%${search}%` } },
+        ], isPrivate: false
+      },
+      attributes: ["id", "name", "description"],
+    });
+
+    if (users.length === 0) {
+      res.status(404).json({ message: "No groups found" });
+    } else {
+      res.status(200).json({ users });
+    }
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const changeGroupPrivacy = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+    const { privacy } = req.body;
+
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      res.status(404).json({ message: "Group not found" });
+      return;
+    }
+
+    if (group.createdBy === req.user.id) {
+      group.isPrivate = privacy;
+      await group.save();
+      res.status(200).json({ message: "Group privacy updated", group });
+      return;
+    } else {
+      res.status(403).json({ message: "You are not allowed to update this group privacy." });
+      return;
+    }
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
 
 /**
  * Update group details.
@@ -101,14 +145,7 @@ export const updateGroupDetails = async (req: Request, res: Response) => {
       return
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -132,14 +169,7 @@ export const getCurrentUserGroups = async (req: Request, res: Response) => {
     res.status(200).json({ groups });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -164,13 +194,6 @@ export const deleteGroup = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };

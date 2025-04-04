@@ -1,11 +1,14 @@
 import { Request, Response } from "express";
-import { ValidationError } from "sequelize";
-import { SequelizeError } from "../config/sequelize";
+import errorResponse from "../errors/errorResponse";
 import { Ride } from "../models/Ride";
 import { Group } from "../models/Group";
 import { GroupMember } from "../models/GroupMembers";
 import { User } from "../models/User";
-
+import { 
+  getUserRideHistory,
+  createRideName,
+  getAllGroupRides
+ } from "../services/riderServices";
 
 /**
  * @typedef {Object} GeoPoint
@@ -75,6 +78,7 @@ import { User } from "../models/User";
 export const createRide = async (req: Request, res: Response) => {
   try {
     const { groupId, roadCaptainId, startLocation, destination } = req.body;
+    let { name } = req.body;
     const userId = req.user?.id;
 
     const isMember = await GroupMember.count({
@@ -87,8 +91,13 @@ export const createRide = async (req: Request, res: Response) => {
       return;
     }
 
+    if (!name) {
+      const group = await Group.findByPk(groupId);
+      name = createRideName(group.name);
+    }
     const createdBy = userId;
     const newRide = await Ride.create({
+      name,
       groupId,
       createdBy,
       roadCaptainId,
@@ -103,14 +112,7 @@ export const createRide = async (req: Request, res: Response) => {
     });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -130,7 +132,7 @@ export const createRide = async (req: Request, res: Response) => {
  * @property {GeoPoint} startLocation - The starting location of the ride.
  * @property {GeoPoint} destination - The destination of the ride.
  * @property {GeoPoint[]} route - An array of GPS points representing the route.
- * @property {enum} status - An enum of "pending", "ongoing" or "completed"
+ * @property {enum} status - An enum of "pending", "started" or "completed"
  * @property {Date} createdAt - The timestamp when the ride was created.
  * @property {Date} updatedAt - The timestamp when the ride was last updated.
  */
@@ -151,7 +153,7 @@ export const createRide = async (req: Request, res: Response) => {
  * // Request Body:
  * {
  *   "roadCaptainId": "captain567",
- *   "status": "ongoing",
+ *   "status": "started",
  *   "route": [
  *     { "lat": 13.123, "lng": 68.456 },
  *     { "lat": 14.789, "lng": 69.789 }
@@ -168,7 +170,7 @@ export const createRide = async (req: Request, res: Response) => {
  *     "roadCaptainId": "captain567",
  *     "startLocation": { "lat": 12.345, "lng": 67.890 },
  *     "destination": { "lat": 98.765, "lng": 43.210 },
- *     "status": "ongoing",
+ *     "status": "started",
  *     "createdAt": "2025-03-19T12:00:00.000Z",
  *     "updatedAt": "2025-03-19T12:30:00.000Z"
  *   }
@@ -192,7 +194,7 @@ export const createRide = async (req: Request, res: Response) => {
 export const updateRide = async (req: Request, res: Response) => {
   try {
     const { rideId } = req.params;
-    const { startLocation, destination, status, roadCaptainId } = req.body;
+    const { name, startLocation, destination, roadCaptainId } = req.body;
 
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
@@ -201,10 +203,10 @@ export const updateRide = async (req: Request, res: Response) => {
     }
 
     if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
+      if (name) ride.name = name;
       if (startLocation) ride.startLocation = startLocation;
       if (destination) ride.destination = destination;
       if (roadCaptainId) ride.roadCaptainId = roadCaptainId;
-      if (status) ride.status = status;
   
       await ride.save();
   
@@ -216,14 +218,48 @@ export const updateRide = async (req: Request, res: Response) => {
     }
 
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
+    errorResponse(res, err);
+  }
+};
+
+export const updateRideStatus = async (req: Request, res: Response) => {
+  try {
+    const { rideId } = req.params;
+    const { status } = req.body;
+
+    const ride = await Ride.findByPk(rideId);
+    if (!ride) {
+      res.status(404).json({ message: "Ride not found" });
       return;
     }
+
+    if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
+      if (status === "started") {
+        const group = await Group.findOne({
+          where: { id: ride.groupId },
+          include: {
+            model: User,
+            as: "users", 
+            attributes: ["id"],
+          },
+        });
+        group.users.map(async(user) => {
+          await (ride as any).addParticipant(user);
+        })
+      }
+      ride.status = status;
+      await ride.save();
+      res.status(200).json({ 
+        message: "Ride status updated successfully", 
+        ride,
+       });
+      return;
+    } else {
+      res.status(403).json({ message: "You are not allowed to update this ride." });
+      return;
+    }
+  } catch (err) {
+    errorResponse(res, err);
   }
 };
 
@@ -242,7 +278,7 @@ export const updateRide = async (req: Request, res: Response) => {
  * @property {GeoPoint} startLocation - The starting location of the ride.
  * @property {GeoPoint} destination - The destination of the ride.
  * @property {GeoPoint[]} route - An array of GPS points representing the route.
- * @property {enum} status - An enum of "pending", "ongoing" or "completed"
+ * @property {enum} status - An enum of "pending", "started" or "completed"
  * @property {Date} createdAt - The timestamp when the ride was created.
  * @property {Date} updatedAt - The timestamp when the ride was last updated.
  */
@@ -271,7 +307,7 @@ export const updateRide = async (req: Request, res: Response) => {
  *   "roadCaptainId": "captain789",
  *   "startLocation": { "lat": 12.345, "lng": 67.890 },
  *   "destination": { "lat": 98.765, "lng": 43.210 },
- *   "started": "ongoing",
+ *   "started": "started",
  *   "createdAt": "2025-03-19T12:00:00.000Z",
  *   "updatedAt": "2025-03-19T12:30:00.000Z"
  * }
@@ -305,17 +341,24 @@ export const getRideDetails = async (req: Request, res: Response) => {
     res.status(200).json({ ride });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
+export const getGroupRides = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 5;
+
+    const rides = await getAllGroupRides(groupId, page, limit);
+
+    res.status(200).json({ rides });
+    return;
+  } catch (error) {
+    errorResponse(res, error);
+  }
+};
 
 /**
  * @typedef {Object} SuccessResponse
@@ -376,14 +419,7 @@ export const deleteRide = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Ride deleted successfully" });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -449,7 +485,7 @@ export const deleteRide = async (req: Request, res: Response) => {
 export const saveRideRoute = async (req: Request, res: Response) => {
   try {
     const { rideId } = req.params;
-    const { route } = req.body;
+    const { route, name } = req.body;
 
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
@@ -460,8 +496,11 @@ export const saveRideRoute = async (req: Request, res: Response) => {
     if (ride.route) {
       res.status(400).json({ message: "This route has already been saved." });
       return
+    } else if (!ride.name && name) {
+      res.status(400).json({ message: "This route must have a name." });
+      return
     } else if (ride.status == "completed" && route.length) {
-      await ride.update({ route });
+      await ride.update({ route, name });
       res.status(200).json({ message: "Ride route saved."});
       return;
     } else if (ride.status !== "completed") {
@@ -469,14 +508,7 @@ export const saveRideRoute = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -551,14 +583,7 @@ export const getRideRoute = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -624,13 +649,22 @@ export const deleteRideRoute = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
+
+export const getRideHistory = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id; 
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 5;
+
+    const rides = await getUserRideHistory(userId, page, limit);
+
+    res.status(200).json(rides);
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+}
+

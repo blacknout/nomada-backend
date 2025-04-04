@@ -9,15 +9,28 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Bike Ride API",
+      title: "Nomada API",
       version: "1.0.0",
-      description: "API documentation for the bike ride tracking system",
+      description: "API documentation for Nomada",
     },
     servers: [
       {
         url: `${process.env.CLIENT_ORIGIN}`,
         description: `${process.env.NODE_ENV == "development" ? "Local server" : "Runtime Environment"}`,
       },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      // @ts-ignore
+      { bearerAuth: [] },
     ],
   },
   apis: ["./src/routes/*.ts"],

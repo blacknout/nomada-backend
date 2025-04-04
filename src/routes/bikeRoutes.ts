@@ -33,12 +33,12 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - plateNumber
+ *               - plate
  *               - make
  *               - model
  *               - year
  *             properties:
- *               plateNumber:
+ *               plate:
  *                 type: string
  *               make:
  *                 type: string
@@ -80,7 +80,7 @@ router.post("/", authenticateUser, validateBikeInfo, createBike);
  *               properties:
  *                 id:
  *                   type: string
- *                 plateNumber:
+ *                 plate:
  *                   type: string
  *                 make:
  *                   type: string
@@ -122,7 +122,7 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *         schema:
  *           type: object
  *           properties:
- *             plateNumber:
+ *             plate:
  *               type: string
  *               example: Bad Sar 44
  *             make:
@@ -180,7 +180,7 @@ router.put("/:bikeId", authenticateUser, validateBikeQuery, validateBikeInfo, up
  *               properties:
  *                 id:
  *                   type: string
- *                 plateNumber:
+ *                 plate:
  *                   type: string
  *                 make:
  *                   type: string
@@ -218,7 +218,7 @@ router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
  *               properties:
  *                 id:
  *                   type: string
- *                 plateNumber:
+ *                 plate:
  *                   type: string
  *                 make:
  *                   type: string

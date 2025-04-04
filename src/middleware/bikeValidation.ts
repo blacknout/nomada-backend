@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import { param, check, validationResult } from "express-validator";
 
 export const validateBikeInfo: RequestHandler[] = [
-  check("plateNumber").isLength({ min: 3 }).withMessage("Plate number must be at least 3 characters."),
+  check("plate").isLength({ min: 3 }).withMessage("Plate number must be at least 3 characters."),
   check("make").isLength({ min: 3 }).withMessage("The make must be at least 3 characters."),
   check("model").isLength({ min: 2 }).withMessage("The model name must be at least 2 characters."),
   check("year").isLength({ min: 4 }).withMessage("Please enter a valid year."),

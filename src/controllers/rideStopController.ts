@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { ValidationError } from "sequelize";
-import { SequelizeError } from "../config/sequelize";
+import errorResponse from "../errors/errorResponse";
 import { RideStop } from "../models/RideStop";
 
 /**
@@ -48,14 +47,7 @@ export const createRideStop = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Ride stop recorded", rideStop });
     return;
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -82,14 +74,7 @@ export const updateRideStop = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -138,14 +123,7 @@ export const getAllRideStops = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -189,14 +167,7 @@ export const getRideStop = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -266,14 +237,7 @@ export const resolveRideStop = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };
 
@@ -336,13 +300,6 @@ export const deleteRideStop = async (req: Request, res: Response) => {
       return;
     }
   } catch (err) {
-    if (err instanceof ValidationError) {
-      const sequelizeError: SequelizeError = err;
-      res.status(500).json({ error: sequelizeError.errors});
-      return;
-    } else {
-      res.status(500).json({ error: err });
-      return;
-    }
+    errorResponse(res, err);
   }
 };

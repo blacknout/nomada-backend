@@ -29,8 +29,6 @@ export const sendOtpEmail = async (user: User) => {
   return { message: `OTP sent successfully` };
 };
 
-
-
 export const sendPasswordResetEmail = async (user: User, token: string) => {
   const otp = crypto.randomInt(100000, 999999).toString();
   const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // Expires in 15 minutes

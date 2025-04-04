@@ -576,7 +576,7 @@ router.patch("/:stopId",
  *                  type: string
  *                status:
  *                  type: string
- *                  enum: ["pending", "ongoing", "completed"]
+ *                  enum: ["pending", "started", "completed"]
  *       401:
  *         description: Access Denied. No Token Provided.
  *       404:

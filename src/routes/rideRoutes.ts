@@ -3,16 +3,23 @@ import {
   createRide,
   updateRide,
   getRideDetails,
+  getGroupRides,
   deleteRide,
   saveRideRoute,
   getRideRoute,
-  deleteRideRoute
+  deleteRideRoute,
+  getRideHistory,
+  updateRideStatus
 } from "../controllers/rideController";
 import { 
   validateRideInfo,
   validateRideQuery,
-  validateRideRoute
+  validateRideRoute,
+  validateRideStatus
 } from "../middleware/rideValidation";
+import { 
+  validateGroupQuery,
+} from "../middleware/groupValidation";
 import { authenticateUser } from '../middleware/auth'
 
 const router = express.Router();
@@ -36,6 +43,9 @@ const router = express.Router();
  *             required:
  *               - groupId
  *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Ride to Ekiti"
  *               groupId:
  *                 type: string
  *                 example: "55f32400-e29b-423f-a716-446f4nfe000"
@@ -65,7 +75,7 @@ const router = express.Router();
  *                     example: -118.2437
  *               status:
  *                 type: string
- *                 enum: ["pending", "ongoing", "completed"]
+ *                 enum: ["pending", "started", "completed"]
  *                 description: Status of the ride. Default is "pending".
  *                 example: "pending"
  *     responses:
@@ -117,7 +127,7 @@ const router = express.Router();
  *                           example: -118.2437
  *                     status:
  *                       type: string
- *                       enum: ["pending", "ongoing", "completed"]
+ *                       enum: ["pending", "started", "completed"]
  *                       example: "pending"
  *       401:
  *         description: Access Denied. No Token Provided.
@@ -137,7 +147,90 @@ router.post("/",
  * /ride/{rideId}:
  *   put:
  *     summary: Update ride details
- *     description: Allows updating the ride status and other details. The route can only be updated if the ride is completed.
+ *     description: Allows updating the ride details.
+ *     tags:
+ *       - Rides
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: rideId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the ride to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               roadCaptainId:
+ *                 type: string
+ *                 description: ID of the road captain leading the ride
+ *                 example: "a5f7b340-98c7-11ec-b909-0242ac120002"
+ *     responses:
+ *       200:
+ *         description: Ride updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Ride updated successfully"
+ *                 ride:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "2f6c8b20-98c8-11ec-b909-0242ac120002"
+ *                     groupId:
+ *                       type: string
+ *                       example: "55f32400-e29b-423f-a716-446f4nfe000"
+ *                     roadCaptainId:
+ *                       type: string
+ *                       example: "a5f7b340-98c7-11ec-b909-0242ac120002"
+ *                     route:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           lat:
+ *                             type: number
+ *                             example: 37.7749
+ *                           lng:
+ *                             type: number
+ *                             example: -122.4194
+ *       400:
+ *         description: Ride not found
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       403:
+ *         description: You are not allowed to update this ride.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/:rideId", 
+  authenticateUser, 
+  validateRideQuery,
+  validateRideInfo, 
+  updateRide
+);
+
+/**
+ * @swagger
+ * /ride/{rideId}:
+ *   patch:
+ *     summary: Update ride status
+ *     description: Updates the ride status between these options ["pending", "started", "completed"]
  *     tags:
  *       - Rides
  *     security:
@@ -158,9 +251,9 @@ router.post("/",
  *             properties:
  *               status:
  *                 type: string
- *                 enum: ["pending", "ongoing", "completed"]
+ *                 enum: ["pending", "started", "completed"]
  *                 description: Status of the ride
- *                 example: "ongoing"
+ *                 example: "started"
  *               roadCaptainId:
  *                 type: string
  *                 description: ID of the road captain leading the ride
@@ -205,8 +298,8 @@ router.post("/",
  *                       example: "a5f7b340-98c7-11ec-b909-0242ac120002"
  *                     status:
  *                       type: string
- *                       enum: ["pending", "ongoing", "completed"]
- *                       example: "ongoing"
+ *                       enum: ["pending", "started", "completed"]
+ *                       example: "started"
  *                     route:
  *                       type: array
  *                       items:
@@ -229,11 +322,11 @@ router.post("/",
  *       500:
  *         description: Internal server error
  */
-router.put("/:rideId", 
+router.patch("/:rideId", 
   authenticateUser, 
   validateRideQuery,
-  validateRideInfo, 
-  updateRide
+  validateRideStatus,
+  updateRideStatus
 );
 
 /**
@@ -274,8 +367,8 @@ router.put("/:rideId",
  *                   example: "2b3c4d5e6f7g8h9i0j1a"
  *                 status:
  *                   type: string
- *                   enum: ["pending", "ongoing", "completed"]
- *                   example: "ongoing"
+ *                   enum: ["pending", "started", "completed"]
+ *                   example: "started"
  *                 startLocation:
  *                   type: object
  *                   properties:
@@ -313,6 +406,95 @@ router.get("/:rideId",
   authenticateUser,
   validateRideQuery,
   getRideDetails
+);
+
+/**
+ * @swagger
+ * /ride/group/{groupId}:
+ *   get:
+ *     summary: Get a groups rides
+ *     description: Retrieve details of a specific ride by its ID.
+ *     tags:
+ *       - Rides
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         description: The ID of the ride to retrieve.
+ *         schema:
+ *           type: string
+ *           example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: string
+ *         description: pagination option
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: string
+ *         description: pagination option
+ *     responses:
+ *       200:
+ *         description: Rides.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *                 groupId:
+ *                   type: string
+ *                   example: "55f32400-e29b-423f-a716-446f4nfe000"
+ *                 creatorId:
+ *                   type: string
+ *                   example: "1a2b3c4d5e6f7g8h9i0j"
+ *                 roadCaptainId:
+ *                   type: string
+ *                   example: "2b3c4d5e6f7g8h9i0j1a"
+ *                 status:
+ *                   type: string
+ *                   enum: ["pending", "started", "completed"]
+ *                   example: "started"
+ *                 startLocation:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       example: 40.7128
+ *                     lng:
+ *                       type: number
+ *                       example: -74.0060
+ *                 endLocation:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       example: 34.0522
+ *                     lng:
+ *                       type: number
+ *                       example: -118.2437
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T12:00:00.000Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T14:00:00.000Z"
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Server error.
+ */
+router.get("/group/:groupId", 
+  authenticateUser,
+  validateGroupQuery,
+  getGroupRides
 );
 
 /**
@@ -610,6 +792,84 @@ router.delete("/route/:rideId",
   authenticateUser, 
   validateRideQuery,
   deleteRideRoute
+);
+
+
+/**
+ * @swagger
+ * /ride/history:
+ *   get:
+ *     summary: Get your ride history
+ *     description: Retrieves the ride history of the current user
+ *     tags:
+ *       - Rides
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         description: The page of the history
+ *         schema:
+ *           type: number
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Ride details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *                 groupId:
+ *                   type: string
+ *                   example: "55f32400-e29b-423f-a716-446f4nfe000"
+ *                 creatorId:
+ *                   type: string
+ *                   example: "1a2b3c4d5e6f7g8h9i0j"
+ *                 roadCaptainId:
+ *                   type: string
+ *                   example: "2b3c4d5e6f7g8h9i0j1a"
+ *                 status:
+ *                   type: string
+ *                   enum: ["pending", "started", "completed"]
+ *                   example: "started"
+ *                 startLocation:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       example: 40.7128
+ *                     lng:
+ *                       type: number
+ *                       example: -74.0060
+ *                 endLocation:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       example: 34.0522
+ *                     lng:
+ *                       type: number
+ *                       example: -118.2437
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T12:00:00.000Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T14:00:00.000Z"
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Server error.
+ */
+router.get("/user/history", 
+  authenticateUser, 
+  getRideHistory
 );
 
 export default router;
