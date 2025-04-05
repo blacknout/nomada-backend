@@ -27,6 +27,8 @@ const router = express.Router();
  *     description: A user joins the group in params
  *     tags:
  *       - Members
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: groupId
@@ -69,7 +71,7 @@ router.post("/:groupId/join", authenticateUser, validateGroupQuery, joinGroup);
  *       - in: query
  *         name: groupId
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: The group users
@@ -103,6 +105,8 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
  *     description: A user or multiple users are invited to join a group
  *     tags:
  *       - Members
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -149,7 +153,7 @@ router.post("/:groupId/invite",
  *     tags:
  *       - Members
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: inviteId
@@ -195,6 +199,8 @@ router.post("/:inviteId/respond",
  *     description: This removes a user from a group
  *     tags:
  *       - Members
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -234,6 +240,8 @@ router.post("/remove-user",
  *     description: This will make the authenticated user exit a group
  *     tags:
  *       - Members
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: groupId

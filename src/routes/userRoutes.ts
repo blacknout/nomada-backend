@@ -168,7 +168,7 @@ router.post("/verify-otp", verifyOtp);
  *     tags:
  *       - Users
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Successfully retrieved user details
@@ -211,7 +211,7 @@ router.get("/me", authenticateUser, getCurrentUser);
  *       - in: query
  *         name: userId
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Successfully retrieved user details
@@ -251,6 +251,8 @@ router.get("/:userId", authenticateUser, getUser);
  *     description: Returns a list of users or bike matching the search query.
  *     tags:
  *       - Users
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -296,6 +298,8 @@ router.get("/", authenticateUser, searchUsers);
  *     description: Updates the details of a user by their ID. Authenticated users can only update their own details.
  *     tags:
  *       - Users
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -354,6 +358,8 @@ router.put("/:userId", authenticateUser, validateUpdateUser, updateUser);
  *     description: Updates the users password.
  *     tags:
  *       - Users
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: body
  *         name: password
@@ -424,6 +430,44 @@ router.put("/change-password/:userId",  authenticateUser, validateChangePassword
  */
 router.post("/reset-password", validateResetPassword, resetPassword);
 
+
+/**
+ * @swagger
+ * /api/user/password-reset-otp:
+ *   post:
+ *     summary: Password reset OTP
+ *     description: User OTP is confirmed and he is logged in to update password
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: body
+ *         name: otp
+ *         description: Fields to update
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             otp:
+ *               type: string
+ *               example: 234323
+ *     responses:
+ *       200:
+ *         description: Please reset your password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Please reset your password
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Invalid OTP
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/password-reset-otp", validatePasswordOTP, passwordResetOTP);
 
 /**
@@ -434,6 +478,8 @@ router.post("/password-reset-otp", validatePasswordOTP, passwordResetOTP);
  *     description: A user can only disable their own account unless they are an admin user.
  *     tags:
  *       - Users
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId

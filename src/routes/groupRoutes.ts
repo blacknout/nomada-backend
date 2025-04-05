@@ -25,6 +25,8 @@ const router = express.Router();
  *     summary: Create a group
  *     tags:
  *       - Group
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -94,7 +96,7 @@ router.get("/me", authenticateUser, getCurrentUserGroups);
  *       - in: query
  *         name: groupId
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Group details
@@ -129,6 +131,8 @@ router.get("/:groupId", authenticateUser, validateGroupQuery, getGroup);
  *     description: Returns a list of groups matching the search query.
  *     tags:
  *       - Group
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: search
@@ -172,6 +176,8 @@ router.get("/", authenticateUser, searchGroup);
  *     description: Updates the privacy of the group.
  *     tags:
  *       - Group
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: groupId
@@ -223,6 +229,8 @@ router.patch("/:groupId", authenticateUser, validateGroupPrivacy, changeGroupPri
  *     description: Updates the details of a group by their ID. Only group creators can update.
  *     tags:
  *       - Group
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: groupId
@@ -280,6 +288,8 @@ router.put("/:groupId",
  *     description: This deletes a group
  *     tags:
  *       - Group
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: groupId

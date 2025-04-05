@@ -11,8 +11,6 @@ const router = express.Router();
  *     summary: Get the health of the app
  *     tags:
  *       - Health
- *     security:
- *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Health Status Confirmed.
