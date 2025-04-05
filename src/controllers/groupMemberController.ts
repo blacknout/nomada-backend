@@ -71,9 +71,9 @@ export const getGroupUsers = async (req: Request, res: Response) => {
 export const inviteUserToGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
-    const { userId, userIds } = req.body;
+    const { userIds } = req.body;
 
-    createInvite(req, res, userId, userIds, groupId);
+    createInvite(req, res, userIds, groupId);
     return;
   } catch (err) {
     errorResponse(res, err);
