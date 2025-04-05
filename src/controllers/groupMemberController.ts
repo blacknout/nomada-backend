@@ -92,21 +92,6 @@ export const respondToInvite = async (req: Request, res: Response) => {
   }
 };
 
-export const getUserInvites = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-
-    const invitations = await GroupInvitation.findAll({
-      where: { userId },
-      include: [{ model: Group, attributes: ["id", "name"] }],
-    });
-    res.status(200).json({ invitations });
-    return;
-  } catch (err) {
-    errorResponse(res, err);
-  }
-};
-
 
 /**
  * Remove a user from a group

@@ -201,7 +201,7 @@ router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
 
 /**
  * @swagger
- * /api/bike/userbike:
+ * /api/bike/:
  *   get:
  *     summary: Get bikes created by current user
  *     tags:

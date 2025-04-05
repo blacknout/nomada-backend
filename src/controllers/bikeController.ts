@@ -51,7 +51,7 @@ export const getBike = async (req: Request, res: Response) => {
     const { bikeId } = req.params;
 
     const bike = await Bike.findByPk(bikeId, {
-      include: [{ model: User, attributes: ["id", "username"] }],
+      include: [{ model: User, attributes: ["id", "username"], as: "owner" }],
     });
 
     if (!bike) {
