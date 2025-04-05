@@ -4,7 +4,6 @@ import {
   getGroupUsers,
   inviteUserToGroup,
   respondToInvite,
-  getUserInvites,
   removeUserFromGroup,
   leaveGroup
 } from "../controllers/groupMemberController";
@@ -123,6 +122,8 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
  *                 type: string
  *               userIds:
  *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       200:
  *         description: Invitation sent
@@ -189,39 +190,6 @@ router.post("/:inviteId/respond",
   authenticateUser,
   validateRespondToInvite,
   respondToInvite);
-
-
-/**
- * @swagger
- * /api/member/{userId}/invites:
- *   get:
- *     summary: Get all user invites
- *     description: All requests to join a group sent to this user.
- *     tags:
- *       - Members
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userID
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the invite
- *     responses:
- *       200:
- *         description: invitations
- *       401:
- *         description: Access Denied. No Token Provided.
- *       404:
- *         description: Invitation not found
- *       500:
- *         description: Internal server error
- */
-router.get("/:userId/invites",
-  authenticateUser,
-  validateUserQuery,
-  getUserInvites);
   
 /**
  * @swagger

@@ -55,6 +55,38 @@ router.post("/", authenticateUser, validateGroupInfo, createGroup);
 
 /**
  * @swagger
+ * /api/group/me:
+ *   get:
+ *     summary: Get all the groups the current user is part of
+ *     tags:
+ *       - Group
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All the groups the current user is in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: No groups found for this user
+ *       500:
+ *          description: Internal Server Error
+ */
+router.get("/me", authenticateUser, getCurrentUserGroups);
+
+/**
+ * @swagger
  * /api/group/{groupId}:
  *   get:
  *     summary: Get details of a group by Id
@@ -247,38 +279,6 @@ router.put("/:groupId",
   validateGroupQuery,
   updateGroupDetails
 );
-
-/**
- * @swagger
- * /api/group/:
- *   get:
- *     summary: Get all the groups the current user is part of
- *     tags:
- *       - Group
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: All the groups the current user is in
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 name:
- *                   type: string
- *                 description:
- *                   type: string
- *       401:
- *         description: Access Denied. No Token Provided.
- *       404:
- *         description: No groups found for this user
- *       500:
- *          description: Internal Server Error
- */
-router.get("/", authenticateUser, getCurrentUserGroups);
 
 /**
  * @swagger

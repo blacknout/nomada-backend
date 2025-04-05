@@ -809,7 +809,7 @@ router.delete("/route/:rideId",
 
 /**
  * @swagger
- * /ride/history:
+ * /ride/user/history:
  *   get:
  *     summary: Get your ride history
  *     description: Retrieves the ride history of the current user
