@@ -33,7 +33,7 @@ const router = express.Router();
  *     tags:
  *       - Rides
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -151,7 +151,7 @@ router.post("/",
  *     tags:
  *       - Rides
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -234,7 +234,7 @@ router.put("/:rideId",
  *     tags:
  *       - Rides
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -337,6 +337,8 @@ router.patch("/:rideId",
  *     description: Retrieve details of a specific ride by its ID.
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -416,6 +418,8 @@ router.get("/:rideId",
  *     description: Retrieve details of a specific ride by its ID.
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: groupId
@@ -505,6 +509,8 @@ router.get("/group/:groupId",
  *     description: Deletes a ride by its ID. Only the creator or an admin can delete a ride.
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -571,6 +577,8 @@ router.delete("/:rideId",
  *     description: Saves the route for a ride as an array of GPS coordinates. The route can only be updated once the ride is completed.
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -659,6 +667,8 @@ router.post("/route/:rideId",
  *     description: Retrieves the saved route for a specific ride, represented as an array of GPS coordinates.
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -736,6 +746,8 @@ router.get("/route/:rideId",
  *     description: Deletes the saved route for a specific ride. Only allowed if the ride has been completed.
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -803,6 +815,8 @@ router.delete("/route/:rideId",
  *     description: Retrieves the ride history of the current user
  *     tags:
  *       - Rides
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page

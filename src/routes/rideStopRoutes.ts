@@ -28,6 +28,8 @@ const router = express.Router();
  *     description: Records a stop during a ride due to resting, an accident, or a mechanical fault.
  *     tags:
  *       - Ride Stops
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -151,6 +153,8 @@ router.post("/:rideId",
  *     description: Updates a stop modifying the location or the reason.
  *     tags:
  *       - Ride Stops
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: stopId
@@ -276,6 +280,8 @@ router.put("/:stopId",
  *     description: Fetches the details of a specific ride stop.
  *     tags:
  *       - Ride Stops
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: stopId
@@ -353,6 +359,8 @@ router.get("/:stopId",
  *     description: Fetches all stops that occurred during a specific ride.
  *     tags:
  *       - Ride Stops
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -433,6 +441,8 @@ router.get("/ride/:rideId",
  *     description: Marks a ride stop as resolved, indicating that the issue has been addressed.
  *     tags:
  *       - Ride Stops
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: rideId
@@ -556,6 +566,8 @@ router.patch("/:stopId",
  *     description: Removes a ride stop from the system.
  *     tags:
  *       - Ride Stops
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: stopId

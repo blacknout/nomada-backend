@@ -26,6 +26,8 @@ const router = express.Router();
  *     summary: Create a bike
  *     tags:
  *       - Bike
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -69,7 +71,7 @@ router.post("/", authenticateUser, validateBikeInfo, createBike);
  *       - in: query
  *         name: bikeId
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Bike details
@@ -108,6 +110,8 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *     description: Updates the details of a bike by their ID. Authenticated users can only update their own bike.
  *     tags:
  *       - Bike
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: bikeId
@@ -169,7 +173,7 @@ router.put("/:bikeId", authenticateUser, validateBikeQuery, validateBikeInfo, up
  *       - in: query
  *         name: userId
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: All bikes for the user that notInUse is false
@@ -207,7 +211,7 @@ router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
  *     tags:
  *       - Bike
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: All bikes for the logged in user that notInUse is false
@@ -245,6 +249,8 @@ router.get("/", authenticateUser, getCurrentUserBikes);
  *     description: This sets a bike to notInUse
  *     tags:
  *       - Bike
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: bikeId
