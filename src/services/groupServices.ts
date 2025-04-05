@@ -7,16 +7,13 @@ import { Op } from "sequelize";
 
 /**
  * Create a new group and invite users during creation.
- * @param {string} name - Name of the group
+ * @param {string} groupId - Id of the group
  * @param {string[]} userIds - List of user IDs to add to the group
  */
-export const createGroupWithUsers = async (createdBy: string, name: string, description: string, userIds: string[]) => {
+export const createGroupWithUsers = async (groupId: string, userIds: string[]) => {
   try {
-    const group = await Group.create({ createdBy, name, description });
-
-    const groupAndInvite = await inviteUsersToGroup(group.id, userIds);
-
-    return { groupAndInvite };
+    const groupAndInvite = await inviteUsersToGroup(groupId, userIds);
+    return groupAndInvite;
   } catch (error) {
     throw new Error(`Error creating group: ${error}`);
   }
@@ -43,7 +40,7 @@ export const inviteUsersToGroup = async (groupId: string, userIds: string[]) => 
 
     const groupPendingInvites = await GroupInvitation.bulkCreate(groupInvites, { ignoreDuplicates: true });
 
-    return { message: "Users invited successfully", groupPendingInvites };
+    return groupPendingInvites.length;
   } catch (error) {
     throw new Error(`Error adding users: ${error}`);
   }
@@ -73,7 +70,7 @@ export const becomeGroupMember = async (res: Response, userId: string, groupId: 
   }
 };
 
-export const createInvite = async (req: Request, res: Response, userId: string, userIds: string[], groupId: string) => {
+export const createInvite = async (req: Request, res: Response, userIds: string[], groupId: string) => {
   const group = await Group.findByPk(groupId);
   if (!group) {
     res.status(404).json({ message: "Group not found" });
@@ -85,25 +82,6 @@ export const createInvite = async (req: Request, res: Response, userId: string, 
       res.status(200).json({ message: "Invitations sent", invitations });
       return;
     }
-    const user = await User.findByPk(userId);
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    const existingGroupMember = await GroupMember.findOne({ where: { userId, groupId: group.id} });
-    if (existingGroupMember) {
-      res.status(400).json({ message: "User is already in this group." });
-      return;
-    }
-    const existingInvitation = await GroupInvitation.findOne({ where: { userId, groupId: group.id} });
-    if (existingInvitation) {
-      res.status(400).json({ message: "User is already invited." });
-      return;
-    }
-    const invitation = await GroupInvitation.create({ userId, groupId: group.id });
-    res.status(200).json({ message: "Invitation sent", invitation });
-    return;
   } else {
     res.status(403).json({ message: "Only admins can add users to this group." });
     return;

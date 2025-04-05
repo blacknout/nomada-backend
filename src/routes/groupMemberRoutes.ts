@@ -115,10 +115,9 @@ router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUser
  *             type: object
  *             required:
  *               - groupId
+ *               - userIds
  *             properties:
  *               groupId:
- *                 type: string
- *               userId:
  *                 type: string
  *               userIds:
  *                 type: array

@@ -20,20 +20,19 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
     const { name, description, userIds } = req.body;
     const userId = req.user?.id as string;
 
-    if (userIds?.length) {
-      const group = await createGroupWithUsers(userId, name, description, userIds);
-      res.status(201).json({ message: "Group created with users invited.", group });
-      return;
-    } else {
-      const group = await Group.create({
-        name: String(name),
-        description: description ? String(description) : null,
-        createdBy: String(userId),
-      });
-  
-      await GroupMember.create({ groupId: group.id, userId });
-      res.status(201).json({ message: "Group created successfully", group });
-    }
+    const group = await Group.create({
+      name: String(name),
+      description: description ? String(description) : null,
+      createdBy: String(userId),
+    });
+    let response = 0;
+    response = (userIds?.length) ? await createGroupWithUsers(group.id, userIds) : response;
+    await GroupMember.create({ groupId: group.id, userId });
+    res.status(201).json({ 
+      message: "Group created successfully",
+      group,
+      invites: `${response} invited.`
+    });
   } catch (err) {
     errorResponse(res, err);
   }
