@@ -27,8 +27,8 @@ export const register = async (
 ): Promise<void> => {
   try {
     const { email } = req.body;
-
     let user = await User.findOne({ where: { email } });
+    console.log("user============", user)
     if (user && user.isVerified) {
       res.status(400).json({ message: "Email already exists" });
       return;
@@ -41,6 +41,7 @@ export const register = async (
       return;
     }
   } catch (err) {
+    console.log("err-------------", err)
     errorResponse(res, err);
   }
 };
