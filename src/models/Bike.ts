@@ -7,7 +7,8 @@ interface BikeAttributes {
 	plate?: string
 	make:  string
 	model: string
-	year : string
+	year: string
+  vin?: string
 	notInUse:  boolean
   createdAt?: Date;
   updatedAt?: Date;
@@ -23,6 +24,7 @@ export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implemen
   public make!: string;
   public model!: string;
   public year!: string;
+  public vin?: string;
   public notInUse!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -59,6 +61,9 @@ Bike.init(
     year: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    vin: {
+      type: DataTypes.STRING,
     },
     notInUse: {
       type: DataTypes.BOOLEAN,

@@ -2,6 +2,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import User from "../models/User";
+import { EXPIRES_IN_FIFTEEN_OTP } from "../utils/constants";
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendOtpEmail = async (user: User) => {
   const otp = crypto.randomInt(100000, 999999).toString();
-  const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // Expires in 15 minutes
+  const otpExpires = EXPIRES_IN_FIFTEEN_OTP;
 
   await user.update({ otp, otpExpires });
 
@@ -31,7 +32,7 @@ export const sendOtpEmail = async (user: User) => {
 
 export const sendPasswordResetEmail = async (user: User, token: string) => {
   const otp = crypto.randomInt(100000, 999999).toString();
-  const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // Expires in 15 minutes
+  const otpExpires = EXPIRES_IN_FIFTEEN_OTP
 
   await user.update({ otp, otpExpires, token });
 

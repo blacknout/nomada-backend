@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { param, check, validationResult } from "express-validator";
+import { query, check, validationResult } from "express-validator";
 
 export const validateRegisterUser: RequestHandler[] = [
   check("username")
@@ -75,7 +75,6 @@ export const validateUpdateUser: RequestHandler[] = [
     .isLength({ min: 3 })
     .withMessage("Select a valid country.")
     .optional(),
-  check("email").isEmail().withMessage("Invalid email format.").optional(),
   check("phone")
     .isLength({ min: 7 })
     .withMessage("This is not a valid Phone number.")
@@ -149,6 +148,21 @@ export const validateUserQuery: RequestHandler[] = [
     .withMessage("User ID is required")
     .isUUID()
     .withMessage("User ID must be a valid UUID"),
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    next();
+  }) as RequestHandler,
+];
+
+export const validateSearchQuery: RequestHandler[] = [
+  query("search")
+    .optional()
+    .matches(/^[A-Za-z0-9-]+$/)
+    .withMessage("Search can only contain letters, numbers, or hyphens(-)"),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

@@ -19,7 +19,9 @@ import {
   validateUpdateUser,
   validateChangePassword,
   validateResetPassword,
-  validatePasswordOTP
+  validatePasswordOTP,
+  validateUserQuery,
+  validateSearchQuery
 } from "../middleware/userValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -241,7 +243,7 @@ router.get("/me", authenticateUser, getCurrentUser);
  *       500:
  *         description: Internal server error
  */
-router.get("/:userId", authenticateUser, getUser);
+router.get("/:userId", authenticateUser, validateUserQuery, getUser);
 
 /**
  * @swagger
@@ -288,7 +290,7 @@ router.get("/:userId", authenticateUser, getUser);
  *       500:
  *         description: Internal server error
  */
-router.get("/", authenticateUser, searchUsers);
+router.get("/", authenticateUser, validateSearchQuery, searchUsers);
 
 /**
  * @swagger
@@ -348,7 +350,7 @@ router.get("/", authenticateUser, searchUsers);
  *       500:
  *         description: Internal server error
  */
-router.put("/:userId", authenticateUser, validateUpdateUser, updateUser);
+router.put("/", authenticateUser, validateUpdateUser, updateUser);
 
 /**
  * @swagger
