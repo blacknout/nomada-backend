@@ -27,7 +27,6 @@ export const register = async (
 ): Promise<void> => {
   try {
     const { email } = req.body;
-
     let user = await User.findOne({ where: { email } });
     if (user && user.isVerified) {
       res.status(400).json({ message: "Email already exists" });
@@ -61,17 +60,14 @@ export const login = async (
   try {
     const user = await User.findOne({ where: { email: req.body.email } });
 
-    if (!user?.isVerified) {
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+      res.status(400).json({ message: "Invalid credentials" });
+      return;
+    } else if (!user.isVerified) {
       res
         .status(400)
         .json({ message: "This user has not verified the account." });
         return;
-    } else if (
-      !user ||
-      !(await bcrypt.compare(req.body.password, user.password))
-    ) {
-      res.status(400).json({ message: "Invalid credentials" });
-      return;
     } else {
       const token = generateTokenAndUpdate(user);
       res
@@ -101,7 +97,7 @@ export const verifyOtp = async (
     const { email, otp } = req.body;
     const user = await User.findOne({ where: { email }});
 
-    if (!user || user.otp !== otp) {
+    if (!user || user.otp != otp) {
       res.status(400).json({ message: "Invalid OTP" });
     } else if (new Date() > user.otpExpires) {
       res.status(400).json({ message: "OTP expired" });
@@ -204,24 +200,20 @@ export const searchUsers = async (req: Request, res: Response) => {
  */
 export const updateUser: RequestHandler = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    const { username, email, firstname, lastname, state, country, phone } =
+    const { username, firstname, lastname, state, country, phone } =
       req.body;
-
+    const userId = req.user.id;
     const user = await User.findByPk(userId);
     if (!user) {
-      res.status(404).json({ message: "User not found" });
-    } else if (userId !== req.user.id && !user.isAdmin) {
-      res.status(401).json({ message: "Unauthorized action" });
+      res.status(404).json({ message: "The logged in user is not available." });
     } else {
       await user.update({
-        username,
-        email,
-        firstname,
-        lastname,
-        state,
-        country,
-        phone,
+        username: username || user.username,
+        firstname: firstname || user.firstname,
+        lastname: lastname || user.lastname,
+        state: state || user.state,
+        country: country || user.country,
+        phone: phone || user.phone,
       });
       res
         .status(200)
@@ -360,11 +352,19 @@ export const disableUser: RequestHandler = async (req, res, next) => {
 
 export const getUserInvites = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { id: userId } = req.user;
 
     const invitations = await GroupInvitation.findAll({
       where: { userId },
-      include: [{ model: Group, attributes: ["id", "name"] }],
+      include: [{ model: Group, as: "group", attributes: ["id", "name", "description"],
+        include: [
+          {
+            model: User,
+            as: "creator",
+            attributes: ["id", "username", "firstname"],
+          },
+        ],
+       }],
     });
     res.status(200).json({ invitations });
     return;
