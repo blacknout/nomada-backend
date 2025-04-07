@@ -352,11 +352,19 @@ export const disableUser: RequestHandler = async (req, res, next) => {
 
 export const getUserInvites = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { id: userId } = req.user;
 
     const invitations = await GroupInvitation.findAll({
       where: { userId },
-      include: [{ model: Group, attributes: ["id", "name"] }],
+      include: [{ model: Group, as: "group", attributes: ["id", "name", "description"],
+        include: [
+          {
+            model: User,
+            as: "creator",
+            attributes: ["id", "username", "firstname"],
+          },
+        ],
+       }],
     });
     res.status(200).json({ invitations });
     return;

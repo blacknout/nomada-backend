@@ -204,6 +204,30 @@ router.get("/me", authenticateUser, getCurrentUser);
 
 /**
  * @swagger
+ * /api/user/invites:
+ *   get:
+ *     summary: Get current user group invites
+ *     description: All requests to join a group sent to this user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: invitations
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Invitation not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/invites",
+  authenticateUser,
+  getUserInvites);
+
+/**
+ * @swagger
  * /api/user/{userId}:
  *   get:
  *     summary: Get details of a user by userId
@@ -513,27 +537,4 @@ router.post("/password-reset-otp", validatePasswordOTP, passwordResetOTP);
  */
 router.put("/disable/:userId", authenticateUser, disableUser);
 
-/**
- * @swagger
- * /api/user/invites:
- *   get:
- *     summary: Get current user group invites
- *     description: All requests to join a group sent to this user.
- *     tags:
- *       - Users
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: invitations
- *       401:
- *         description: Access Denied. No Token Provided.
- *       404:
- *         description: Invitation not found
- *       500:
- *         description: Internal server error
- */
-router.get("/invites",
-  authenticateUser,
-  getUserInvites);
 export default router;
