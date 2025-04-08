@@ -40,3 +40,4 @@ RideStop.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 // Group Invitation
 GroupInvitation.belongsTo(Group, { foreignKey: "groupId", as: "group" });
+GroupInvitation.belongsTo(User, { as: "sender", foreignKey: "senderId" });

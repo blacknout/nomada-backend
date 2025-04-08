@@ -26,7 +26,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /ride:
+ * /ride/:
  *   post:
  *     summary: Create a new ride
  *     description: Allows a group to create a ride with essential details. The route can only be added when the ride is completed.

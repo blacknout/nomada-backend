@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
-import GroupInvitation from "../models/GroupInvitation";
 import User from "../models/User";
 import { becomeGroupMember, createInvite, inviteResponse } from "../services/groupServices";
 
@@ -20,7 +19,8 @@ export const joinGroup = async (req: Request, res: Response) => {
     const { groupId } = req.params;
     const userId = req.user?.id;
 
-    becomeGroupMember(res, userId, groupId);
+    const response = await becomeGroupMember(userId, groupId);
+    res.status(response.status).json({ message: response.message });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -72,8 +72,9 @@ export const inviteUserToGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
     const { userIds } = req.body;
+    const { id: senderId } = req.user;
 
-    createInvite(req, res, userIds, groupId);
+    createInvite(req, res, userIds, groupId, senderId);
     return;
   } catch (err) {
     errorResponse(res, err);
