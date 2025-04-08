@@ -66,24 +66,16 @@ export const becomeGroupMember = async (userId: string, groupId: string, isInvit
   try {
     const group = await Group.findByPk(groupId);
     if (!group) {
-      // res.status(404).json({ message: "Group not found" });
       return { status: 404, message: "Group not found" };
     } else if (group.isPrivate && !isInvited) {
-      // res.status(404).json({ message: "You must be invited to join this group" });
       return { status: 404, message: "You must be invited to join this group" };
-      return;
     } else {
-      console.log("-------------------------------------", userId, groupId)
       const isMember = await GroupMember.findOne({ where: { userId, groupId } });
-      console.log("is member-----------------", isMember)
       if (isMember) {
-        // res.status(400).json({ message: "User is already in the group" });
         return { status: 400,  message: "User is already in the group" };
       }
       await GroupMember.create({ userId, groupId });
-      // res.status(200).json({ message: "Successfully joined the group" });
       return { status: 200, message: "The invite has been accepted."};
-      return;
     }
   } catch (error) {
     throw new Error(`Error adding users: ${error}`);
