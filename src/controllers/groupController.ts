@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import errorResponse from "../errors/errorResponse";
-import { Op, ValidationError } from "sequelize";
-import { SequelizeError } from "../config/sequelize";
+import { Op } from "sequelize";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
 import { createGroupWithUsers } from "../services/groupServices";
@@ -19,20 +18,19 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
   try {
     const { name, description, userIds } = req.body;
     const userId = req.user?.id as string;
-
+    let response = { invited: 0, total: 0}
     const group = await Group.create({
       name: String(name),
       description: description ? String(description) : null,
       createdBy: String(userId),
     });
-    let response = 0;
-    response = (userIds?.length) ? await createGroupWithUsers(group.id, userIds) : response;
+
+    if (userIds.length) { response = await createGroupWithUsers(group.id, userIds, userId);}
     await GroupMember.create({ groupId: group.id, userId });
     res.status(201).json({ 
       message: "Group created successfully",
       group,
-      invites: `${response} invited.`
-    });
+      invites: `${response?.invited} out of ${response?.total} users invited.` });
   } catch (err) {
     errorResponse(res, err);
   }

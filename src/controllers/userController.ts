@@ -356,15 +356,16 @@ export const getUserInvites = async (req: Request, res: Response) => {
 
     const invitations = await GroupInvitation.findAll({
       where: { userId },
-      include: [{ model: Group, as: "group", attributes: ["id", "name", "description"],
-        include: [
-          {
-            model: User,
-            as: "creator",
-            attributes: ["id", "username", "firstname"],
-          },
-        ],
-       }],
+      include: [
+        { 
+          model: Group, as: "group", attributes: ["id", "name", "description"]
+
+        },
+        {
+        model: User,
+        as: "sender",
+        attributes: ["username", "firstname"]
+      }]
     });
     res.status(200).json({ invitations });
     return;
