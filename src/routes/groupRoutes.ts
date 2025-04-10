@@ -3,8 +3,7 @@ import {
   createGroup,
   getGroup,
   searchGroup,
-  updateGroupDetails,
-  changeGroupPrivacy,
+  updateGroupData,
   getCurrentUserGroups,
   deleteGroup
 } from "../controllers/groupController";
@@ -171,59 +170,6 @@ router.get("/", authenticateUser, searchGroup);
 /**
  * @swagger
  * /api/group/{groupId}:
- *   patch:
- *     summary: Update group privacy
- *     description: Updates the privacy of the group.
- *     tags:
- *       - Group
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: groupId
- *         required: true
- *         schema :
- *            type: string
- *         description: The ID of the group to update.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               privacy:
- *                 type: boolean
- *                 example: true
- *     responses:
- *       200:
- *         description: Group privacy updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Group privacy updated
- *                 user:
- *                   $ref: '#/components/schemas/Group'
- *       400:
- *         description: Group ID is required
- *       401:
- *         description: Access Denied. No Token Provided.
- *       404:
- *         description: Group not found
- *       403:
- *         descriptoion: You are not allowed to update this group privacy.
- *       500:
- *         description: Internal server error
- */
-router.patch("/:groupId", authenticateUser, validateGroupPrivacy, changeGroupPrivacy);
-
-/**
- * @swagger
- * /api/group/{groupId}:
  *   put:
  *     summary: Update group details
  *     description: Updates the details of a group by their ID. Only group creators can update.
@@ -277,7 +223,7 @@ router.put("/:groupId",
   authenticateUser, 
   validateGroupInfo, 
   validateGroupQuery,
-  updateGroupDetails
+  updateGroupData
 );
 
 /**

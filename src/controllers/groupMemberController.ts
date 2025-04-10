@@ -162,3 +162,40 @@ export const leaveGroup = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
+
+export const updateGroupMemberType = async (req: Request, res: Response) => {
+  try {
+    const { groupId, type, userId: updatedUser } = req.body;
+    
+
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      res.status(404).json({ message: "Group not found."});
+      return;
+    }
+
+    const isCreator = req.user.id === group.createdBy;
+    const userId = isCreator ? (updatedUser || req.user.id) : req.user.id;
+    
+    if (!isCreator && group.isRestricted) {
+      res.status(403).json({ message: "You are not allowed to update your member type."});
+      return;
+    }
+    const member = await GroupMember.findOne({ 
+      where: {
+        groupId,
+        userId
+      }
+    });
+    if (!member) {
+      res.status(404).json({ message: "This user is not a part of this group."});
+      return;
+    }
+    await member.update({
+      type
+    });
+    res.status(200).json({ message: `This group members' status has been updated to ${type}.` });
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
