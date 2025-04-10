@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { param,check, validationResult } from "express-validator";
+import { check, validationResult } from "express-validator";
 
 export const validateGroupInfo: RequestHandler[] = [
   check("name").isLength({ min: 3 }).withMessage("The group name must be at least 3 characters."),
@@ -83,3 +83,20 @@ export const validateGroupPrivacy: RequestHandler[] = [
     next();
   }) as RequestHandler,
 ];
+
+export const validateMemberStatus: RequestHandler[] = [
+  check("type").notEmpty().withMessage("Selecting a type is required")
+  .isIn(["active", "ghost", "observer"]).withMessage("Type must be one of: active, ghost or observer"),
+  check("groupId").isUUID().withMessage("Group ID must be a valid UUID"),
+  check("userId").isUUID().withMessage("User ID must be a valid UUID").optional(),
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return
+    }
+    next();
+  }) as RequestHandler,
+];
+
+

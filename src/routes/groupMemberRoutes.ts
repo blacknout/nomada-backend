@@ -5,12 +5,14 @@ import {
   inviteUserToGroup,
   respondToInvite,
   removeUserFromGroup,
-  leaveGroup
+  leaveGroup,
+  updateGroupMemberType
 } from "../controllers/groupMemberController";
 import {
   validateGroupQuery,
   validateInviteToGroup,
-  validateRespondToInvite
+  validateRespondToInvite,
+  validateMemberStatus
 } from "../middleware/groupValidation";
 import {
   validateUserQuery
@@ -267,5 +269,49 @@ router.delete("/leave-group/:groupId",
   validateGroupQuery,
   leaveGroup);
 
+
+/**
+ * @swagger
+ * /api/member/type:
+ *   put:
+ *     summary: Update member type
+ *     description: This will update the group member type
+ *     tags:
+ *       - Members
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - groupId
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: ["active", "ghost", "observer";]
+ *               groupId:
+ *                 type: string
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: This group members' status has been updated to ${type}.
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: You are not allowed to update your member type.
+ *       404:
+ *         description: User not found | Group not found.
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/type", 
+  authenticateUser, 
+  validateMemberStatus,
+  updateGroupMemberType);
 
 export default router;

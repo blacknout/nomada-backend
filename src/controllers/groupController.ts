@@ -124,22 +124,28 @@ export const changeGroupPrivacy = async (req: Request, res: Response) => {
  * @param {NextFunction} next - Express next middleware function.
  * @returns {Promise<Response>} - Returns updated group details.
  */
-export const updateGroupDetails = async (req: Request, res: Response) => {
+export const updateGroupData = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
-    const { name, description } = req.body;
+    const { name, description, privacy: isPrivate, restriction: isRestricted } = req.body;
 
     const group = await Group.findByPk(groupId);
     if (!group) {
       res.status(404).json({ message: "Group not found" });
       return;
-    } else if (req.user && req.user.id === group.createdBy) {
+    }
+    if (req.user.id === group.createdBy) {
       await group.update({
         name: name || group.name,
         description: description || group.description,
+        isPrivate: isPrivate || group.isPrivate,
+        isRestricted: isRestricted || group.isRestricted
       });
       res.status(200).json({ message: "Group updated successfully", group });
       return
+    } else {
+      res.status(403).json({ message: " You are not permitted to change this groups details." });
+      return;
     }
   } catch (err) {
     errorResponse(res, err);
