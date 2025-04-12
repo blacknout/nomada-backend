@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import http from "http";
+import { runWebSocket } from "./websocket";
 import { setupSwagger } from "./swagger";
 import healthRoute from "./routes/healthRoute";
 import userRoutes from "./routes/userRoutes";
@@ -16,6 +18,8 @@ import { requestLogger } from './middleware/logger';
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+// runWebSocket(server);
 
 setupSwagger(app); 
 app.use(express.json());

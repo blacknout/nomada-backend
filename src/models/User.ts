@@ -1,7 +1,7 @@
 import { DataTypes, Model, Association } from "sequelize";
 import sequelize from "../config/sequelize";
 import bcrypt from "bcryptjs";
-import {Ride} from "./Ride";
+import { Ride } from "./Ride";
 
 interface UserAttributes {
   id: string;
@@ -15,6 +15,7 @@ interface UserAttributes {
   phone?: string;
   token?: string;
   isAdmin: boolean;
+  avatar?: string;
   otp?: string;
   otpExpires?: Date;
   isVerified: boolean;
@@ -33,6 +34,7 @@ export class User extends Model<UserAttributes> {
   public phone?: string;
   public token?: string;
   public isAdmin!: boolean;
+  public avatar?: string;
   public otp?: string;
   public otpExpires?: Date;
   public isVerified!: boolean;
@@ -55,10 +57,8 @@ User.init(
     state: { type: DataTypes.STRING, allowNull: false },
     country: { type: DataTypes.STRING, allowNull: false },
     phone: { type: DataTypes.STRING },
-    token: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
+    token: { type: DataTypes.TEXT, allowNull: true },
+    avatar: { type: DataTypes.STRING },
     isAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     otp: { type: DataTypes.STRING,},
     otpExpires: { type: DataTypes.DATE,},

@@ -49,6 +49,7 @@ const router = express.Router();
  *               - lastname
  *               - state
  *               - country
+ *               - avatar
  *             properties:
  *               username:
  *                 type: string
@@ -67,6 +68,8 @@ const router = express.Router();
  *               country:
  *                 type: string
  *               phone:
+ *                 type: string
+ *               avatar:
  *                 type: string
  *     responses:
  *       201:
@@ -349,9 +352,14 @@ router.get("/", authenticateUser, validateSearchQuery, searchUsers);
  *             lastname:
  *               type: string
  *               example: Doe
- *             email:
+ *             state:
  *               type: string
- *               example: johndoe@example.com
+ *             country:
+ *               type: string
+ *             phone:
+ *               type: string
+ *             avatar:
+ *               type: string
  *     responses:
  *       200:
  *         description: User updated successfully

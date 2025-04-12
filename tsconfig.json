@@ -7,8 +7,8 @@
     "strict": true,
     "esModuleInterop": true,
     "strictNullChecks": false,
+    "types": ["node", "express", "jest", "ws"],
     "typeRoots": ["./src/@types", "./node_modules/@types"],
-    "types": ["node", "express", "jest"],
     "skipLibCheck": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true

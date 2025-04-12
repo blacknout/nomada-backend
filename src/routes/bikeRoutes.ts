@@ -48,6 +48,10 @@ const router = express.Router();
  *                 type: string
  *               year:
  *                 type: string
+ *               vin:
+ *                 type: string
+ *               image:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Bike created successfully.
@@ -138,6 +142,10 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *             year:
  *               type: string
  *               example: 2015
+ *             vin:
+ *               type: string
+ *             image:
+ *                type: string
  *     responses:
  *       200:
  *         description: Bike updated successfully
