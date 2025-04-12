@@ -5,6 +5,7 @@ import { GroupMember } from "./GroupMembers";
 import { Ride } from "./Ride";
 import { RideStop } from "./RideStop";
 import { GroupInvitation } from "./GroupInvitation";
+import { Sos } from "./Sos";
 
 // User associations
 User.hasMany(Bike, { foreignKey: "userId", onDelete: "CASCADE" });
@@ -13,6 +14,7 @@ User.belongsToMany(Group, { through: GroupMember, foreignKey: "userId", onDelete
 User.hasMany(Ride, { foreignKey: "createdBy", onDelete: "CASCADE" });
 User.hasMany(Ride, { foreignKey: "roadCaptainId", onDelete: "CASCADE" });
 User.belongsToMany(Ride, { through: "RideParticipants", foreignKey: "userId", as: "trips" });
+User.hasOne(Sos, { foreignKey: "userId", as: "sos", onDelete: "CASCADE" });
 
 // // Bike associations
 Bike.belongsTo(User, { foreignKey: "userId", as: "owner" });
@@ -41,3 +43,6 @@ RideStop.belongsTo(User, { foreignKey: "userId", as: "user" });
 // Group Invitation
 GroupInvitation.belongsTo(Group, { foreignKey: "groupId", as: "group" });
 GroupInvitation.belongsTo(User, { as: "sender", foreignKey: "senderId" });
+
+// SOS association
+Sos.belongsTo(User, { foreignKey: "userId", as: "user" });
