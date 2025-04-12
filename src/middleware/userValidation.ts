@@ -29,6 +29,10 @@ export const validateRegisterUser: RequestHandler[] = [
     .matches(/\d/)
     .withMessage("This is not a valid phone number.")
     .optional(),
+  check("avatar")
+    .isLength({ min: 5 })
+    .withMessage("Upload a valid URL for your avatar.")
+    .optional(),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -80,6 +84,10 @@ export const validateUpdateUser: RequestHandler[] = [
     .withMessage("This is not a valid Phone number.")
     .matches(/\d/)
     .withMessage("This is not a valid phone number.")
+    .optional(),
+  check("avatar")
+    .isLength({ min: 5 })
+    .withMessage("Upload a valid URL for your avatar.")
     .optional(),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

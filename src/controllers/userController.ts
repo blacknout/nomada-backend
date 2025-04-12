@@ -26,7 +26,7 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const { username, firstname, lastname, email, password, state, country, phone, avatar } = req.body;
     let user = await User.findOne({ where: { email } });
     if (user && user.isVerified) {
       res.status(400).json({ message: "Email already exists" });
@@ -35,7 +35,9 @@ export const register = async (
       res.status(200).json({ message: (await sendOtpEmail(user)).message });
       return;
     } else {
-      user = await User.create(req.body);
+      user = await User.create({
+        username, firstname, lastname, email, password, state, country, phone, avatar
+      });
       res.status(201).json({ message: (await sendOtpEmail(user)).message });
       return;
     }
@@ -200,7 +202,7 @@ export const searchUsers = async (req: Request, res: Response) => {
  */
 export const updateUser: RequestHandler = async (req, res, next) => {
   try {
-    const { username, firstname, lastname, state, country, phone } =
+    const { username, firstname, lastname, state, country, phone, avatar } =
       req.body;
     const userId = req.user.id;
     const user = await User.findByPk(userId);
@@ -214,6 +216,7 @@ export const updateUser: RequestHandler = async (req, res, next) => {
         state: state || user.state,
         country: country || user.country,
         phone: phone || user.phone,
+        avatar: avatar || user.avatar
       });
       res
         .status(200)
