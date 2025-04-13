@@ -7,7 +7,7 @@ interface GroupMemberAttributes {
     id: string;
     userId: string;
     groupId: string;
-    type: "active" | "ghost" | "observer";
+    type: "active" | "ghost" | "observer" | "inactive";
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -16,7 +16,7 @@ export class GroupMember extends Model<GroupMemberAttributes> implements GroupMe
     public id!: string;
     public userId!: string;
     public groupId!: string;
-    public type!:  "active" | "ghost" | "observer";
+    public type!:  "active" | "ghost" | "observer" | "inactive";
 }
 
 GroupMember.init(
@@ -33,7 +33,7 @@ GroupMember.init(
       onDelete: "CASCADE",
     },
     type: {
-      type: DataTypes.ENUM("active", "ghost", "observer" ),
+      type: DataTypes.ENUM("active", "ghost", "observer", "inactive" ),
       allowNull: false,
       defaultValue: "ghost"
     },

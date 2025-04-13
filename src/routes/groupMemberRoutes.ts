@@ -292,7 +292,7 @@ router.delete("/leave-group/:groupId",
  *             properties:
  *               type:
  *                 type: string
- *                 enum: ["active", "ghost", "observer"]
+ *                 enum: ["active", "ghost", "observer", "inactive"]
  *               groupId:
  *                 type: string
  *               userId:

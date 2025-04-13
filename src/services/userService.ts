@@ -14,6 +14,7 @@ export const generateTokenAndUpdate = async (user: User) => {
       country: user.country,
       state: user.state,
       phone: user.phone,
+      avatar: user.avatar
     },
     process.env.JWT_SECRET as string,
     { expiresIn: WEEK_TOKEN_EXPIRATION }
