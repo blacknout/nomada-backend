@@ -86,7 +86,7 @@ export const validateGroupPrivacy: RequestHandler[] = [
 
 export const validateMemberStatus: RequestHandler[] = [
   check("type").notEmpty().withMessage("Selecting a type is required")
-  .isIn(["active", "ghost", "observer"]).withMessage("Type must be one of: active, ghost or observer"),
+  .isIn(["active", "ghost", "observer", "inactive"]).withMessage("Type must be one of: active, ghost, observer or inactive"),
   check("groupId").isUUID().withMessage("Group ID must be a valid UUID"),
   check("userId").isUUID().withMessage("User ID must be a valid UUID").optional(),
   ((req: Request, res: Response, next: NextFunction) => {

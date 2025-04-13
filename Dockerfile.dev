@@ -2,17 +2,18 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copy package files first (for better caching)
+COPY package*.json ./
 
-RUN npm ci
+# Clean install dependencies with no cache
+RUN npm cache clean --force && \
+    npm ci
 
-RUN apk add --no-cache postgresql-client
-
-# Don't copy node_modules or dist
+# Copy remaining source code
 COPY . .
 
-# Use nodemon for development
-RUN npm install -g nodemon
+# Install nodemon globally
+RUN npm install -g nodemon ts-node-dev
 
-# Use ts-node for development
+# Start the development server
 CMD ["npm", "run", "dev"]
