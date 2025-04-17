@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/User";
-import { WEEK_TOKEN_EXPIRATION } from "../utils/constants";
+import { WEEK_TOKEN_EXPIRATION } from "../utils/constants/constants";
 
 export const generateTokenAndUpdate = async (user: User) => {
   const token = jwt.sign(

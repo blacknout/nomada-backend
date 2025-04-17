@@ -23,17 +23,14 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - targetType
+ *               - target
  *               - targetId
- *               - messageType
  *               - payload
  *             properties:
- *               targetType:
+ *               target:
  *                 type: string
  *                 enum: [user, group, ride]
  *               targetId:
- *                 type: string
- *               messageType:
  *                 type: string
  *               payload:
  *                 type: object

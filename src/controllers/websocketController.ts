@@ -2,40 +2,49 @@ import { Request, Response } from 'express';
 import { 
   sendToUser, 
   broadcastToGroup, 
-  broadcastToRide 
+  broadcastToRide,
+  handleRideStop
 } from '../services/websocketService';
 import errorResponse from '../errors/errorResponse';
 
 // HTTP endpoint to send a message through WebSocket
 export const sendWebSocketMessage = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { targetType, targetId, messageType, payload } = req.body;
+    const { target, targetId, payload } = req.body;
     const fromUserId = req.user.id;
 
-    switch (targetType) {
+    switch (target) {
       case 'user':
-        sendToUser(targetId, {
-          type: messageType,
+        sendToUser(target, {
+          type: target,
           fromUserId,
           payload
         });
         break;
       case 'group':
-        broadcastToGroup(targetId, {
-          type: messageType,
+        broadcastToGroup({
+          type: target,
           fromUserId,
           groupId: targetId,
           payload
         });
         break;
       case 'ride':
-        broadcastToRide(targetId, {
-          type: messageType,
+        broadcastToRide({
+          type: target,
           fromUserId,
           rideId: targetId,
           payload
         });
         break;
+        case 'ride-stop':
+          handleRideStop({
+            type: target,
+            fromUserId,
+            rideId: targetId,
+            payload
+          });
+          break;
       default:
         res.status(400).json({ message: 'Invalid target type' });
         return;

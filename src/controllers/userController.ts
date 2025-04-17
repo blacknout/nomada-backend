@@ -8,7 +8,7 @@ import errorResponse from "../errors/errorResponse";
 import { sendOtpEmail, sendPasswordResetEmail } from "../services/emailService";
 import { filterUser } from "../utils/filterUser";
 import { mergeUsersAndBikeOwners, searchUser, searchBike } from "../services/searchService";
-import { FIFTEEN_MINUTE_TOKEN } from "../utils/constants";
+import { FIFTEEN_MINUTE_TOKEN } from "../utils/constants/constants";
 import { generateTokenAndUpdate } from "../services/userService";
 
 /**

@@ -2,8 +2,6 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../models/User";
 import Sos from "../models/Sos";
 import errorResponse from "../errors/errorResponse";
-import { sendOtpEmail, sendPasswordResetEmail } from "../services/emailService";
-
 
 export const createSosContact = async (
   req: Request,
@@ -53,7 +51,7 @@ export const updateSosContact = async (
     const { sos } = user;
     // if sosconact id sos email sos phone, send messagee to updated field
     const sosUpdate = await sos.update({
-      isActivated: isActivated || sos.isActivated,
+      isActivated: isActivated === false ? false : true,
       contactId: contactId || sos.contactId,
       email: email || sos.email,
       phone: phone || sos.phone,
