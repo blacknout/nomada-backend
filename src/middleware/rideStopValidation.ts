@@ -7,17 +7,17 @@ export const validateCreateRideStop: RequestHandler[] = [
   .isIn(["safe", "accident", "mechanical"]).withMessage("Reason must be one of: safe, accident, mechanical"),
   check("location").isObject().withMessage("Location must be an object")
   .custom((value) => {
-    if (!value.lat || !value.lng) {
-      throw new Error("Location must have lat and lng");
+    if (!value.latitude || !value.longitude) {
+      throw new Error("Location must have latitude and longitude");
     }
-    if (typeof value.lat !== "number" || typeof value.lng !== "number") {
-      throw new Error("lat and lng must be numbers");
+    if (typeof value.latitude !== "number" || typeof value.longitude !== "number") {
+      throw new Error("latitude and longitude must be numbers");
     }
-    if (value.lat < -90 || value.lat > 90) {
-      throw new Error("lat must be between -90 and 90");
+    if (value.latitude < -90 || value.latitude > 90) {
+      throw new Error("latitude must be between -90 and 90");
     }
-    if (value.lng < -180 || value.lng > 180) {
-      throw new Error("lng must be between -180 and 180");
+    if (value.longitude < -180 || value.longitude > 180) {
+      throw new Error("longitude must be between -180 and 180");
     }
     return true;
   }),
@@ -37,17 +37,17 @@ export const validateRideStopInfo: RequestHandler[] = [
   .isIn(["safe", "accident", "mechanical"]).withMessage("Reason must be one of: safe, accident, mechanical"),
   check("location").isObject().withMessage("Location must be an object")
   .custom((value) => {
-    if (!value.lat || !value.lng) {
-      throw new Error("Location must have lat and lng");
+    if (!value.latitude || !value.longitude) {
+      throw new Error("Location must have latitude and longitude");
     }
-    if (typeof value.lat !== "number" || typeof value.lng !== "number") {
-      throw new Error("lat and lng must be numbers");
+    if (typeof value.latitude !== "number" || typeof value.longitude !== "number") {
+      throw new Error("latitude and longitude must be numbers");
     }
-    if (value.lat < -90 || value.lat > 90) {
-      throw new Error("lat must be between -90 and 90");
+    if (value.latitude < -90 || value.latitude > 90) {
+      throw new Error("latitude must be between -90 and 90");
     }
-    if (value.lng < -180 || value.lng > 180) {
-      throw new Error("lng must be between -180 and 180");
+    if (value.longitude < -180 || value.longitude > 180) {
+      throw new Error("longitude must be between -180 and 180");
     }
     return true;
   }).optional(),

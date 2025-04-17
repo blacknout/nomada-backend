@@ -12,8 +12,8 @@ import {
 
 /**
  * @typedef {Object} GeoPoint
- * @property {number} lat - The lat of the location.
- * @property {number} lng - The lng of the location.
+ * @property {number} latitude - The latitude of the location.
+ * @property {number} longitude - The longitude of the location.
  */
 
 /**
@@ -43,8 +43,8 @@ import {
  *   "groupId": "12345",
  *   "creatorId": "user123",
  *   "roadCaptainId": "captain567",
- *   "startLocation": { "lat": 12.345, "lng": 67.890 },
- *   "destination": { "lat": 98.765, "lng": 43.210 },
+ *   "startLocation": { "latitude": 12.345, "longitude": 67.890 },
+ *   "destination": { "latitude": 98.765, "longitude": 43.210 },
  * }
  *
  * @response 201 - Ride created successfully
@@ -55,8 +55,8 @@ import {
  *     "groupId": "12345",
  *     "creatorId": "user123",
  *     "roadCaptainId": "captain567",
- *     "startLocation": { "lat": 12.345, "lng": 67.890 },
- *     "destination": { "lat": 98.765, "lng": 43.210 },
+ *     "startLocation": { "latitude": 12.345, "longitude": 67.890 },
+ *     "destination": { "latitude": 98.765, "longitude": 43.210 },
  *     "route": [],
  *     "status": "pending",
  *     "createdAt": "2025-03-19T12:00:00.000Z",
@@ -119,8 +119,8 @@ export const createRide = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} GeoPoint
- * @property {number} lat - The lat of the location.
- * @property {number} lng - The lng of the location.
+ * @property {number} latitude - The latitude of the location.
+ * @property {number} longitude - The longitude of the location.
  */
 
 /**
@@ -155,8 +155,8 @@ export const createRide = async (req: Request, res: Response) => {
  *   "roadCaptainId": "captain567",
  *   "status": "started",
  *   "route": [
- *     { "lat": 13.123, "lng": 68.456 },
- *     { "lat": 14.789, "lng": 69.789 }
+ *     { "latitude": 13.123, "longitude": 68.456 },
+ *     { "latitude": 14.789, "longitude": 69.789 }
  *   ]
  * }
  *
@@ -168,8 +168,8 @@ export const createRide = async (req: Request, res: Response) => {
  *     "groupId": "12345",
  *     "creatorId": "user123",
  *     "roadCaptainId": "captain567",
- *     "startLocation": { "lat": 12.345, "lng": 67.890 },
- *     "destination": { "lat": 98.765, "lng": 43.210 },
+ *     "startLocation": { "latitude": 12.345, "longitude": 67.890 },
+ *     "destination": { "latitude": 98.765, "longitude": 43.210 },
  *     "status": "started",
  *     "createdAt": "2025-03-19T12:00:00.000Z",
  *     "updatedAt": "2025-03-19T12:30:00.000Z"
@@ -235,6 +235,19 @@ export const updateRideStatus = async (req: Request, res: Response) => {
 
     if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
       if (status === "started") {
+        const ongoingRide = await Ride.findOne({
+          where: {
+            groupId: ride.groupId,
+            status: "ongoing"
+          }
+        });
+        if(ongoingRide) {
+          res.status(400)
+          .json({ 
+            message: "You cannot start a new ride when another ride in this group is ongoing"
+          });
+          return;
+        }
         const group = await Group.findOne({
           where: { id: ride.groupId },
           include: {
@@ -245,7 +258,7 @@ export const updateRideStatus = async (req: Request, res: Response) => {
         });
         group.users.map(async(user) => {
           await (ride as any).addParticipant(user);
-        })
+        });
       }
       ride.status = status;
       await ride.save();
@@ -255,7 +268,10 @@ export const updateRideStatus = async (req: Request, res: Response) => {
        });
       return;
     } else {
-      res.status(403).json({ message: "You are not allowed to update this ride." });
+      res.status(403)
+      .json({ 
+        message: "You are not allowed to update the status of this ride."
+      });
       return;
     }
   } catch (err) {
@@ -265,8 +281,8 @@ export const updateRideStatus = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} GeoPoint
- * @property {number} lat - The lat of the location.
- * @property {number} lng - The lng of the location.
+ * @property {number} latitude - The latitude of the location.
+ * @property {number} longitude - The longitude of the location.
  */
 
 /**
@@ -305,8 +321,8 @@ export const updateRideStatus = async (req: Request, res: Response) => {
  *   "groupId": "group567",
  *   "creatorId": "user123",
  *   "roadCaptainId": "captain789",
- *   "startLocation": { "lat": 12.345, "lng": 67.890 },
- *   "destination": { "lat": 98.765, "lng": 43.210 },
+ *   "startLocation": { "latitude": 12.345, "longitude": 67.890 },
+ *   "destination": { "latitude": 98.765, "longitude": 43.210 },
  *   "started": "started",
  *   "createdAt": "2025-03-19T12:00:00.000Z",
  *   "updatedAt": "2025-03-19T12:30:00.000Z"
@@ -425,8 +441,8 @@ export const deleteRide = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} Location
- * @property {number} lat - The lat of the GPS point.
- * @property {number} lng - The lng of the GPS point.
+ * @property {number} latitude - The latitude of the GPS point.
+ * @property {number} longitude - The longitude of the GPS point.
  */
 
 /**
@@ -452,8 +468,8 @@ export const deleteRide = async (req: Request, res: Response) => {
  * POST /api/ride/route/ride123
  * {
  *   "route": [
- *     { "lat": 37.7749, "lng": -122.4194 },
- *     { "lat": 37.7750, "lng": -122.4189 }
+ *     { "latitude": 37.7749, "longitude": -122.4194 },
+ *     { "latitude": 37.7750, "longitude": -122.4189 }
  *   ]
  * }
  *
@@ -515,8 +531,8 @@ export const saveRideRoute = async (req: Request, res: Response) => {
 
 /**
  * @typedef {Object} Location
- * @property {number} lat - The lat of the GPS point.
- * @property {number} lng - The lng of the GPS point.
+ * @property {number} latitude - The latitude of the GPS point.
+ * @property {number} longitude - The longitude of the GPS point.
  */
 
 /**
@@ -544,8 +560,8 @@ export const saveRideRoute = async (req: Request, res: Response) => {
  * @response 200 - Route retrieved successfully
  * {
  *   "route": [
- *     { "lat": 37.7749, "lng": -122.4194 },
- *     { "lat": 37.7750, "lng": -122.4189 }
+ *     { "latitude": 37.7749, "longitude": -122.4194 },
+ *     { "latitude": 37.7750, "longitude": -122.4189 }
  *   ]
  * }
  *

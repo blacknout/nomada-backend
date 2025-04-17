@@ -4,8 +4,8 @@ import { RideStop } from "../models/RideStop";
 
 /**
  * @typedef {Object} Coordinates
- * @property {number} lat - The lat of the stop location.
- * @property {number} lng - The lng of the stop location.
+ * @property {number} latitude - The latitude of the stop location.
+ * @property {number} longitude - The longitude of the stop location.
  */
 
 /**
@@ -27,7 +27,7 @@ import { RideStop } from "../models/RideStop";
  *   rideId: "ride456",
  *   userId: "user789",
  *   reason: "mechanical",
- *   location: { lat: 40.7128, lng: -74.0060 },
+ *   location: { latitude: 40.7128, longitude: -74.0060 },
  *   isResolved: false
  * };
  */
@@ -100,7 +100,7 @@ export const updateRideStop = async (req: Request, res: Response) => {
  *       "rideId": "ride123",
  *       "userId": "user789",
  *       "reason": "mechanical",
- *       "location": { "lat": 40.7128, "lng": -74.0060 },
+ *       "location": { "latitude": 40.7128, "longitude": -74.0060 },
  *       "isResolved": false
  *     }
  *   ]
@@ -146,7 +146,7 @@ export const getAllRideStops = async (req: Request, res: Response) => {
 *       "rideId": "ride123",
 *       "userId": "user789",
 *       "reason": "mechanical",
-*       "location": { "lat": 40.7128, "lng": -74.0060 },
+*       "location": { "latitude": 40.7128, "longitude": -74.0060 },
 *       "isResolved": false
 
  *    }
@@ -190,7 +190,7 @@ export const getRideStop = async (req: Request, res: Response) => {
 *       "rideId": "ride123",
 *       "userId": "user789",
 *       "reason": "mechanical",
-*       "location": { "lat": 40.7128, "lng": -74.0060 },
+*       "location": { "latitude": 40.7128, "longitude": -74.0060 },
 *       "isResolved": true
  *   }
  * }

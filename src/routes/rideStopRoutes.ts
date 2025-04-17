@@ -61,10 +61,10 @@ const router = express.Router();
  *                 type: object
  *                 description: The GPS location of the stop.
  *                 properties:
- *                   lng:
+ *                   longitude:
  *                     type: number
  *                     example: 40.7128
- *                   lat:
+ *                   latitude:
  *                     type: number
  *                     example: -74.0060
  *     responses:
@@ -96,10 +96,10 @@ const router = express.Router();
  *                     location:
  *                       type: object
  *                       properties:
- *                         lng:
+ *                         longitude:
  *                           type: number
  *                           example: 40.7128
- *                         lat:
+ *                         latitude:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
@@ -182,10 +182,10 @@ router.post("/:rideId",
  *                 type: object
  *                 description: The GPS location of the stop.
  *                 properties:
- *                   lng:
+ *                   longitude:
  *                     type: number
  *                     example: 40.7128
- *                   lat:
+ *                   latitude:
  *                     type: number
  *                     example: -74.0060
  *     responses:
@@ -213,10 +213,10 @@ router.post("/:rideId",
  *                     location:
  *                       type: object
  *                       properties:
- *                         lng:
+ *                         longitude:
  *                           type: number
  *                           example: 40.7128
- *                         lat:
+ *                         latitude:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
@@ -312,10 +312,10 @@ router.put("/:stopId",
  *                     location:
  *                       type: object
  *                       properties:
- *                         lng:
+ *                         longitude:
  *                           type: number
  *                           example: 40.7128
- *                         lat:
+ *                         latitude:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:
@@ -394,10 +394,10 @@ router.get("/:stopId",
  *                       location:
  *                         type: object
  *                         properties:
- *                           lng:
+ *                           longitude:
  *                             type: number
  *                             example: 40.7128
- *                           lat:
+ *                           latitude:
  *                             type: number
  *                             example: -74.0060
  *                       isResolved:
@@ -499,10 +499,10 @@ router.get("/ride/:rideId",
  *                     location:
  *                       type: object
  *                       properties:
- *                         lng:
+ *                         longitude:
  *                           type: number
  *                           example: 40.7128
- *                         lat:
+ *                         latitude:
  *                           type: number
  *                           example: -74.0060
  *                     isResolved:

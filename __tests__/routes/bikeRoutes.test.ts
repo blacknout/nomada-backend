@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { 
   WEEK_TOKEN_EXPIRATION 
-} from "../../src/utils/constants";
+} from "../../src/utils/constants/constants";
 
 
 let testUser: any;

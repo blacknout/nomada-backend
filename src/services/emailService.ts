@@ -2,7 +2,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import User from "../models/User";
-import { EXPIRES_IN_FIFTEEN_OTP } from "../utils/constants";
+import { EXPIRES_IN_FIFTEEN_OTP } from "../utils/constants/constants";
 
 dotenv.config();
 
@@ -60,3 +60,22 @@ export const sendPasswordResetEmail = async (user: User, token: string) => {
 
   return { message: "Password reset link sent successfully" };
 };
+
+export const sendSosEmail = async(email: string, title: string, message: string, location: any) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: title,
+    text: message,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+        console.log("Error:", error);
+    } else {
+        console.log("Email sent:", info.response);
+    }
+  });
+
+  return { message: "SOS sent via email." };
+}

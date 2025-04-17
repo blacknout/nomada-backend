@@ -4,24 +4,28 @@ import { User } from "./User";
 import { Group } from "./Group";
 
 interface GroupMemberAttributes {
-    id: string;
-    userId: string;
-    groupId: string;
-    type: "active" | "ghost" | "observer" | "inactive";
-    createdAt?: Date;
-    updatedAt?: Date;
+  id: string;
+  userId: string;
+  groupId: string;
+  type: "active" | "ghost" | "observer" | "inactive";
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export class GroupMember extends Model<GroupMemberAttributes> implements GroupMemberAttributes {
-    public id!: string;
-    public userId!: string;
-    public groupId!: string;
-    public type!:  "active" | "ghost" | "observer" | "inactive";
+  public id!: string;
+  public userId!: string;
+  public groupId!: string;
+  public type!:  "active" | "ghost" | "observer" | "inactive";
 }
 
 GroupMember.init(
   {
-    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    id: { 
+      type: DataTypes.UUID, 
+      defaultValue: DataTypes.UUIDV4, 
+      primaryKey: true 
+    },
     userId: { 
       type: DataTypes.UUID, allowNull: false, 
       references: { model: User, key: "id" },

@@ -58,19 +58,19 @@ const router = express.Router();
  *               startLocation:
  *                 type: object
  *                 properties:
- *                   lat:
+ *                   latitude:
  *                     type: number
  *                     example: 37.7749
- *                   lng:
+ *                   longitude:
  *                     type: number
  *                     example: -122.4194
  *               destination:
  *                 type: object
  *                 properties:
- *                   lat:
+ *                   latitude:
  *                     type: number
  *                     example: 34.0522
- *                   lng:
+ *                   longitude:
  *                     type: number
  *                     example: -118.2437
  *               status:
@@ -110,19 +110,19 @@ const router = express.Router();
  *                     startLocation:
  *                       type: object
  *                       properties:
- *                         lat:
+ *                         latitude:
  *                           type: number
  *                           example: 37.7749
- *                         lng:
+ *                         longitude:
  *                           type: number
  *                           example: -122.4194
  *                     destination:
  *                       type: object
  *                       properties:
- *                         lat:
+ *                         latitude:
  *                           type: number
  *                           example: 34.0522
- *                         lng:
+ *                         longitude:
  *                           type: number
  *                           example: -118.2437
  *                     status:
@@ -201,10 +201,10 @@ router.post("/",
  *                       items:
  *                         type: object
  *                         properties:
- *                           lat:
+ *                           latitude:
  *                             type: number
  *                             example: 37.7749
- *                           lng:
+ *                           longitude:
  *                             type: number
  *                             example: -122.4194
  *       400:
@@ -264,10 +264,10 @@ router.put("/:rideId",
  *                 items:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 37.7749
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -122.4194
  *     responses:
@@ -305,10 +305,10 @@ router.put("/:rideId",
  *                       items:
  *                         type: object
  *                         properties:
- *                           lat:
+ *                           latitude:
  *                             type: number
  *                             example: 37.7749
- *                           lng:
+ *                           longitude:
  *                             type: number
  *                             example: -122.4194
  *       400:
@@ -374,19 +374,19 @@ router.patch("/:rideId",
  *                 startLocation:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 40.7128
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -74.0060
  *                 endLocation:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 34.0522
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -118.2437
  *                 createdAt:
@@ -465,19 +465,19 @@ router.get("/:rideId",
  *                 startLocation:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 40.7128
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -74.0060
  *                 endLocation:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 34.0522
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -118.2437
  *                 createdAt:
@@ -602,10 +602,10 @@ router.delete("/:rideId",
  *                 items:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 37.7749
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -122.4194
  *     responses:
@@ -694,10 +694,10 @@ router.post("/route/:rideId",
  *                   items:
  *                     type: object
  *                     properties:
- *                       lat:
+ *                       latitude:
  *                         type: number
  *                         example: 37.7749
- *                       lng:
+ *                       longitude:
  *                         type: number
  *                         example: -122.4194
  *       401:
@@ -851,19 +851,19 @@ router.delete("/route/:rideId",
  *                 startLocation:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 40.7128
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -74.0060
  *                 endLocation:
  *                   type: object
  *                   properties:
- *                     lat:
+ *                     latitude:
  *                       type: number
  *                       example: 34.0522
- *                     lng:
+ *                     longitude:
  *                       type: number
  *                       example: -118.2437
  *                 createdAt:

@@ -4,8 +4,8 @@ import { User } from "./User";
 import { Group } from "./Group";
 
 interface Coordinates {
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
 }
 
 interface RideAttributes {

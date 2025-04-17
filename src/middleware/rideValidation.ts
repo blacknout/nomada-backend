@@ -11,33 +11,33 @@ export const validateRideInfo: RequestHandler[] = [
   .optional(),
   check("startLocation").isObject().withMessage("Start location must be an object")
   .custom((value) => {
-    if (!value.lat || !value.lng) {
-      throw new Error("Start location must have lat and lng");
+    if (!value.latitude || !value.longitude) {
+      throw new Error("Start location must have latitude and longitude");
     }
-    if (typeof value.lat !== "number" || typeof value.lng !== "number") {
-      throw new Error("lat and lng must be numbers");
+    if (typeof value.latitude !== "number" || typeof value.longitude !== "number") {
+      throw new Error("latitude and longitude must be numbers");
     }
-    if (value.lat < -90 || value.lat > 90) {
-      throw new Error("lat must be between -90 and 90");
+    if (value.latitude < -90 || value.latitude > 90) {
+      throw new Error("latitude must be between -90 and 90");
     }
-    if (value.lng < -180 || value.lng > 180) {
-      throw new Error("lng must be between -180 and 180");
+    if (value.longitude < -180 || value.longitude > 180) {
+      throw new Error("longitude must be between -180 and 180");
     }
     return true;
   }).optional(),
   check("destination").isObject().withMessage("Destination must be an object")
   .custom((value) => {
-    if (!value.lat || !value.lng) {
-      throw new Error("Destination must have lat and lng");
+    if (!value.latitude || !value.longitude) {
+      throw new Error("Destination must have latitude and longitude");
     }
-    if (typeof value.lat !== "number" || typeof value.lng !== "number") {
-      throw new Error("lat and lng must be numbers");
+    if (typeof value.latitude !== "number" || typeof value.longitude !== "number") {
+      throw new Error("latitude and longitude must be numbers");
     }
-    if (value.lat < -90 || value.lat > 90) {
-      throw new Error("lat must be between -90 and 90");
+    if (value.latitude < -90 || value.latitude > 90) {
+      throw new Error("latitude must be between -90 and 90");
     }
-    if (value.lng < -180 || value.lng > 180) {
-      throw new Error("lng must be between -180 and 180");
+    if (value.longitude < -180 || value.longitude > 180) {
+      throw new Error("longitude must be between -180 and 180");
     }
     return true;
   }).optional(),
@@ -84,16 +84,16 @@ export const validateRideRoute: RequestHandler[] = [
   .custom((value) => {
     for (const point of value) {
       if (
-        typeof point.lat !== "number" ||
-        point.lat < -90 || point.lat > 90
+        typeof point.latitude !== "number" ||
+        point.latitude < -90 || point.latitude > 90
       ) {
-        throw new Error("Each point must have a valid lat (-90 to 90)");
+        throw new Error("Each point must have a valid latitude (-90 to 90)");
       }
       if (
-        typeof point.lng !== "number" ||
-        point.lng < -180 || point.lng > 180
+        typeof point.longitude !== "number" ||
+        point.longitude < -180 || point.longitude > 180
       ) {
-        throw new Error("Each point must have a valid lng (-180 to 180)");
+        throw new Error("Each point must have a valid longitude (-180 to 180)");
       }
     }
     return true;
