@@ -349,11 +349,6 @@ export const getRideDetails = async (req: Request, res: Response) => {
         { model: User, as: "roadCaptain", attributes: ["id", "username"] },
       ],
     });
-
-    if (!ride) {
-      res.status(404).json({ message: "Ride not found" });
-      return;
-    }
     res.status(200).json({ ride });
     return;
   } catch (err) {

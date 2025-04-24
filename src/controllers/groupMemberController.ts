@@ -46,12 +46,6 @@ export const getGroupUsers = async (req: Request, res: Response) => {
         attributes: ["id", "username", "email"],
       },
     });
-
-    if (!groupWithUsers) {
-      res.status(404).json({ message: "Group not found" });
-      return;
-    }
-
     res.status(200).json({ groupWithUsers });
     return;
   } catch (err) {

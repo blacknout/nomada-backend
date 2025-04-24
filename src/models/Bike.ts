@@ -7,6 +7,7 @@ interface BikeAttributes {
 	plate?: string
 	make:  string
 	model: string
+  color?: string
 	year: string
   vin?: string
 	notInUse:  boolean
@@ -24,6 +25,7 @@ export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implemen
   public plate?: string;
   public make!: string;
   public model!: string;
+  public color?: string;
   public year!: string;
   public vin?: string;
   public notInUse!: boolean;
@@ -59,6 +61,9 @@ Bike.init(
     model: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    color: {
+      type: DataTypes.STRING,
     },
     year: {
       type: DataTypes.STRING,

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import errorResponse from "../errors/errorResponse";
-import { Op } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
 import { createGroupWithUsers } from "../services/groupServices";
@@ -49,11 +49,6 @@ export const getGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
     const group = await Group.findByPk(groupId);
-
-    if (!group) {
-      res.status(404).json({ message: "Group not found" });
-      return
-    }
     res.status(200).json({ group });
     return;
   } catch (err) {
@@ -158,8 +153,29 @@ export const updateGroupData = async (req: Request, res: Response) => {
 export const getCurrentUserGroups = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const groups = await GroupMember.findAll({ where: { userId },
-      include: [{ model: Group, attributes: ["name"]}]
+    const groups = await Group.findAll({
+      include: [
+        {
+          model: GroupMember,
+          as: 'members',
+          attributes: [],
+        },
+        {
+          model: GroupMember,
+          as: 'members',
+          where: { userId },
+          attributes: [],
+          required: true,
+          duplicating: false,
+        },
+      ],
+      attributes: {
+        include: [
+          [Sequelize.fn('COUNT', Sequelize.col('members.id')), 'memberCount'],
+        ],
+      },
+      group: ['group.id'],
+      subQuery: false,
     });
 
     res.status(200).json({ groups });

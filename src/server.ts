@@ -9,9 +9,9 @@ const PORT = process.env.PORT || 9000;
 const server = http.createServer(app);
 
 const io = initializeWebSocketServer(server);
-(global as any).io = io; // Type assertion to avoid the error
+(global as any).io = io;
 
-sequelize.sync({ alter: true }).then(() => {
-  console.log("Database connected and schema updated");
+sequelize.sync({ force: false }).then(() => {
+  console.log("Database connected");
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

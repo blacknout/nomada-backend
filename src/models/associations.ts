@@ -23,11 +23,11 @@ Bike.belongsTo(User, { foreignKey: "userId", as: "owner" });
 Group.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
 Group.belongsToMany(User, { through: GroupMember, foreignKey: "groupId", as: "users", onDelete: "CASCADE" });
 Group.hasMany(Ride, { foreignKey: "groupId", onDelete: "CASCADE" });
-Group.hasMany(GroupMember, { foreignKey: "groupId",onDelete: "CASCADE" });
+Group.hasMany(GroupMember, { foreignKey: "groupId", onDelete: "CASCADE", as: "members" });
 Group.hasMany(GroupInvitation, { foreignKey: "groupId", as: "invitations" });
 
 // // Group member associations
-GroupMember.belongsTo(Group, { foreignKey: "groupId" });
+GroupMember.belongsTo(Group, { foreignKey: "groupId", as: 'group' });
 
 // // Ride associations
 Ride.belongsTo(Group, { foreignKey: "groupId" });
