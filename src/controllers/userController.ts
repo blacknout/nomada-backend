@@ -167,26 +167,16 @@ export const getUser = async (
  */
 export const searchUsers = async (req: Request, res: Response) => {
   try {
-    const { search } = req.query;
-
-    if (!search || typeof search !== "string") {
-      res.status(400).json({ message: "A query parameter is required" });
-      return;
-    }
+    const { search} = req.query;
 
     let [users, bikes] = await Promise.all([
-      searchUser(search),
-      searchBike(search)
+      searchUser(search as string),
+      searchBike(search as string)
     ]);
 
-    if (users.length === 0 && bikes.length === 0) {
-      res.status(404).json({ message: "No users found" });
-      return;
-    } else {
-      const mergedSearch = mergeUsersAndBikeOwners(users, bikes);
-      res.status(200).json({ results: mergedSearch });
-      return;
-    }
+    const mergedSearch = mergeUsersAndBikeOwners(users, bikes);
+    res.status(200).json({ results: mergedSearch });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }

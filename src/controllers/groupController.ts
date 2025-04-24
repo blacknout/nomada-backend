@@ -80,12 +80,7 @@ export const searchGroup = async (req: Request, res: Response) => {
       },
       attributes: ["id", "name", "description"],
     });
-
-    if (users.length === 0) {
-      res.status(404).json({ message: "No groups found" });
-    } else {
-      res.status(200).json({ users });
-    }
+    res.status(200).json({ users });
   } catch (err) {
     errorResponse(res, err);
   }
@@ -162,13 +157,11 @@ export const updateGroupData = async (req: Request, res: Response) => {
  */
 export const getCurrentUserGroups = async (req: Request, res: Response) => {
   try {
-    const createdBy = req.user?.id;
-    const groups = await Group.findAll({ where: { createdBy } });
+    const userId = req.user?.id;
+    const groups = await GroupMember.findAll({ where: { userId },
+      include: [{ model: Group, attributes: ["name"]}]
+    });
 
-    if (!groups.length) {
-      res.status(204).json({ message: "No groups found for this user" });
-      return;
-    }
     res.status(200).json({ groups });
     return;
   } catch (err) {

@@ -55,10 +55,6 @@ export const getBike = async (req: Request, res: Response) => {
     const bike = await Bike.findByPk(bikeId, {
       include: [{ model: User, attributes: ["id", "username"], as: "owner" }],
     });
-
-    if (!bike) {
-      res.status(404).json({ message: "Bike not found" });
-    }
     res.status(200).json({ bike });
   } catch (err) {
     errorResponse(res, err);
@@ -111,12 +107,6 @@ export const getUserBikes = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const bikes = await Bike.findAll({ where: { userId, notInUse: false } });
-
-    if (!bikes.length) {
-      res.status(404).json({ message: "No bikes found for this user" });
-      return; 
-    }
-
     res.status(200).json({ bikes });
     return;
   } catch (err) {
@@ -139,12 +129,6 @@ export const getCurrentUserBikes = async (req: Request, res: Response) => {
     } else {
       const userId = req.user?.id;
       const bikes = await Bike.findAll({ where: { userId, notInUse: false } });
-
-      if (!bikes.length) {
-        res.status(404).json({ message: "No bikes found for this user" });
-        return;
-      }
-
       res.status(200).json({ bikes });
       return;
     }

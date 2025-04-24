@@ -591,13 +591,9 @@ export const getRideRoute = async (req: Request, res: Response) => {
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
       return;
-    } else if (!ride.route || ride.route.length === 0) {
-      res.status(404).json({ message: "No route data available for this ride" });
-      return;
-    } else {
-      res.status(200).json({ route: ride.route });
-      return;
     }
+    res.status(200).json({ route: ride.route });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }
