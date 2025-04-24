@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 import { 
   EXPIRES_IN_FIFTEEN_OTP, 
   WEEK_TOKEN_EXPIRATION 
-} from "../../src/utils/constants";
+} from "../../src/utils/constants/constants";
 
 let testUser: any;
 let testUser2: any;

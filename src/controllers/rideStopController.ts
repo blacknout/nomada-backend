@@ -115,13 +115,9 @@ export const getAllRideStops = async (req: Request, res: Response) => {
       include: [{ association: "user", attributes: ["id", "username"] }],
     });
 
-    if (stops.length < 1) {
-      res.status(404).json({ message: "No stops found for this ride." });
-      return;
-    } else {
-      res.status(200).json({ stops });
-      return;
-    }
+
+    res.status(200).json({ stops });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }
@@ -154,18 +150,11 @@ export const getAllRideStops = async (req: Request, res: Response) => {
 export const getRideStop = async (req: Request, res: Response) => {
   try {
     const { stopId } = req.params;
-
     const stop = await RideStop.findByPk(stopId, {
       include: [{ association: "user", attributes: ["id", "username"] }],
     });
-
-    if (!stop) {
-      res.status(404).json({ message: "Ride stop not found." });
-      return;
-    } else {
-      res.status(200).json({ stop });
-      return;
-    }
+    res.status(200).json({ stop });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }
