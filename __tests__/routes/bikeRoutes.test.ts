@@ -182,3 +182,30 @@ describe("PUT api/bike/:id", () => {
     expect(res.body.errors[0].msg).toBe("The model name must be at least 2 characters.");
   });
 });
+
+describe("GET api/bike/:id", () => {
+  it("should get a bike", async () => {
+    const res = await request(app).get(`/api/bike/${newBike.id}`)
+    .set("Authorization", `Bearer ${testUser.token}`)
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("bike");
+    expect(res.body.bike.plate).toBe(newBike.plate);
+  });
+  it("should not get a bike due to wrong id", async () => {
+    const res = await request(app).get(`/api/bike/${faker.string.uuid()}`)
+    .set("Authorization", `Bearer ${testUser.token}`)
+
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty("message");
+    expect(res.body.message).toBe("Bike not found");
+  });
+  it("should not get a bike due to wrong id", async () => {
+    const res = await request(app).get('/api/bike/randomId')
+    .set("Authorization", `Bearer ${testUser.token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty("errors");
+    expect(res.body.errors[0].msg).toBe("Bike ID must be a valid UUID");
+  });
+});
