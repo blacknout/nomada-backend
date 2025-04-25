@@ -63,7 +63,7 @@ router.post("/", authenticateUser, validateGroupInfo, createGroup);
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: All the groups the current user is in
+ *         description: All the groups the current user is in with member count
  *         content:
  *           application/json:
  *             schema:
@@ -74,6 +74,16 @@ router.post("/", authenticateUser, validateGroupInfo, createGroup);
  *                 name:
  *                   type: string
  *                 description:
+ *                   type: string
+ *                 isPrivate:
+ *                   type: boolean
+ *                 isRestricted:
+ *                   type: boolean
+ *                 createdBy:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                 updatedAt:
  *                   type: string
  *       401:
  *         description: Access Denied. No Token Provided.
