@@ -128,9 +128,10 @@ export const updateGroupData = async (req: Request, res: Response) => {
       await group.update({
         name: name || group.name,
         description: description || group.description,
-        isPrivate: isPrivate || group.isPrivate,
-        isRestricted: isRestricted || group.isRestricted
+        isPrivate: isPrivate ?? group.isPrivate,
+        isRestricted: isRestricted ?? group.isRestricted
       });
+
       res.status(200).json({ message: "Group updated successfully", group });
       return
     } else {
