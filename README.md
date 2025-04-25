@@ -35,6 +35,15 @@ docker-compose up
 
 ```
 
+If you want to seed data, run the app and then run this command in another terminal
+
+```
+docker-compose exec app npm run seed
+```
+
+You can modify the seed files on a test branch before running the command to add more relevant data.
+
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
