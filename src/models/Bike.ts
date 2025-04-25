@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../config/sequelize";
+import { User } from "./User";
 
 interface BikeAttributes {
   id: string;
@@ -45,7 +46,7 @@ Bike.init(
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "Users",
+        model: User,
         key: "id",
       },
       onDelete: "CASCADE",
