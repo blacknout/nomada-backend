@@ -23,7 +23,7 @@ export class Sos extends Model<SosAttributes> {
 Sos.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    isActivated: { type: DataTypes.BOOLEAN, allowNull: false },
+    isActivated: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     contactId: { type: DataTypes.UUID, references: { model: User, key: "id" } },
     email: { type: DataTypes.STRING },
     phone: { type: DataTypes.STRING },

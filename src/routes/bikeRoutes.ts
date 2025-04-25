@@ -35,7 +35,6 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - plate
  *               - make
  *               - model
  *               - year
@@ -51,6 +50,8 @@ const router = express.Router();
  *               vin:
  *                 type: string
  *               image:
+ *                 type: string
+ *               color:
  *                 type: string
  *     responses:
  *       201:

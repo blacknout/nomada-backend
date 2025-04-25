@@ -9,7 +9,7 @@ export const createSosContact = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { isActivated, contactId, email, phone } = req.body;
+    const { contactId, email, phone } = req.body;
     const { id: userId } = req.user;
     const user = await User.findByPk(userId);
 
@@ -19,7 +19,6 @@ export const createSosContact = async (
     }
     // SOS service to inform contact they have been made an SOS
     const sos = await Sos.create({
-      isActivated,
       contactId,
       email,
       phone,
