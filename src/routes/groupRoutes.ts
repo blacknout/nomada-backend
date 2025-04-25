@@ -10,7 +10,7 @@ import {
 import { 
   validateGroupInfo,
   validateGroupQuery,
-  validateGroupPrivacy
+  validateGroupUpdate
 } from "../middleware/groupValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -221,7 +221,7 @@ router.get("/", authenticateUser, searchGroup);
  */
 router.put("/:groupId", 
   authenticateUser, 
-  validateGroupInfo, 
+  validateGroupUpdate, 
   validateGroupQuery,
   updateGroupData
 );

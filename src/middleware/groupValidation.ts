@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { check, validationResult } from "express-validator";
+import { check, validationResult, body, param } from "express-validator";
 
 export const validateGroupInfo: RequestHandler[] = [
   check("name").isLength({ min: 3 }).withMessage("The group name must be at least 3 characters."),
@@ -97,6 +97,46 @@ export const validateMemberStatus: RequestHandler[] = [
     }
     next();
   }) as RequestHandler,
+];
+
+/**
+ * Validates group update request
+ */
+export const validateGroupUpdate: RequestHandler[] = [
+  param("groupId")
+    .isUUID(4)
+    .withMessage("Invalid group ID format"),
+  
+  body("name")
+    .optional()
+    .isString()
+    .isLength({ min: 3, max: 50 })
+    .withMessage("Group name must be between 3 and 50 characters"),
+  
+  body("description")
+    .optional()
+    .isString()
+    .isLength({ max: 500 })
+    .withMessage("Description must be less than 500 characters"),
+  
+  body("privacy")
+    .optional()
+    .isBoolean()
+    .withMessage("Privacy setting must be a boolean"),
+  
+  body("restriction")
+    .optional()
+    .isBoolean()
+    .withMessage("Restriction setting must be a boolean"),
+  
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    next();
+  }) as RequestHandler
 ];
 
 
