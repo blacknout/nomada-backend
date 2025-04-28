@@ -395,9 +395,9 @@ describe("GET api/user/?search=", () => {
     const res = await request(app).get(`/api/user/?search=${searchTerm}`)
     .set("Authorization", `Bearer ${token}`);
 
-    expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("message");
-    expect(res.body.message).toBe("No users found");
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("results");
+    expect(res.body.results).toBe(null);
   })
   it("should fail due to empty input", async () => {
     const user = await User.findOne({ where: { email: testEmail }})

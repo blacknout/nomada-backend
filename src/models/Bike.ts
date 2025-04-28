@@ -5,14 +5,14 @@ import { User } from "./User";
 interface BikeAttributes {
   id: string;
   userId: string;
-	plate?: string
-	make:  string
-	model: string
-  color?: string
-	year: string
-  vin?: string
-	notInUse:  boolean
-  image?: string
+	plate?: string;
+	make:  string;
+	model: string;
+  color?: string;
+	year: string;
+  vin?: string;
+	notInUse:  boolean;
+  images?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -30,7 +30,7 @@ export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implemen
   public year!: string;
   public vin?: string;
   public notInUse!: boolean;
-  public image?: string;
+  public images?: string[];
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -78,8 +78,10 @@ Bike.init(
       allowNull: false,
       defaultValue: false,
     },
-    image: {
-      type: DataTypes.STRING,
+    images: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: true,
+      defaultValue: [],
     },
   },
   {

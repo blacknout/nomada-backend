@@ -608,6 +608,9 @@ router.delete("/:rideId",
  *                     longitude:
  *                       type: number
  *                       example: -122.4194
+ *                     address:
+ *                       type: string
+ *                       example: "12b, Jackson Street"
  *     responses:
  *       200:
  *         description: Ride route saved.
@@ -700,6 +703,9 @@ router.post("/route/:rideId",
  *                       longitude:
  *                         type: number
  *                         example: -122.4194
+ *                       address:
+ *                         type: string
+ *                         example: "12b, Jackson Street"
  *       401:
  *         description: Access Denied. No Token Provided.
  *       404:

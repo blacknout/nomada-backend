@@ -14,7 +14,7 @@ import User from "../models/User";
  */
 export const createBike = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { plate, make, model, year, image, vin } = req.body;
+    const { plate, make, model, year, images, vin } = req.body;
     const userId = req.user?.id as string;
     const notInUse = false;
 
@@ -25,7 +25,7 @@ export const createBike = async (req: Request, res: Response, next: NextFunction
         year,
         userId,
         notInUse,
-        image,
+        images,
         vin
     });
 
@@ -72,24 +72,27 @@ export const getBike = async (req: Request, res: Response) => {
  */
 export const updateBike = async (req: Request, res: Response) => {
   try {
-      const { bikeId } = req.params;
-      const { plate, make, model, year, vin, image } = req.body;
+    const { bikeId } = req.params;
+    const { plate, make, model, year, vin, images } = req.body;
 
-      const bike = await Bike.findByPk(bikeId);
-      if (!bike) {
-        res.status(404).json({ message: "Bike not found" });
-      } else if (req.user && req.user.id === bike.userId) {
-        await bike.update({
-          plate: plate || bike.plate,
-          make: make || bike.make,
-          model: model || bike.model,
-          year: year || bike.year,
-          vin: vin || bike.vin,
-          image: image || bike.image
-      });
+    const bike = await Bike.findByPk(bikeId);
+    if (!bike) {
+      res.status(404).json({ message: "Bike not found" });
+    } else if (req.user && req.user.id === bike.userId) {
+      const noDuplicateImage = new Set([...(bike.images || []), ...(images || [])]);
+      const uniqueImagesArray = Array.from(noDuplicateImage);
 
-      res.status(200).json({ message: "Bike updated successfully", bike });
-      }
+    await bike.update({
+      plate: plate || bike.plate,
+      make: make || bike.make,
+      model: model || bike.model,
+      year: year || bike.year,
+      vin: vin || bike.vin,
+      images: uniqueImagesArray
+    });
+
+    res.status(200).json({ message: "Bike updated successfully", bike });
+    }
   } catch (err) {
     errorResponse(res, err);
   }
