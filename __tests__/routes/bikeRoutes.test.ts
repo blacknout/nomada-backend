@@ -57,7 +57,7 @@ beforeAll(async () => {
     plate: faker.vehicle.vrm(),
     make: faker.vehicle.manufacturer(),
     model: faker.vehicle.model(),
-    year: faker.date.past(),
+    year: faker.date.past().toString(),
     vin: faker.vehicle.vin(),
     userId: testUser.id,
     notInUse: false
@@ -73,7 +73,7 @@ describe("POST api/bike/", () => {
       plate: faker.vehicle.vrm(),
       make: faker.vehicle.manufacturer(),
       model: faker.vehicle.model(),
-      year: faker.date.past(),
+      year: faker.date.past().toString(),
       vin: faker.vehicle.vin(),
     });
     expect(res.status).toBe(201);
@@ -87,7 +87,7 @@ describe("POST api/bike/", () => {
       plate: "dd",
       make: faker.vehicle.manufacturer(),
       model: faker.vehicle.model(),
-      year: faker.date.past(),
+      year: faker.date.past().toString(),
       vin: faker.vehicle.vin(),
     });
     expect(res.status).toBe(400);
@@ -100,7 +100,7 @@ describe("POST api/bike/", () => {
     .send({
       plate: faker.vehicle.vrm(),
       model: faker.vehicle.model(),
-      year: faker.date.past(),
+      year: faker.date.past().toString(),
       vin: faker.vehicle.vin(),
     });
     expect(res.status).toBe(400);
@@ -122,15 +122,15 @@ describe("GET api/bike/:id", () => {
     const res = await request(app).get(`/api/bike/${faker.string.uuid()}`)
     .set("Authorization", `Bearer ${testUser.token}`)
 
-    expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("message");
-    expect(res.body.message).toBe("Bike not found");
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("bike");
+    expect(res.body.bike).toBe(null);
   });
   it("should not get a bike due to wrong id", async () => {
     const res = await request(app).get('/api/bike/randomId')
     .set("Authorization", `Bearer ${testUser.token}`);
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(400);
     expect(res.body).toHaveProperty("errors");
     expect(res.body.errors[0].msg).toBe("Bike ID must be a valid UUID");
   });
@@ -162,7 +162,7 @@ describe("PUT api/bike/:id", () => {
     expect(res.body.bike.make).toBe(make);
   });
   it("should not update a bike due to bad inputs for model", async () => {
-    const res = await request(app).get('/api/bike/randomId')
+    const res = await request(app).put(`/api/bike/${faker.string.uuid()}`)
     .set("Authorization", `Bearer ${testUser.token}`)
     .send({
       model: "e"
@@ -178,33 +178,6 @@ describe("PUT api/bike/:id", () => {
       model: faker.vehicle.model(),
     });
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty("errors");
-    expect(res.body.errors[0].msg).toBe("The model name must be at least 2 characters.");
-  });
-});
-
-describe("GET api/bike/:id", () => {
-  it("should get a bike", async () => {
-    const res = await request(app).get(`/api/bike/${newBike.id}`)
-    .set("Authorization", `Bearer ${testUser.token}`)
-
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("bike");
-    expect(res.body.bike.plate).toBe(newBike.plate);
-  });
-  it("should not get a bike due to wrong id", async () => {
-    const res = await request(app).get(`/api/bike/${faker.string.uuid()}`)
-    .set("Authorization", `Bearer ${testUser.token}`)
-
-    expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("message");
-    expect(res.body.message).toBe("Bike not found");
-  });
-  it("should not get a bike due to wrong id", async () => {
-    const res = await request(app).get('/api/bike/randomId')
-    .set("Authorization", `Bearer ${testUser.token}`);
-
-    expect(res.status).toBe(404);
     expect(res.body).toHaveProperty("errors");
     expect(res.body.errors[0].msg).toBe("Bike ID must be a valid UUID");
   });

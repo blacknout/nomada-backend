@@ -4,9 +4,10 @@ import { Ride } from "./Ride";
 import { User } from "./User";
 
 
-interface Coordinates {
+interface Location {
   latitude: number;
   longitude: number;
+  address: string | null;
 }
 
 export interface RideStopAttributes {
@@ -14,7 +15,7 @@ export interface RideStopAttributes {
   rideId: string;
   userId: string;
   reason?: "safe" | "accident" | "mechanical";
-  location: Coordinates;
+  location: Location;
   isResolved: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -29,7 +30,7 @@ export class RideStop extends Model<RideStopAttributes, RideStopCreationAttribut
   public rideId!: string;
   public userId!: string;
   public reason?: "safe" | "accident" | "mechanical";
-  public location!: Coordinates;
+  public location!: Location;
   public isResolved!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

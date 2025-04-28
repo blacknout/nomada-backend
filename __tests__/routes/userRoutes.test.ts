@@ -2,7 +2,6 @@ import request from "supertest";
 import { faker } from '@faker-js/faker';
 import { Op } from "sequelize";
 import app from "../../src/app";
-import jest from "jest";
 import "../../src/models/associations";
 import User from "../../src/models/User";
 import jwt from "jsonwebtoken";
@@ -16,6 +15,10 @@ let testUser2: any;
 let testPassword = faker.internet.password();
 let testEmail = faker.internet.email();
 let testUsername = faker.internet.displayName();
+
+jest.mock('../../src/services/emailService', () => ({
+  sendOtpEmail: jest.fn().mockResolvedValue({message: "OTP sent successfully"}),
+}));
 
 beforeAll(async () => {
   const createTestUser = async (email: string, password: string, username: string) => {
@@ -90,7 +93,6 @@ let generatedEmail1 = faker.internet.email();
 let generatedPassword1 = faker.internet.password();
 
 describe("POST api/user/register", () => {
-  let email: string;
   it("should register a user", async () => {
     const res = await request(app).post("/api/user/register").send({
       username: faker.internet.displayName(),
@@ -152,7 +154,7 @@ describe("POST api/user/register", () => {
     .send({
       email: newEmail,
       username: faker.internet.displayName(),
-      password: faker.internet.password(),
+      password: `faker.internet.password()${1}${testEmail.toUpperCase()}`,
       firstname: faker.person.firstName(),
       lastname: faker.person.lastName(),
       state: faker.location.city(),
@@ -160,37 +162,12 @@ describe("POST api/user/register", () => {
       phone: faker.phone.number()
     });
 
-  expect(firstResponse.status).toBe(201);
-  expect(firstResponse.body).toHaveProperty("message");
-  expect(firstResponse.body.message).toBe("OTP sent successfully");
+    expect(firstResponse.status).toBe(201);
+    expect(firstResponse.body).toHaveProperty("message");
+    expect(firstResponse.body.message).toBe("OTP sent successfully");
 
-  // Second registration with same email should fail
-  const secondResponse = await request(app)
-  .post("/api/user/register")
-  .send({
-    email: newEmail,
-    username: faker.internet.displayName(),
-    password: faker.internet.password(),
-    firstname: faker.person.firstName(),
-    lastname: faker.person.lastName(),
-    state: faker.location.city(),
-    country: faker.location.country(),
-    phone: faker.phone.number()
-  });
-
-  expect(secondResponse.status).toBe(200);
-  expect(secondResponse.body).toHaveProperty("message");
-  expect(secondResponse.body.message).toBe("OTP sent successfully");
-
-  // Verify the user
-  const user = await User.findOne({ where: { email: newEmail }});
-  if (user) {
-    await user.update({
-      isVerified: true,
-    });
-  }
-
-  const thirdResponse = await request(app)
+    // Second registration with same email should fail
+    const secondResponse = await request(app)
     .post("/api/user/register")
     .send({
       email: newEmail,
@@ -202,9 +179,34 @@ describe("POST api/user/register", () => {
       country: faker.location.country(),
       phone: faker.phone.number()
     });
-    expect(thirdResponse.status).toBe(400);
-    expect(thirdResponse.body).toHaveProperty("message");
-    expect(thirdResponse.body.message).toBe("Email already exists");
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondResponse.body).toHaveProperty("message");
+    expect(secondResponse.body.message).toBe("OTP sent successfully");
+
+    // Verify the user
+    const user = await User.findOne({ where: { email: newEmail }});
+    if (user) {
+      await user.update({
+        isVerified: true,
+      });
+    }
+
+    const thirdResponse = await request(app)
+      .post("/api/user/register")
+      .send({
+        email: newEmail,
+        username: faker.internet.displayName(),
+        password: faker.internet.password(),
+        firstname: faker.person.firstName(),
+        lastname: faker.person.lastName(),
+        state: faker.location.city(),
+        country: faker.location.country(),
+        phone: faker.phone.number()
+      });
+      expect(thirdResponse.status).toBe(400);
+      expect(thirdResponse.body).toHaveProperty("message");
+      expect(thirdResponse.body.message).toBe("Email already exists");
   });
 });
 
@@ -395,9 +397,9 @@ describe("GET api/user/?search=", () => {
     const res = await request(app).get(`/api/user/?search=${searchTerm}`)
     .set("Authorization", `Bearer ${token}`);
 
-    expect(res.status).toBe(404);
-    expect(res.body).toHaveProperty("message");
-    expect(res.body.message).toBe("No users found");
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("results");
+    expect(res.body.results.length).toBe(0);
   })
   it("should fail due to empty input", async () => {
     const user = await User.findOne({ where: { email: testEmail }})

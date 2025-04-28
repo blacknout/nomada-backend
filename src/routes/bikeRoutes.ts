@@ -7,8 +7,9 @@ import {
   getCurrentUserBikes,
   removeBike
 } from "../controllers/bikeController";
-import { 
-  validateBikeInfo,
+import {
+  validateCreateBike,
+  validateUpdateBike,
   validateBikeQuery,
 } from "../middleware/bikeValidation";
 import {
@@ -49,8 +50,8 @@ const router = express.Router();
  *                 type: string
  *               vin:
  *                 type: string
- *               image:
- *                 type: string
+ *               images:
+ *                 type: array
  *               color:
  *                 type: string
  *     responses:
@@ -62,7 +63,7 @@ const router = express.Router();
  *         description: Internal server error
  * 
  */
-router.post("/", authenticateUser, validateBikeInfo, createBike);
+router.post("/", authenticateUser, validateCreateBike, createBike);
 
 
 /**
@@ -145,8 +146,8 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *               example: 2015
  *             vin:
  *               type: string
- *             image:
- *                type: string
+ *             images:
+ *                type: array
  *     responses:
  *       200:
  *         description: Bike updated successfully
@@ -169,7 +170,12 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *       500:
  *         description: Internal server error
  */
-router.put("/:bikeId", authenticateUser, validateBikeQuery, validateBikeInfo, updateBike);
+router.put("/:bikeId", 
+  authenticateUser, 
+  validateBikeQuery,
+  validateUpdateBike,
+  updateBike
+);
 
 /**
  * @swagger

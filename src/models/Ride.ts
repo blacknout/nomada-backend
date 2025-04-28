@@ -3,9 +3,10 @@ import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
 
-interface Coordinates {
+interface Location {
   latitude: number;
   longitude: number;
+  address: string | null;
 }
 
 interface RideAttributes {
@@ -14,9 +15,9 @@ interface RideAttributes {
     groupId: string;
     createdBy: string;
     roadCaptainId?: string;
-    route?: Coordinates[];
-    startLocation?: Coordinates;
-    destination?: Coordinates;
+    route?: Location[];
+    startLocation?: Location;
+    destination?: Location;
     status: "pending" | "started" | "completed";
     createdAt?: Date;
     updatedAt?: Date;
@@ -30,9 +31,9 @@ export class Ride extends Model<RideAttributes, RideCreationAttributes>  impleme
     public groupId!: string;
     public createdBy!: string;
     public roadCaptainId: string;
-    public route: Coordinates[];
-    public startLocation: Coordinates;
-    public destination: Coordinates;
+    public route: Location[];
+    public startLocation: Location;
+    public destination: Location;
     public status!: "pending" | "started" | "completed";
 
     public static associations: {
