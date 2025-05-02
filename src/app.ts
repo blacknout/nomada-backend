@@ -11,6 +11,8 @@ import rideRoutes from "./routes/rideRoutes";
 import rideStopRoutes from "./routes/rideStopRoutes";
 import sosRoutes from "./routes/sosRoutes";
 import websocketRoutes from "./routes/websocketRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
+import scheduledNotificationRoutes from "./routes/scheduledNotificationRoutes";
 import dotenv from "dotenv";
 import { requestLogger } from './middleware/logger';
 
@@ -34,5 +36,7 @@ app.use("/api/ride", rideRoutes);
 app.use("/api/stop", rideStopRoutes);
 app.use("/api/sos", sosRoutes);
 app.use("/api/ws", websocketRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/scheduled-notifications", scheduledNotificationRoutes);
 
 export default app;
