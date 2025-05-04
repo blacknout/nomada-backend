@@ -26,9 +26,9 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - pushToken
+ *               - token
  *             properties:
- *               pushToken:
+ *               token:
  *                 type: string
  *                 description: Valid Expo push notification token
  *     responses:
