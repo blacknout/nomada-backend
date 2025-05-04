@@ -33,7 +33,7 @@ export const sendSos = async (user: any, location: any) => {
         }
       );
       logger.info(
-        `SOS notification sent to contact ${sos.contactId} for user ${user.id}`
+        `SOS notification sent to contact ${sos.contactId} for user ${user.username}(${user.id})`
       );
     } catch (error) {
       logger.error(
