@@ -87,7 +87,8 @@ export const createNotificationMessage = (
   token: string,
   title: string,
   body: string,
-  data: any = {}
+  data: any = {},
+  priority: "high" | "normal" = "high"
 ): ExpoPushMessage => {
   return {
     to: token,
@@ -95,7 +96,7 @@ export const createNotificationMessage = (
     title,
     body,
     data,
-    priority: "high",
+    priority,
   };
 };
 

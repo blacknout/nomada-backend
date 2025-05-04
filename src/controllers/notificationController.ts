@@ -16,7 +16,7 @@ import logger from '../utils/logger';
  */
 export const registerPushToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { pushToken } = req.body;
+    const { token } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -24,13 +24,13 @@ export const registerPushToken = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    if (!pushToken) {
+    if (!token) {
       res.status(400).json({ message: 'Push token is required' });
       return;
     }
 
     // Validate the token format
-    if (!isValidExpoPushToken(pushToken)) {
+    if (!isValidExpoPushToken(token)) {
       res.status(400).json({ message: 'Invalid Expo push token format' });
       return;
     }
@@ -43,12 +43,12 @@ export const registerPushToken = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    await user.update({ pushToken });
+    await user.update({ pushToken: token });
     
     res.status(200).json({ 
       message: 'Push notification token registered successfully',
       userId,
-      pushToken
+      pushToken: token
     });
   } catch (error) {
     logger.error('Error registering push token:', error);

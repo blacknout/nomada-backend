@@ -9,20 +9,20 @@ import { isValidExpoPushToken } from '../services/notificationService';
  */
 export const validatePushTokenInfo = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const { pushToken } = req.body;
+    const { token } = req.body;
 
-    if (!pushToken) {
+    if (!token) {
       res.status(400).json({ message: 'Push token is required' });
       return;
     }
 
-    if (typeof pushToken !== 'string') {
+    if (typeof token !== 'string') {
       res.status(400).json({ message: 'Push token must be a string' });
       return;
     }
 
     // Optional: validate token format
-    if (!isValidExpoPushToken(pushToken)) {
+    if (!isValidExpoPushToken(token)) {
       res.status(400).json({ message: 'Invalid Expo push token format' });
       return;
     }
