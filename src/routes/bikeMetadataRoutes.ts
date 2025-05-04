@@ -3,7 +3,6 @@ import {
   getBikeMetadata,
   getBikeMakes,
   getBikeTypes,
-  getBikeYears,
   getBikeModelsByMake
 } from "../controllers/bikeMetadataController";
 
@@ -13,7 +12,7 @@ const router = express.Router();
  * @swagger
  * /api/bike-metadata:
  *   get:
- *     summary: Get all bike metadata (makes, types, models, and years)
+ *     summary: Get all bike metadata (makes, types, models)
  *     tags:
  *       - Bike Metadata
  *     responses:
@@ -39,11 +38,6 @@ const router = express.Router();
  *                     items:
  *                       type: string
  *                     example: ["CBR", "Goldwing", "Africa Twin"]
- *                   years:
- *                     type: array
- *                     items:
- *                       type: string
- *                     example: ["2018", "2019", "2020"]
  *       500:
  *         description: Internal server error
  */
@@ -98,31 +92,6 @@ router.get("/makes", getBikeMakes);
  *         description: Internal server error
  */
 router.get("/types", getBikeTypes);
-
-/**
- * @swagger
- * /api/bike-metadata/years:
- *   get:
- *     summary: Get all bike years
- *     tags:
- *       - Bike Metadata
- *     responses:
- *       200:
- *         description: List of bike years
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 years:
- *                   type: array
- *                   items:
- *                     type: string
- *                   example: ["2024", "2023", "2022"]
- *       500:
- *         description: Internal server error
- */
-router.get("/years", getBikeYears);
 
 /**
  * @swagger

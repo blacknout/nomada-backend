@@ -3,7 +3,7 @@ import errorResponse from "../errors/errorResponse";
 import { bikeData } from "../data/bikeData";
 
 /**
- * Get all bike metadata (makes, types, and years)
+ * Get all bike metadata (makes, types, and models)
  * 
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
@@ -46,24 +46,6 @@ export const getBikeTypes = async (req: Request, res: Response): Promise<void> =
     const allTypes = bikeData.flatMap((bike: any) => bike.types);
     const uniqueTypes = [...new Set(allTypes)];
     res.status(200).json({ types: uniqueTypes });
-  } catch (err) {
-    errorResponse(res, err);
-  }
-};
-
-/**
- * Get all available bike years
- * 
- * @param {Request} req - Express request object
- * @param {Response} res - Express response object
- * @returns {Promise<void>}
- */
-export const getBikeYears = async (req: Request, res: Response): Promise<void> => {
-  try {
-    // Combine all years from all brands and remove duplicates
-    const allYears = bikeData.flatMap((bike: any) => bike.years);
-    const uniqueYears = [...new Set(allYears)].sort((a: any, b: any) => parseInt(b) - parseInt(a)); // Sort by most recent first
-    res.status(200).json({ years: uniqueYears });
   } catch (err) {
     errorResponse(res, err);
   }
