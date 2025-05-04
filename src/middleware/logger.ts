@@ -22,9 +22,16 @@ morgan.token('response-time', (req: CustomIncomingMessage, res: ServerResponse) 
   if (!req._startTime) {
     return '';
   }
-  const diff = process.hrtime(req._startTime);
-  const time = diff[0] * 1000 + diff[1] / 1000000;
-  return time.toFixed(2);
+  
+  // Make sure req._startTime is the expected format (array of two numbers)
+  if (Array.isArray(req._startTime) && req._startTime.length === 2) {
+    const diff = process.hrtime(req._startTime);
+    const time = diff[0] * 1000 + diff[1] / 1000000;
+    return time.toFixed(2);
+  }
+  
+  // Fallback in case _startTime is in an unexpected format
+  return '';
 });
 
 // Morgan format string
@@ -37,7 +44,7 @@ export const httpLogger = morgan(morganFormat, { stream });
 export const detailedRequestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   
-  // Assign start time for morgan token
+  // Explicitly create a proper hrtime tuple
   (req as unknown as CustomIncomingMessage)._startTime = process.hrtime();
   
   // Log request details at debug level, appropriate for development environments
