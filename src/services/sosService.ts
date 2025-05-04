@@ -28,6 +28,7 @@ export const sendSos = async (user: any, location: any) => {
         {
           type: "sos",
           userId: user.id,
+          userName: user.username,
           location,
         }
       );
