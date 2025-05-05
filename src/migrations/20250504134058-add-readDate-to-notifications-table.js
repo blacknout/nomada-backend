@@ -10,6 +10,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('Notifications', 'readDate');
+    await queryInterface.removeColumn('notifications', 'readDate');
   },
 };
