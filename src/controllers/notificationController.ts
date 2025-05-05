@@ -81,6 +81,7 @@ export const unregisterPushToken = async (req: Request, res: Response): Promise<
 export const sendTestNotification = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
+    const priority = req.body.priority;
 
     const user = await User.findByPk(userId);
     
@@ -98,7 +99,7 @@ export const sendTestNotification = async (req: Request, res: Response): Promise
     const body = 'This is a test notification from Nomada!';
     const data = { type: 'test', timestamp: new Date().toISOString() };
 
-    const tickets = await sendNotificationToUser(userId, title, body, data, user);
+    const tickets = await sendNotificationToUser(userId, title, body, data, user, priority);
     
     if (!tickets || tickets.length === 0) {
       res.status(500).json({ message: 'Failed to send notification' });

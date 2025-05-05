@@ -114,7 +114,8 @@ export const sendNotificationToUser = async (
   title: string,
   body: string,
   data: any = {},
-  userObject?: any
+  userObject?: any,
+  priority?: string,
 ): Promise<ExpoPushTicket[] | null> => {
   try {
     // Use provided user object if available, otherwise fetch from database
@@ -133,7 +134,8 @@ export const sendNotificationToUser = async (
       user.pushToken,
       title,
       body,
-      data
+      data,
+      priority || data.priority
     );
     return await sendPushNotifications([message]);
   } catch (error) {
@@ -154,7 +156,8 @@ export const sendNotificationToUsers = async (
   userIds: string[],
   title: string,
   body: string,
-  data: any = {}
+  data: any = {},
+  priority: "high" | "normal" = "normal"
 ): Promise<ExpoPushTicket[]> => {
   try {
     const users = await User.findAll({
@@ -173,7 +176,7 @@ export const sendNotificationToUsers = async (
     }
 
     const messages = validUsers.map((user) =>
-      createNotificationMessage(user.pushToken!, title, body, data)
+      createNotificationMessage(user.pushToken!, title, body, data, priority)
     );
 
     return await sendPushNotifications(messages);

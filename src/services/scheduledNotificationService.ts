@@ -33,7 +33,8 @@ export const scheduleNotification = (
   body: string,
   cronExpression: string,
   data: any = {},
-  oneTime: boolean = false
+  oneTime: boolean = false,
+  priority: "normal" | "high" = "normal"
 ): string => {
   const id = uuidv4();
   
@@ -44,9 +45,9 @@ export const scheduleNotification = (
         logger.info(`Running scheduled notification: ${id}`);
         
         if (userIds.length === 1) {
-          await sendNotificationToUser(userIds[0], title, body, data);
+          await sendNotificationToUser(userIds[0], title, body, data, undefined, priority);
         } else {
-          await sendNotificationToUsers(userIds, title, body, data);
+          await sendNotificationToUsers(userIds, title, body, data, priority);
         }
         
         logger.info(`Scheduled notification ${id} sent successfully to ${userIds.length} user(s)`);
