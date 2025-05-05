@@ -24,7 +24,7 @@ services:
       # Don't mount dist from host
       - /app/dist
     env_file:
-      - .env
+      - .env.development
 
   db:
     image: postgres:16
