@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../models/User";
-import Group from "../models/Group";
 import Notification from "../models/Notification";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -11,7 +10,7 @@ import { parseNotification } from "../utils/notificationParser";
 import { mergeUsersAndBikeOwners, searchUser, searchBike } from "../services/searchService";
 import { FIFTEEN_MINUTE_TOKEN } from "../utils/constants/constants";
 import { generateTokenAndUpdate } from "../services/userService";
-import { AppNotification, GroupInviteNotification } from '../@types/notifications';
+import { AppNotification } from '../@types/notifications';
 
 /**
  * Registers a new user.
@@ -169,16 +168,18 @@ export const getUser = async (
  */
 export const searchUsers = async (req: Request, res: Response) => {
   try {
-    const { search} = req.query;
+    const { search } = req.query;
 
     let [users, bikes] = await Promise.all([
       searchUser(search as string),
       searchBike(search as string)
     ]);
 
-    const mergedSearch = mergeUsersAndBikeOwners(users, bikes);
-    res.status(200).json({ results: mergedSearch });
-    return;
+    if (Array.isArray(users) && Array.isArray(bikes) ) {
+      const mergedSearch = mergeUsersAndBikeOwners(users, bikes);
+      res.status(200).json({ results: mergedSearch });
+      return;
+    }
   } catch (err) {
     errorResponse(res, err);
   }

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import errorResponse from "../errors/errorResponse";
 import Bike from "../models/Bike";
 import User from "../models/User";
-
+import { searchBikeVin } from "../services/searchService";
 
 /**
  * Create a new bike.
@@ -73,7 +73,7 @@ export const getBike = async (req: Request, res: Response) => {
 export const updateBike = async (req: Request, res: Response) => {
   try {
     const { bikeId } = req.params;
-    const { plate, make, model, year, vin, images } = req.body;
+    const { plate, make, model, year, vin, stolen, images } = req.body;
 
     const bike = await Bike.findByPk(bikeId);
     if (!bike) {
@@ -88,6 +88,7 @@ export const updateBike = async (req: Request, res: Response) => {
       model: model || bike.model,
       year: year || bike.year,
       vin: vin || bike.vin,
+      stolen: stolen || bike.stolen,
       images: uniqueImagesArray
     });
 
@@ -169,3 +170,22 @@ export const removeBike = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
+
+/**
+ * Search bike by VIN
+ *
+ * @param {Request} req - Express request object containing VIN in req.params
+ * @param {Response} res - Express response object.
+ * @param {NextFunction} next - Express next middleware function.
+ * @returns {Promise<Response>} - Returns JSON response with success message.
+ */
+export const searchByVin = async (req: Request, res: Response) => {
+  try {
+    const { vin } = req.query;
+    const bike = await searchBikeVin(vin as string)
+    res.status(200).json({ bike });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+}
