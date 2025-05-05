@@ -4,6 +4,7 @@ import sequelize from "./config/sequelize";
 import "./models/associations";
 import { initializeWebSocketServer } from "./services/websocketService";
 import logger from "./utils/logger";
+import { runMigrations } from "./migrations/migrations";
 
 const PORT = process.env.PORT || 9000;
 
@@ -19,3 +20,5 @@ sequelize.sync({ force: false }).then(() => {
 .catch((error) => {
   logger.error("Error connecting to database:", error);
 });
+
+runMigrations();
