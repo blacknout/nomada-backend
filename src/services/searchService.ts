@@ -18,22 +18,27 @@ export const mergeUsersAndBikeOwners = (users: User[], bikes: Bike[]): User[] =>
   return Array.from(userMap.values());
 };
 
-export const searchUser = (search: string) => {
-  const searchUser = User.findAll({
-    where: {
-      [Op.or]: [
-        { username: { [Op.iLike]: `%${search}%` } },
-        { firstname: { [Op.iLike]: `%${search}%` } },
-        { lastname: { [Op.iLike]: `%${search}%` } },
-      ],
-    },
-    attributes: ["id", "username", "firstname", "lastname"],
-  })
-  return searchUser;
+export const searchUser = async (search: string) => {
+  try {
+    const searchUser = await User.findAll({
+      where: {
+        [Op.or]: [
+          { username: { [Op.iLike]: `%${search}%` } },
+          { firstname: { [Op.iLike]: `%${search}%` } },
+          { lastname: { [Op.iLike]: `%${search}%` } },
+        ],
+      },
+      attributes: ["id", "username", "firstname", "lastname"],
+    })
+    return searchUser;
+  } catch (err) {
+    throw new Error(err as string)
+  }
 };
 
-export const searchBike = (search: string) => {
-  const searchBike = Bike.findAll({
+export const searchBike = async(search: string) => {
+  try {
+    const searchBike = await Bike.findAll({
       where: { plate: { [Op.iLike]: `%${search}%` } },
       include: [
         {
@@ -43,5 +48,28 @@ export const searchBike = (search: string) => {
         },
       ],
     })
-  return searchBike;
+    return searchBike;
+  } catch (err) {
+    throw new Error(err as string)
+  }
+};
+
+export const searchBikeVin = async(vin: string) => {
+  try {
+    const searchBike = await Bike.findOne({
+      where: {
+        vin
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["id", "username", "firstname", "lastname"],
+          as: "owner",
+        },
+      ],
+    });
+    return searchBike;
+  } catch (err) {
+    throw new Error(err as string)
+  }
 };

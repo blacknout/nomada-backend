@@ -13,8 +13,9 @@ export const validateCreateBike: RequestHandler[] = [
   .withMessage("The model name must be at least 2 characters."),
   check("year").isLength({ min: 4 })
   .withMessage("Please enter a valid year."),
-  check("vin").isLength({ min: 4 })
-  .withMessage("Please enter a valid VIN number.").optional(),
+  check("vin").trim()
+  .isLength({ min: 17, max: 17 }).withMessage('VIN must be exactly 17 characters')
+  .matches(/^[A-HJ-NPR-Z0-9]{17}$/).withMessage('VIN contains invalid characters').optional(),
   check('images')
   .optional()
   .isArray({ min: 0 })
@@ -45,8 +46,10 @@ export const validateUpdateBike: RequestHandler[] = [
   .withMessage("The model name must be at least 2 characters.").optional(),
   check("year").isLength({ min: 4 })
   .withMessage("Please enter a valid year.").optional(),
-  check("vin").isLength({ min: 4 })
-  .withMessage("Please enter a valid VIN number.").optional(),
+  check("vin").trim()
+  .isLength({ min: 17, max: 17 }).withMessage('VIN must be exactly 17 characters')
+  .matches(/^[A-HJ-NPR-Z0-9]{17}$/).withMessage('VIN contains invalid characters').optional(),
+  check("stolen").isBoolean().withMessage('Stolen must be set to true or false').optional(),
   check('images')
   .optional()
   .isArray({ min: 0 })
@@ -68,6 +71,20 @@ export const validateUpdateBike: RequestHandler[] = [
 export const validateBikeQuery: RequestHandler[] = [
   param("bikeId").notEmpty().withMessage("Bike ID is required")
   .isUUID().withMessage("Bike ID must be a valid UUID"),
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return
+    }
+    next();
+  }) as RequestHandler,
+];
+
+export const validateVinQuery: RequestHandler[] = [
+  check("vin").trim()
+  .isLength({ min: 17, max: 17 }).withMessage('VIN must be exactly 17 characters')
+  .matches(/^[A-HJ-NPR-Z0-9]{17}$/).withMessage('VIN contains invalid characters'),
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
