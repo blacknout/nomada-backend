@@ -14,7 +14,6 @@ const migrator = new Umzug({
 });
 
 export const runMigrations = async () => {
-  console.log("inside run migrations")
   if (process.env.AUTO_MIGRATE === 'true') {
     console.log('Running migrations...');
     await migrator.up();
