@@ -20,6 +20,7 @@ interface UserAttributes {
   otpExpires?: Date;
   isVerified: boolean;
   isDisabled: boolean;
+  pushToken?: string;
 }
 
 export class User extends Model<UserAttributes> {
@@ -39,7 +40,7 @@ export class User extends Model<UserAttributes> {
   public otpExpires?: Date;
   public isVerified!: boolean;
   public isDisabled!: boolean;
-
+  public pushToken?: string;
   public static associations: {
     rides: Association<User, Ride>;
   };
@@ -64,6 +65,7 @@ User.init(
     otpExpires: { type: DataTypes.DATE,},
     isVerified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     isDisabled: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    pushToken: { type: DataTypes.STRING, allowNull: true },
   },
   {
     sequelize,
