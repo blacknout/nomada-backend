@@ -162,7 +162,8 @@ export const contactSos = async (
                 timestamp: new Date().toISOString(),
                 userId: user.id,
                 location
-              }
+              },
+              "high"
             );
             logger.info(`SOS notifications sent to ${memberIds.length} group members for user ${user.id}`);
           }
