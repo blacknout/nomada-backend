@@ -19,22 +19,6 @@ export const registerPushToken = async (req: Request, res: Response): Promise<vo
     const { token } = req.body;
     const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-
-    if (!token) {
-      res.status(400).json({ message: 'Push token is required' });
-      return;
-    }
-
-    // Validate the token format
-    if (!isValidExpoPushToken(token)) {
-      res.status(400).json({ message: 'Invalid Expo push token format' });
-      return;
-    }
-
     // Update the user's push token
     const user = await User.findByPk(userId);
     
@@ -97,11 +81,6 @@ export const unregisterPushToken = async (req: Request, res: Response): Promise<
 export const sendTestNotification = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
-
-    if (!userId) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
 
     const user = await User.findByPk(userId);
     
