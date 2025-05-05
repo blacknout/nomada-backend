@@ -5,12 +5,14 @@ import {
   updateBike,
   getUserBikes,
   getCurrentUserBikes,
-  removeBike
+  removeBike,
+  searchByVin
 } from "../controllers/bikeController";
 import {
   validateCreateBike,
   validateUpdateBike,
   validateBikeQuery,
+  validateVinQuery
 } from "../middleware/bikeValidation";
 import {
   validateUserQuery
@@ -65,6 +67,46 @@ const router = express.Router();
  */
 router.post("/", authenticateUser, validateCreateBike, createBike);
 
+/**
+ * @swagger
+ * /api/search:
+ *   get:
+ *     summary: Search bikes by vin
+ *     tags:
+ *       - Bike
+ *     parameters:
+ *       - in: query
+ *         name: vin
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Bike details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 plate:
+ *                   type: string
+ *                 make:
+ *                   type: string
+ *                 model:
+ *                   type: string
+ *                 year:
+ *                   type: string
+ *                 vin:
+ *                   type: string
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       400:
+ *         description: VIN contains invalid characters | VIN must be exactly 17 characters
+ *       500:
+ *          description: Internal Server Error
+ */
+router.get("/search", authenticateUser, validateVinQuery, searchByVin);
 
 /**
  * @swagger
@@ -100,8 +142,6 @@ router.post("/", authenticateUser, validateCreateBike, createBike);
  *         description: Access Denied. No Token Provided.
  *       400:
  *         description: Bike ID is required
- *       404:
- *         description: Bike not found
  *       500:
  *          description: Internal Server Error
  */
@@ -146,6 +186,8 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *               example: 2015
  *             vin:
  *               type: string
+ *             stolen:
+ *               type: boolean
  *             images:
  *                type: array
  *     responses:
@@ -211,8 +253,6 @@ router.put("/:bikeId",
  *         description: User ID is required
  *       401:
  *         description: Access Denied. No Token Provided.
- *       404:
- *         description: No bikes found for this user
  *       500:
  *          description: Internal Server Error
  */
@@ -249,8 +289,6 @@ router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
  *         description: User ID is required
  *       401:
  *         description: Access Denied. No Token Provided.
- *       404:
- *         description: No bikes found for this user
  *       500:
  *          description: Internal Server Error
  */

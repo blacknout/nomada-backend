@@ -11,6 +11,7 @@ interface BikeAttributes {
   color?: string;
 	year: string;
   vin?: string;
+  stolen: boolean;
 	notInUse:  boolean;
   images?: string[];
   createdAt?: Date;
@@ -29,6 +30,7 @@ export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implemen
   public color?: string;
   public year!: string;
   public vin?: string;
+  public stolen: boolean;
   public notInUse!: boolean;
   public images?: string[];
   public readonly createdAt!: Date;
@@ -72,6 +74,10 @@ Bike.init(
     },
     vin: {
       type: DataTypes.STRING,
+    },
+    stolen: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     notInUse: {
       type: DataTypes.BOOLEAN,
