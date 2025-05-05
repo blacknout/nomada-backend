@@ -35,6 +35,18 @@ docker-compose up
 
 ```
 
+If you want to generate a migration file, run
+
+```
+npx sequelize-cli migration:generate --name add-column
+```
+
+Modify the generated file and then run
+
+```
+docker compose exec app npx sequelize db:migrate --config src/config/config.js
+```
+
 If you want to seed data, run the app and then run this command in another terminal
 
 ```
