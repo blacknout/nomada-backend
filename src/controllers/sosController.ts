@@ -84,12 +84,7 @@ export const getSosContact = async (
       include: [{ model: Sos, as: "sos" }]
     }) as User & { sos: Sos | null };
 
-    if (!user || !user.sos) {
-      res.status(404).json({ message: "Cannot get user or the SOS contact." });
-      return;
-    }
-    const { sos } = user;
-    res.status(200).json({ message: "SOS contact.", sos });
+    res.status(200).json({ message: "SOS contact.", sos: user.sos || null });
     return;
   } catch (err) {
     errorResponse(res, err);

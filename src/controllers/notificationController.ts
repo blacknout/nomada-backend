@@ -19,22 +19,6 @@ export const registerPushToken = async (req: Request, res: Response): Promise<vo
     const { token } = req.body;
     const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-
-    if (!token) {
-      res.status(400).json({ message: 'Push token is required' });
-      return;
-    }
-
-    // Validate the token format
-    if (!isValidExpoPushToken(token)) {
-      res.status(400).json({ message: 'Invalid Expo push token format' });
-      return;
-    }
-
     // Update the user's push token
     const user = await User.findByPk(userId);
     
@@ -98,11 +82,6 @@ export const sendTestNotification = async (req: Request, res: Response): Promise
   try {
     const userId = req.user?.id;
 
-    if (!userId) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-
     const user = await User.findByPk(userId);
     
     if (!user) {
@@ -119,7 +98,7 @@ export const sendTestNotification = async (req: Request, res: Response): Promise
     const body = 'This is a test notification from Nomada!';
     const data = { type: 'test', timestamp: new Date().toISOString() };
 
-    const tickets = await sendNotificationToUser(userId, title, body, data);
+    const tickets = await sendNotificationToUser(userId, title, body, data, user);
     
     if (!tickets || tickets.length === 0) {
       res.status(500).json({ message: 'Failed to send notification' });
@@ -169,7 +148,8 @@ export const sendNotificationToSpecificUser = async (req: Request, res: Response
       return;
     }
 
-    const tickets = await sendNotificationToUser(targetUserId, title, body, data || {});
+    // Pass the user object directly instead of just the ID to avoid redundant lookup
+    const tickets = await sendNotificationToUser(targetUserId, title, body, data || {}, targetUser);
     
     if (!tickets || tickets.length === 0) {
       res.status(500).json({ message: 'Failed to send notification' });
