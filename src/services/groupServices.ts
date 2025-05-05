@@ -1,9 +1,16 @@
 import { Request, Response } from "express";
+import { v4 as uuidv4 } from 'uuid'; 
 import User  from "../models/User";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
-import GroupInvitation from "../models/GroupInvitation";
+import Notification from "../models/Notification";
+import { notification } from "../utils/constants/notifications";
 import { Op } from "sequelize";
+import { 
+  NotificationType,
+  NotificationPriority,
+} from '../@types/notifications';
+
 
 /**
  * Create a new group and invite users during creation.
@@ -33,10 +40,13 @@ export const inviteUsersToGroup = async (groupId: string, userIds: string[], sen
 
     if (!validUsers.length) throw new Error("No valid users found.");
 
-    const alreadyInvited = await GroupInvitation.findAll({
+    const alreadyInvited = await Notification.findAll({
       where: {
-        groupId,
         userId: userIds,
+        type: "invite",
+        data: {
+          groupId
+        }
       },
       attributes: ['userId'],
     });
@@ -49,11 +59,19 @@ export const inviteUsersToGroup = async (groupId: string, userIds: string[], sen
     .filter((user) => user.id !== senderId)
     .map((user) => ({
       userId: user.id,
-      groupId,
-      senderId
+      title: notification.GROUP_INVITE,
+      priority: "low" as NotificationPriority,
+      type: "invite" as NotificationType,
+      message: notification.GROUP_INVITE_MESSAGE,
+      data: {
+        inviteId: uuidv4(),
+        groupId,
+        senderId
+
+      }
     }));
 
-    const groupPendingInvites = await GroupInvitation.bulkCreate(groupInvites, { ignoreDuplicates: true });
+    const groupPendingInvites = await Notification.bulkCreate(groupInvites, { ignoreDuplicates: true });
 
     return { invited: groupPendingInvites.length, total: userIds.length};
   } catch (error) {
@@ -101,7 +119,14 @@ export const createInvite = async (req: Request, res: Response, userIds: string[
 }
 
 export const inviteResponse = async (req: Request, res: Response, inviteId: string, response: string) => {
-  const invitation = await GroupInvitation.findByPk(inviteId);
+  const invitation = await Notification.findOne({
+    where: {
+      type: "invite",
+      data: {
+        inviteId
+      }
+    }
+  })
   if (!invitation) {
     res.status(404).json({ message: "Invitation not found" });
     return;
@@ -110,7 +135,7 @@ export const inviteResponse = async (req: Request, res: Response, inviteId: stri
   let data = { status: 200, message: "This invite has been rejected."};
   if (req.user.id === invitation.userId) {
     if (response === "accepted") {
-      data = await becomeGroupMember(invitation.userId, invitation.groupId, true);
+      data = await becomeGroupMember(invitation.userId, invitation.data.groupId, true);
     } 
     await invitation.destroy();
     res.status(data.status).json({ message: data.message });

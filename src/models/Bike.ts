@@ -53,7 +53,7 @@ Bike.init(
     },
     plate: {
       type: DataTypes.STRING,
-      unique: true,
+      unique: false,
     },
     make: {
       type: DataTypes.STRING,

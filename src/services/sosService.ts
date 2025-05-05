@@ -1,5 +1,5 @@
 import { sendSosEmail } from "../services/emailService";
-import { messages } from "../utils/constants/notifications";
+import { notification } from "../utils/constants/notifications";
 import {
   createNotification,
   sendNotificationToUser,
@@ -8,8 +8,8 @@ import logger from "../utils/logger";
 
 export const sendSos = async (user: any, location: any) => {
   const { sos } = user;
-  const messageContent = messages.SOS_NOTIFICATION;
-  const messageTitle = messages.SOS_TITLE(user.username);
+  const messageContent = notification.SOS_NOTIFICATION;
+  const messageTitle = notification.SOS_TITLE(user.username);
 
   // Send notification to emergency contact if available
   if (sos.contactId) {

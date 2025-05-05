@@ -33,7 +33,8 @@ async function seedDatabase() {
       username: 'John.Doe',
       password: 'hashedpassword',
       firstname: "John", lastname: "Doe", state: "Lagos",
-      country: "Nigeria", phone: "+2348245356556"
+      country: "Nigeria", phone: "+2348245356556",
+      isVerified: true
     },
   });
 
@@ -43,7 +44,8 @@ async function seedDatabase() {
       username: 'Jane Smith',
       password: 'hashedpassword',
       firstname: "Jane", lastname: "Doe", state: "Lagos",
-      country: "Nigeria", phone: "+234826234232"
+      country: "Nigeria", phone: "+234826234232",
+      isVerified: true
     },
   });
 
