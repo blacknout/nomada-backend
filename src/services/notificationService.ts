@@ -1,4 +1,4 @@
-import  { Notification } from "../models/Notifications";
+import  { Notification } from "../models/Notification";
 
 
 export const createNotification = async(

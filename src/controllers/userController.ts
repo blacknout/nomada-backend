@@ -1,15 +1,17 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../models/User";
 import Group from "../models/Group";
-import GroupInvitation from "../models/GroupInvitation";
+import Notification from "../models/Notification";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import errorResponse from "../errors/errorResponse";
 import { sendOtpEmail, sendPasswordResetEmail } from "../services/emailService";
 import { filterUser } from "../utils/filterUser";
+import { parseNotification } from "../utils/notificationParser";
 import { mergeUsersAndBikeOwners, searchUser, searchBike } from "../services/searchService";
 import { FIFTEEN_MINUTE_TOKEN } from "../utils/constants/constants";
 import { generateTokenAndUpdate } from "../services/userService";
+import { AppNotification, GroupInviteNotification } from '../@types/notifications';
 
 /**
  * Registers a new user.
@@ -347,20 +349,15 @@ export const getUserInvites = async (req: Request, res: Response) => {
   try {
     const { id: userId } = req.user;
 
-    const invitations = await GroupInvitation.findAll({
-      where: { userId },
-      include: [
-        { 
-          model: Group, as: "group", attributes: ["id", "name", "description"]
-
-        },
-        {
-        model: User,
-        as: "sender",
-        attributes: ["username", "firstname"]
-      }]
+    const rawInvitations = await Notification.findAll({
+      where: { userId, type: "invite" },
+      order: [['createdAt', 'DESC']],
     });
-    res.status(200).json({ invitations });
+
+    const notifications: AppNotification[] = rawInvitations.map((n) =>
+      parseNotification(n.toJSON())
+    );
+    res.status(200).json({ notifications });
     return;
   } catch (err) {
     errorResponse(res, err);
