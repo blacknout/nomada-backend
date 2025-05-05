@@ -6,7 +6,7 @@ import { UserPayload } from '../@types/userPayload';
 import { User } from "../models/User";
 import { RideStop } from "../models/RideStop";
 import { Sos } from "../models/Sos";
-import { RideStopPayload } from "../@types/websocket";
+import { RideStopPayload, RideUpdatePayload } from "../@types/websocket";
 import { sendSos } from "../services/sosService";
 
 // Store active connections by userId
@@ -81,20 +81,6 @@ export const initializeWebSocketServer = (httpServer: http.Server) => {
 const handleMessage = (socket: any, data: any) => {
   try {
     const { type, target, payload } = data;
-    const rideStopPayload: RideStopPayload = {
-      action: payload.action,
-      reason: payload.reason,
-      location: payload.location,
-      isResolved: payload.isResolved,
-      sos: payload.sos
-    }
-
-    const rideUpdatePayload: RideUpdatePayload = {
-      latitude: payload.latitude,
-      longitude: payload.longitude,
-      heading: payload.heading,
-      speed: payload.speed
-    }
 
     switch (type) {
       case 'direct-message':
@@ -113,6 +99,13 @@ const handleMessage = (socket: any, data: any) => {
         });
         break;
       case 'ride-update':
+        const rideUpdatePayload: RideUpdatePayload = {
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+          heading: payload.heading,
+          speed: payload.speed
+        }
+
         socket.to(`ride:${target}`).emit('message', {
           type: 'ride-update',
           fromUserId: socket.data.user.id,
@@ -121,6 +114,14 @@ const handleMessage = (socket: any, data: any) => {
         });
         break;
       case 'ride-stop':
+        const rideStopPayload: RideStopPayload = {
+          action: payload.action,
+          reason: payload.reason,
+          location: payload.location,
+          isResolved: payload.isResolved,
+          sos: payload.sos
+        }
+
         handleRideStop({
           type: target,
           fromUserId: socket.data.user.id,
