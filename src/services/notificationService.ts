@@ -1,6 +1,5 @@
-import  { Notification } from "../models/Notification";
 import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
-import { Notification } from "../models/Notifications";
+import { Notification } from "../models/Notification";
 import User from "../models/User";
 import logger from "../utils/logger";
 
