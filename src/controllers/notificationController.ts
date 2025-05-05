@@ -98,7 +98,7 @@ export const sendTestNotification = async (req: Request, res: Response): Promise
     const body = 'This is a test notification from Nomada!';
     const data = { type: 'test', timestamp: new Date().toISOString() };
 
-    const tickets = await sendNotificationToUser(userId, title, body, data);
+    const tickets = await sendNotificationToUser(userId, title, body, data, user);
     
     if (!tickets || tickets.length === 0) {
       res.status(500).json({ message: 'Failed to send notification' });
@@ -148,7 +148,8 @@ export const sendNotificationToSpecificUser = async (req: Request, res: Response
       return;
     }
 
-    const tickets = await sendNotificationToUser(targetUserId, title, body, data || {});
+    // Pass the user object directly instead of just the ID to avoid redundant lookup
+    const tickets = await sendNotificationToUser(targetUserId, title, body, data || {}, targetUser);
     
     if (!tickets || tickets.length === 0) {
       res.status(500).json({ message: 'Failed to send notification' });

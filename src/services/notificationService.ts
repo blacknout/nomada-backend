@@ -106,16 +106,19 @@ export const createNotificationMessage = (
  * @param title Title of the notification
  * @param body Body text of the notification
  * @param data Additional data to send with the notification
+ * @param userObject Optional user object to prevent redundant database lookup
  * @returns Result of the send operation or null if unsuccessful
  */
 export const sendNotificationToUser = async (
   userId: string,
   title: string,
   body: string,
-  data: any = {}
+  data: any = {},
+  userObject?: any
 ): Promise<ExpoPushTicket[] | null> => {
   try {
-    const user = await User.findByPk(userId);
+    // Use provided user object if available, otherwise fetch from database
+    const user = userObject || await User.findByPk(userId);
 
     if (!user || !user.pushToken) {
       return null;
