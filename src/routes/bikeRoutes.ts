@@ -69,7 +69,7 @@ router.post("/", authenticateUser, validateCreateBike, createBike);
 
 /**
  * @swagger
- * /api/search:
+ * /api/bike/search:
  *   get:
  *     summary: Search bikes by vin
  *     tags:

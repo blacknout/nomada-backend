@@ -3,6 +3,7 @@ import User from "../models/User";
 import Sos from "../models/Sos";
 import GroupMembers from "../models/GroupMembers";
 import { sendNotificationToUser, sendNotificationToUsers } from "../services/notificationService";
+import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
 import logger from "../utils/logger";
 
@@ -22,19 +23,26 @@ export const createSosContact = async (
     const { contactId, email, phone } = req.body;
     const { id: userId } = req.user;
     const user = await User.findByPk(userId);
+    const contact = await User.findByPk(contactId);
 
-    if (!user) {
-      res.status(404).json({ message: "This account no longer exists." });
+    if (user && contact) {
+      const sos = await Sos.create({
+        contactId,
+        email,
+        phone,
+        userId,
+        isActivated: true
+      });
+      await sendNotificationToUser(
+        contactId, 
+        notification.SOS_CREATE_TITLE,
+        notification.SOS_CREATE_MESSAGE(contact.username),
+        null, 
+        contact);
+      res.status(200).json({ message: "SOS contact has been created.", sos });
       return;
     }
-    // SOS service to inform contact they have been made an SOS
-    const sos = await Sos.create({
-      contactId,
-      email,
-      phone,
-      userId
-    });
-    res.status(200).json({ message: "SOS contact has been created.", sos });
+    res.status(404).json({ message: "This account cannot be found." });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -73,7 +81,7 @@ export const updateSosContact = async (
   }
 };
 
-export const getSosContact = async (
+export const getOwnSos = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -99,6 +107,7 @@ export const contactSos = async (
   try {
     const { userId, location } = req.body;
     const { id } = req.user;
+    // The option if a user wants to initiate a riders sos
     const user = await User.findByPk(userId || id, {
       include: [{ model: Sos, as: "sos" }]
     }) as User & { sos: Sos | null };
@@ -179,6 +188,56 @@ export const contactSos = async (
       res.status(400).json({ message: "This user has deactivated his SOS contact." });
       return;
     }
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const rejectSos = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { id: userId } = req.user;
+
+    const user = await User.findByPk(userId);
+    const sos = await Sos.findByPk(id);
+
+    if (sos.contactId === user.id) {
+      await sos.update({ contactId: null })
+      await sendNotificationToUser(
+        sos.userId, 
+        notification.SOS_REJECT_TITLE,
+        notification.SOS_REJECT_MESSAGE(user.username)
+      );
+      res.status(200).json({ message: "You have been removed as the SOS contact for this user." });
+      return;
+    }
+    res.status(400).json({ message: "It seems you are not the contact ID for this SOS." });
+    return;
+
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const getAllSos = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id: contactId } = req.user;
+
+    const allSos = await Sos.findAll({
+      where: {
+        contactId
+      }
+    });
+    res.status(200).json({ allSos });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }
