@@ -2,8 +2,10 @@ import express from "express";
 import { 
   createSosContact,
   updateSosContact,
-  getSosContact,
-  contactSos
+  getOwnSos,
+  contactSos,
+  rejectSos,
+  getAllSos
 } from "../controllers/sosController";
 import {
   validateSosInputs
@@ -84,6 +86,8 @@ router.post("/", authenticateUser, validateSosInputs, createSosContact);
  */
 router.put("/", authenticateUser, validateSosInputs, updateSosContact);
 
+router.get("/contacts", authenticateUser, getAllSos);
+
 /**
  * @swagger
  * /api/sos/:
@@ -104,9 +108,12 @@ router.put("/", authenticateUser, validateSosInputs, updateSosContact);
  *         description: Internal server error
  * 
  */
-router.get("/", authenticateUser, getSosContact);
+router.get("/", authenticateUser, getOwnSos);
 
-// router.post("/contact", authenticateUser, validateSosInputs, contactSos);
+router.post("/contact", authenticateUser, validateSosInputs, contactSos);
+
+
+router.delete("/:id", authenticateUser, rejectSos);
 
 
 export default router;

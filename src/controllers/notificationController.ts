@@ -16,7 +16,7 @@ import logger from '../utils/logger';
  */
 export const registerPushToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { token } = req.body;
+    const { token: pushToken } = req.body;
     const userId = req.user?.id;
 
     // Update the user's push token
@@ -27,12 +27,12 @@ export const registerPushToken = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    await user.update({ pushToken: token });
+    await user.update({ pushToken });
     
     res.status(200).json({ 
       message: 'Push notification token registered successfully',
       userId,
-      pushToken: token
+      pushToken
     });
   } catch (error) {
     logger.error('Error registering push token:', error);

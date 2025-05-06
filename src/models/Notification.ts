@@ -5,7 +5,6 @@ import {
   NotificationPriority,
 } from '../@types/notifications';
 
-
 interface NotificationAttributes {
   id: string;
   userId?: string;
@@ -19,10 +18,8 @@ interface NotificationAttributes {
   data?: any;
 }
 
-
 interface NotificationCreationAttributes
   extends Optional<NotificationAttributes, 'id' | 'createdAt' | 'read' | 'data'> {}
-
 
 export class Notification
 extends Model<NotificationAttributes, NotificationCreationAttributes>
@@ -38,7 +35,6 @@ readDate: string;
 priority!: NotificationPriority;
 data?: any;
 }
-
 
 Notification.init(
   {
