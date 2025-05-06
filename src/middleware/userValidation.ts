@@ -5,15 +5,27 @@ export const validateRegisterUser: RequestHandler[] = [
   check("username")
     .isLength({ min: 3 })
     .withMessage("Username must be at least 3 characters."),
+
   check("firstname")
     .isLength({ min: 3 })
     .withMessage("Your first name must be at least 3 characters."),
+  
   check("lastname")
     .isLength({ min: 3 })
     .withMessage("Your last name must be at least 3 characters."),
-  check("state").isLength({ min: 2 }).withMessage("Enter a valid state."),
-  check("country").isLength({ min: 3 }).withMessage("Select a valid country."),
-  check("email").isEmail().withMessage("Invalid email format."),
+  
+  check("state")
+    .isLength({ min: 2 })
+    .withMessage("Enter a valid state."),
+
+  check("country")
+    .isLength({ min: 3 })
+    .withMessage("Select a valid country."),
+
+  check("email")
+    .isEmail()
+    .withMessage("Invalid email format."),
+
   check("password")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters.")
@@ -23,16 +35,19 @@ export const validateRegisterUser: RequestHandler[] = [
     .withMessage("Password must contain at least one uppercase letter")
     .matches(/[a-z]/)
     .withMessage("Password must contain at least one lowercase letter"),
+
   check("phone")
     .isLength({ min: 7 })
     .withMessage("This is not a valid Phone number.")
     .matches(/\d/)
     .withMessage("This is not a valid phone number.")
     .optional(),
+
   check("avatar")
     .isLength({ min: 5 })
     .withMessage("Upload a valid URL for your avatar.")
     .optional(),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -44,10 +59,14 @@ export const validateRegisterUser: RequestHandler[] = [
 ];
 
 export const validateLoginUser: RequestHandler[] = [
-  check("email").isEmail().withMessage("Invalid email format"),
+  check("email")
+    .isEmail()
+    .withMessage("Invalid email format"),
+
   check("password")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -63,32 +82,39 @@ export const validateUpdateUser: RequestHandler[] = [
     .isLength({ min: 3 })
     .withMessage("Username must be at least 3 characters.")
     .optional(),
+
   check("firstname")
     .isLength({ min: 3 })
     .withMessage("Your first name must be at least 3 characters.")
     .optional(),
+
   check("lastname")
     .isLength({ min: 3 })
     .withMessage("Your last name must be at least 3 characters.")
     .optional(),
+
   check("state")
     .isLength({ min: 2 })
     .withMessage("Enter a valid state.")
     .optional(),
+
   check("country")
     .isLength({ min: 3 })
     .withMessage("Select a valid country.")
     .optional(),
+
   check("phone")
     .isLength({ min: 7 })
     .withMessage("This is not a valid Phone number.")
     .matches(/\d/)
     .withMessage("This is not a valid phone number.")
     .optional(),
+
   check("avatar")
     .isLength({ min: 5 })
     .withMessage("Upload a valid URL for your avatar.")
     .optional(),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -103,6 +129,7 @@ export const validateChangePassword: RequestHandler[] = [
   check("oldPassword")
     .isLength({ min: 6 })
     .withMessage("Old password must be at least 6 characters"),
+
   check("newPassword")
     .isLength({ min: 6 })
     .withMessage("New password must be at least 6 characters")
@@ -112,6 +139,7 @@ export const validateChangePassword: RequestHandler[] = [
     .withMessage("Password must contain at least one uppercase letter")
     .matches(/[a-z]/)
     .withMessage("Password must contain at least one lowercase letter"),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -123,7 +151,10 @@ export const validateChangePassword: RequestHandler[] = [
 ];
 
 export const validateResetPassword: RequestHandler[] = [
-  check("email").isEmail().withMessage("Invalid email format."),
+  check("email")
+  .isEmail()
+  .withMessage("Invalid email format."),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -140,6 +171,7 @@ export const validatePasswordOTP: RequestHandler[] = [
     .withMessage("Invalid OTP")
     .isNumeric()
     .withMessage("Invalid OTP"),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -156,6 +188,7 @@ export const validateUserQuery: RequestHandler[] = [
     .withMessage("User ID is required")
     .isUUID()
     .withMessage("User ID must be a valid UUID"),
+  
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -170,6 +203,7 @@ export const validateSearchQuery: RequestHandler[] = [
   query("search")
     .matches(/^[A-Za-z0-9-]+$/)
     .withMessage("Search can only contain letters, numbers, or hyphens(-)"),
+
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
