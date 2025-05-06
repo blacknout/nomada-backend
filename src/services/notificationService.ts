@@ -1,4 +1,8 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
+import { 
+  NotificationType,
+  NotificationPriority,
+} from '../@types/notifications';
 import { Notification } from "../models/Notification";
 import User from "../models/User";
 import logger from "../utils/logger";
@@ -28,7 +32,8 @@ export const createNotification = async (
   userId: string,
   title: string,
   message: string,
-  type: "message" | "sos" | "invite",
+  type: NotificationType,
+  priority: NotificationPriority,
   data: any
 ) => {
   const notification = await Notification.create({
@@ -36,6 +41,7 @@ export const createNotification = async (
     title,
     message,
     type,
+    priority,
     data,
   });
 
