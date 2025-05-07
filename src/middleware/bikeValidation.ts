@@ -3,6 +3,7 @@ import { param, check, validationResult } from "express-validator";
 
 export const validateCreateBike: RequestHandler[] = [
   check("plate")
+    .trim()
     .isLength({ min: 3 })
     .withMessage("Plate number must be at least 3 characters.")
     .optional(),
@@ -18,7 +19,8 @@ export const validateCreateBike: RequestHandler[] = [
   check("year").isLength({ min: 4 })
     .withMessage("Please enter a valid year."),
 
-  check("vin").trim()
+  check("vin")
+    .trim()
     .isLength({ min: 17, max: 17 })
     .withMessage('VIN must be exactly 17 characters')
     .matches(/^[A-HJ-NPR-Z0-9]{17}$/)

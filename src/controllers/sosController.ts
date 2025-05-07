@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../models/User";
 import Sos from "../models/Sos";
 import GroupMembers from "../models/GroupMembers";
-import { sendNotificationToUser, sendNotificationToUsers } from "../services/notificationService";
+import { createNotification, sendNotificationToUser, sendNotificationToUsers } from "../services/notificationService";
 import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
 import logger from "../utils/logger";
@@ -20,29 +20,48 @@ export const createSosContact = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { contactId, email, phone } = req.body;
+    const { contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
-    const user = await User.findByPk(userId);
     const contact = await User.findByPk(contactId);
+    const contactUsername = contact?.username;
 
-    if (user && contact) {
-      const sos = await Sos.create({
-        contactId,
-        email,
-        phone,
-        userId,
-        isActivated: true
-      });
-      await sendNotificationToUser(
-        contactId, 
+    const sos = await Sos.create({
+      contactId: contact.id || null,
+      contactName: (contactName || contactUsername) ?? null,
+      email,
+      phone,
+      userId,
+      isActivated: true
+    });
+
+    if (contact) {
+      const data = {
+        type: "message",
+        userId: contact.id,
+        userName: contact.username,
+        createdAt: sos.createdAt,
+        priority: "normal"
+      }
+
+      await createNotification(
+        contact.id,
         notification.SOS_CREATE_TITLE,
         notification.SOS_CREATE_MESSAGE(contact.username),
-        null, 
-        contact);
-      res.status(200).json({ message: "SOS contact has been created.", sos });
-      return;
+        "message",
+        "low",
+        data
+      );
+
+      await sendNotificationToUser(
+        contact.id, 
+        notification.SOS_CREATE_TITLE,
+        notification.SOS_CREATE_MESSAGE(contact.username),
+        data,
+        contact
+      );
     }
-    res.status(404).json({ message: "This account cannot be found." });
+
+    res.status(200).json({ message: "SOS contact has been created.", sos });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -55,8 +74,9 @@ export const updateSosContact = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { isActivated, contactId, email, phone } = req.body;
+    const { isActivated, contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
+    const contact = await User.findByPk(contactId);
     const user = await User.findByPk(userId, {
       include: [{ model: Sos, as: "sos" }]
     }) as User & { sos: Sos | null };
@@ -66,14 +86,42 @@ export const updateSosContact = async (
       return;
     }
     const { sos } = user;
-    // if sosconact id sos email sos phone, send messagee to updated field
     const sosUpdate = await sos.update({
       isActivated: isActivated === false ? false : true,
-      contactId: contactId || sos.contactId,
+      contactId: contact?.id || sos.contactId,
+      contactName: contactName || contact.username,
       email: email || sos.email,
       phone: phone || sos.phone,
       userId
     });
+
+    if (contact) {
+      const data = {
+        type: "message",
+        userId: contact.id,
+        userName: contact.username,
+        createdAt: sos.createdAt,
+        priority: "normal"
+      }
+
+      await createNotification(
+        contact.id,
+        notification.SOS_CREATE_TITLE,
+        notification.SOS_CREATE_MESSAGE(contact.username),
+        "message",
+        "low",
+        data
+      );
+
+      await sendNotificationToUser(
+        contact.id, 
+        notification.SOS_CREATE_TITLE,
+        notification.SOS_CREATE_MESSAGE(contact.username),
+        data,
+        contact
+      );
+    }
+
     res.status(200).json({ message: "SOS contact has been updated.", sosUpdate });
     return;
   } catch (err) {
