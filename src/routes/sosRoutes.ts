@@ -32,6 +32,8 @@ const router = express.Router();
  *             properties:
  *               contactId:
  *                 type: string
+ *               contactName:
+ *                 type: string
  *               email:
  *                 type: string
  *               phone:

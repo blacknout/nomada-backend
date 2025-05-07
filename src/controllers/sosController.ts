@@ -20,14 +20,14 @@ export const createSosContact = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { contactId, email, phone } = req.body;
+    const { contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
     const contact = await User.findByPk(contactId);
     const contactUsername = contact?.username;
 
     const sos = await Sos.create({
       contactId: contact.id || null,
-      contactUsername: contactUsername || null,
+      contactName: (contactName || contactUsername) ?? null,
       email,
       phone,
       userId,

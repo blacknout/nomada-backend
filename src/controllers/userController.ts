@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import errorResponse from "../errors/errorResponse";
 import { sendOtpEmail, sendPasswordResetEmail } from "../services/emailService";
-import { filterUser } from "../utils/filterUser";
+import { filterUser } from "../utils/handleData";
 import { parseNotification } from "../utils/notificationParser";
 import { mergeUsersAndBikeOwners, searchUser, searchBike } from "../services/searchService";
 import { FIFTEEN_MINUTE_TOKEN } from "../utils/constants/constants";

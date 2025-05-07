@@ -1,5 +1,12 @@
+import User from "../models/User";
 import { sendSosEmail } from "../services/emailService";
 import { notification } from "../utils/constants/notifications";
+import {
+  UNAVAILABLE_PLATE
+} from "../utils/constants/constants";
+import {
+  getFirstPlate
+} from "../utils/handleData";
 import {
   createNotification,
   sendNotificationToUser,
@@ -10,16 +17,26 @@ export const sendSos = async (user: any, location: any) => {
   const { sos } = user;
   const messageContent = notification.SOS_NOTIFICATION;
   const messageTitle = notification.SOS_TITLE(user.username);
+  const contact = await User.findByPk(sos.contactId);
 
   // Send notification to emergency contact if available
-  if (sos.contactId) {
+  if (contact) {
+    const bikes = await user.getBikes();
+    const plate = bikes.length ? getFirstPlate(bikes) : UNAVAILABLE_PLATE;
+    const data = {
+      type: "sos",
+      username: user.username,
+      location,
+      plate
+    }
     try {
       await createNotification(
         sos.contactId,
         messageTitle,
         messageContent,
         "sos",
-        location
+        "high",
+        data
       );
       await sendNotificationToUser(
         sos.contactId,
