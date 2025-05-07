@@ -69,6 +69,8 @@ router.post("/", authenticateUser, validateSosInputs, createSosContact);
  *             properties:
  *               contactId:
  *                 type: string
+ *               contactName:
+ *                 type: string
  *               email:
  *                 type: string
  *               phone:

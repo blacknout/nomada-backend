@@ -74,7 +74,7 @@ export const updateSosContact = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { isActivated, contactId, email, phone } = req.body;
+    const { isActivated, contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
     const contact = await User.findByPk(contactId);
     const user = await User.findByPk(userId, {
@@ -89,6 +89,7 @@ export const updateSosContact = async (
     const sosUpdate = await sos.update({
       isActivated: isActivated === false ? false : true,
       contactId: contact?.id || sos.contactId,
+      contactName: contactName || contact.username,
       email: email || sos.email,
       phone: phone || sos.phone,
       userId
