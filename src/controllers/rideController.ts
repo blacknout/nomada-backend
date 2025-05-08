@@ -7,7 +7,8 @@ import { User } from "../models/User";
 import { 
   getUserRideHistory,
   createRideName,
-  getAllGroupRides
+  getAllGroupRides,
+  startRide
  } from "../services/riderServices";
 
 /**
@@ -229,44 +230,27 @@ export const updateRideStatus = async (req: Request, res: Response) => {
 
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
-      res.status(404).json({ message: "Ride not found" });
+      res.status(404).json({ message: "Ride not found." });
       return;
     }
 
     if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
       if (status === "started") {
-        const ongoingRide = await Ride.findOne({
-          where: {
-            groupId: ride.groupId,
-            status: "ongoing"
-          }
+        await startRide(ride, status);
+        res.status(200).json({ 
+          message: "Ride status updated successfully.", 
+          ride,
         });
-        if(ongoingRide) {
-          res.status(400)
-          .json({ 
-            message: "You cannot start a new ride when another ride in this group is ongoing"
-          });
-          return;
-        }
-        const group = await Group.findOne({
-          where: { id: ride.groupId },
-          include: {
-            model: User,
-            as: "users", 
-            attributes: ["id"],
-          },
+        return;
+      } else {
+        ride.status = status;
+        await ride.save();
+        res.status(200).json({ 
+          message: "Ride status updated successfully.", 
+          ride,
         });
-        group.users.map(async(user) => {
-          await (ride as any).addParticipant(user);
-        });
+        return;
       }
-      ride.status = status;
-      await ride.save();
-      res.status(200).json({ 
-        message: "Ride status updated successfully", 
-        ride,
-       });
-      return;
     } else {
       res.status(403)
       .json({ 

@@ -1,5 +1,17 @@
 import { StringColorFormat } from "@faker-js/faker/.";
 
+export type RideStatusType =
+  | 'pending'
+  | 'started'
+  | 'completed';
+
+  export type GroupMemberType =
+  | "active" 
+  | "ghost" 
+  | "observer" 
+  | "inactive";
+  
+
 export type NotificationType =
   | 'invite'
   | 'message'

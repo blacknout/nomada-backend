@@ -1,16 +1,13 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../models/User";
 import Sos from "../models/Sos";
-import GroupMembers from "../models/GroupMembers";
 import {
   createNotification,
   sendNotificationToUser,
-  sendNotificationToUsers
 } from "../services/notificationService";
 import { sendSos } from "../services/sosService";
 import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
-import logger from "../utils/logger";
 
 // Define GroupMembers interface if the model file is not accessible
 interface GroupMember {
@@ -27,17 +24,17 @@ export const createSosContact = async (
   try {
     const { contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
-    const contact = await User.findByPk(contactId);
-    const contactUsername = contact?.username;
-
-    const sos = await Sos.create({
-      contactId: contact.id || null,
-      contactName: (contactName || contactUsername) ?? null,
+    const contact = contactId ? await User.findByPk(contactId) : null;
+    const sosData = {
+      contactId: contact?.id || null,
+      contactName: contactName || contact?.username || null,
       email,
       phone,
       userId,
-      isActivated: true
-    });
+      isActivated: true,
+    };
+
+    const sos = await Sos.create(sosData);
 
     if (contact) {
       const data = {
@@ -45,7 +42,7 @@ export const createSosContact = async (
         userId: contact.id,
         userName: contact.username,
         createdAt: sos.createdAt,
-        priority: "normal"
+        priority: "normal",
       }
 
       await createNotification(
@@ -82,47 +79,22 @@ export const updateSosContact = async (
     const { isActivated, contactId, contactName, email, phone } = req.body;
     const { id: sosId } = req.params;
     const { id: userId } = req.user;
-    const contact = await User.findByPk(contactId);
+    const contact = contactId ? await User.findByPk(contactId) : null;
     const sos = await Sos.findByPk(sosId);
+    const updateData = {
+      isActivated: isActivated === false ? false : true,
+      contactId: contact?.id || sos.contactId,
+      contactName: contactName || contact.username,
+      ...(email && { email }),
+      ...(phone && { phone }),
+      ...(contactName && { contactName }),
+      userId
+    };
 
     if (sos && contact && contact.id == userId) {
-      const sosUpdate = await sos.update({
-        isActivated: isActivated === false ? false : true,
-        contactId: contact?.id || sos.contactId,
-        contactName: contactName || contact.username,
-        email: email || sos.email,
-        phone: phone || sos.phone,
-        userId
-      });
+      const sosUpdate = await sos.update(updateData);
   
-      if (contact) {
-        const data = {
-          type: "message",
-          userId: contact.id,
-          userName: contact.username,
-          createdAt: sos.createdAt,
-          priority: "normal"
-        }
-  
-        await createNotification(
-          contact.id,
-          notification.SOS_CREATE_TITLE,
-          notification.SOS_CREATE_MESSAGE(contact.username),
-          "message",
-          "low",
-          data
-        );
-  
-        await sendNotificationToUser(
-          contact.id, 
-          notification.SOS_CREATE_TITLE,
-          notification.SOS_CREATE_MESSAGE(contact.username),
-          data,
-          contact
-        );
-      }
-  
-      res.status(200).json({ message: "SOS contact has been updated.", sosUpdate });
+      res.status(200).json({ message: "SOS contact has been updated.", sos: sosUpdate });
       return;
     }
     res.status(400).json({ message: "Unable to update SOS contact." });
@@ -132,18 +104,21 @@ export const updateSosContact = async (
   }
 };
 
-export const getOwnSos = async (
+export const getSosContacts = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { id } = req.user;
-    const user = await User.findByPk(id, {
-      include: [{ model: Sos, as: "sos" }]
-    }) as User & { sos: Sos | [] };
+    const { id: userId } = req.user;
+    const sosContacts = await Sos.findAll({
+      where: { userId },
+    });
 
-    res.status(200).json({ message: "SOS contact.", sos: user.sos || [] });
+    res.status(200).json({
+      message: "SOS contacts retrieved.",
+      sos: sosContacts
+    });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -159,9 +134,9 @@ export const contactSos = async (
     const { userId, location, currentRide } = req.body;
     const { id } = req.user;
     // The option if a user wants to initiate a riders sos
-    const user = await User.findByPk(userId || id, {
-      include: [{ model: Sos, as: "sos" }]
-    }) as User & { sos: Sos | [] };
+    const user = (await User.findByPk(userId || id, {
+      include: [{ model: Sos, as: "sos" }],
+    })) as User & { sos: Sos | [] };
 
     if (!user || !user.sos.length) {
       res.status(404).json({ message: "Cannot get user or the SOS contact." });
@@ -189,24 +164,27 @@ export const rejectSos = async (
     const sos = await Sos.findByPk(id);
 
     if (sos.contactId === user.id) {
-      await sos.update({ contactId: null })
+      await sos.destroy();
       await sendNotificationToUser(
         sos.userId, 
         notification.SOS_REJECT_TITLE,
         notification.SOS_REJECT_MESSAGE(user.username)
       );
-      res.status(200).json({ message: "You have been removed as the SOS contact for this user." });
+      res.status(200).json({
+        message: "You have been removed as the SOS contact for this user."
+      });
       return;
     }
-    res.status(400).json({ message: "It seems you are not the contact ID for this SOS." });
+    res.status(400).json({
+      message: "It seems you are not the contact ID for this SOS."
+    });
     return;
-
   } catch (err) {
     errorResponse(res, err);
   }
 };
 
-export const getAllSos = async (
+export const getAssignedSos = async (
   req: Request,
   res: Response,
   next: NextFunction

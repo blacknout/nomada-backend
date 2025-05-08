@@ -3,7 +3,7 @@ import sequelize from "../config/sequelize";
 import { 
   NotificationType,
   NotificationPriority,
-} from '../@types/notifications';
+} from '../@types/model';
 
 interface NotificationAttributes {
   id: string;

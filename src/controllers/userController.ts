@@ -10,7 +10,7 @@ import { parseNotification } from "../utils/notificationParser";
 import { mergeUsersAndBikeOwners, searchUser, searchBike } from "../services/searchService";
 import { FIFTEEN_MINUTE_TOKEN } from "../utils/constants/constants";
 import { generateTokenAndUpdate } from "../services/userService";
-import { AppNotification } from '../@types/notifications';
+import { AppNotification } from '../@types/model';
 
 /**
  * Registers a new user.

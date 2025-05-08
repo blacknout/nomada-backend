@@ -9,7 +9,7 @@ import { Op } from "sequelize";
 import { 
   NotificationType,
   NotificationPriority,
-} from '../@types/notifications';
+} from '../@types/model';
 
 
 /**

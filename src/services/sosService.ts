@@ -1,5 +1,7 @@
 import User from "../models/User";
 import GroupMembers from "../models/GroupMembers";
+import Ride from "../models/Ride";
+import Sos from "../models/Sos";
 import { sendSosEmail } from "../services/emailService";
 import { notification } from "../utils/constants/notifications";
 import {
@@ -26,12 +28,81 @@ export const sendSos = async (user: User, location: Location, currentRide: strin
   const messageTitle = notification.SOS_TITLE;
   const notificationData = {
     type: 'sos',
+    timestamp: new Date().toISOString(),
+    userId: user.id,
     username: user.username,
     plate,
     location,
     currentRide
   };
 
+  await sendSosToContacts(user, userSos, messageTitle, messageContent, notificationData);
+  await sendSosToRideOrGroup(user, currentRide, messageTitle, messageContent, notificationData);
+ 
+}
+
+const sendSosToRideOrGroup = async(
+  user: User,
+  currentRide: string,
+  messageTitle: string,
+  messageContent: string,
+  notificationData: object
+) => {
+  try {
+    if (currentRide) {
+      const ride = await Ride.findByPk(currentRide);
+      const participants = (await ride.getParticipants()).map(user => user.id);
+      await sendNotificationToUsers(
+        participants as string[],
+        messageTitle,
+        messageContent,
+        notificationData,
+        "high"
+      );
+      logger.info(`SOS notifications sent to ${participants.length} active riders for user ${user.id}`);
+
+    } else {
+      const groupMemberships = await GroupMembers.findAll({
+        where: { userId: user.id }
+      });
+      
+      if (groupMemberships.length > 0) {
+        const groupIds = groupMemberships.map((member: GroupMember) => member.groupId);
+        
+        // Find all members in these groups
+        const groupMembers = await GroupMembers.findAll({
+          where: {
+            groupId: groupIds,
+            userId: { [Symbol.for('ne')]: user.id } // Exclude the user sending the SOS
+          }
+        });
+        
+        const memberIds = [...new Set(groupMembers.map((member: GroupMember) => member.userId))];
+        
+        if (memberIds.length > 0) {
+          await sendNotificationToUsers(
+            memberIds as string[],
+            messageTitle,
+            messageContent,
+            notificationData,
+            "high"
+          );
+          logger.info(`SOS notifications sent to ${memberIds.length} group members for user ${user.id}`);
+        }
+     }
+    }
+  } catch (err) {
+    logger.error("Error sending SOS notifications to group members:", err);
+  }
+}
+
+const sendSosToContacts = async(
+  user: User,
+  userSos: Sos[],
+  messageTitle: string, 
+  messageContent: string, 
+  notificationData: object
+) => {
   userSos.map(async(sos) => {
     if (sos.isActivated) {
       // 1. Send notification to SOS contact if they have a push token
@@ -51,13 +122,7 @@ export const sendSos = async (user: User, location: Location, currentRide: strin
               contact.id,
               messageTitle,
               messageContent,
-              {
-                type: "sos",
-                timestamp: new Date().toISOString(),
-                userId: user.id,
-                userName: user.username,
-                location
-              }
+              notificationData
             );
             logger.info(`SOS notification sent to contact ${contact.id} for user ${user.id}`);
           }
@@ -74,44 +139,5 @@ export const sendSos = async (user: User, location: Location, currentRide: strin
       }
     }
   })
-
-  // 2. Send notification to all group members if user is in any groups
-  try {
-    const groupMemberships = await GroupMembers.findAll({
-      where: { userId: user.id }
-    });
-    
-    if (groupMemberships.length > 0) {
-      const groupIds = groupMemberships.map((member: GroupMember) => member.groupId);
-      
-      // Find all members in these groups
-      const groupMembers = await GroupMembers.findAll({
-        where: { 
-          groupId: groupIds,
-          userId: { [Symbol.for('ne')]: user.id } // Exclude the user sending the SOS
-        }
-      });
-      
-      const memberIds = [...new Set(groupMembers.map((member: GroupMember) => member.userId))];
-      
-      if (memberIds.length > 0) {
-        await sendNotificationToUsers(
-          memberIds as string[],
-          messageTitle,
-          messageContent,
-          {
-            type: "sos",
-            timestamp: new Date().toISOString(),
-            userId: user.id,
-            location
-          },
-          "high"
-        );
-        logger.info(`SOS notifications sent to ${memberIds.length} group members for user ${user.id}`);
-      }
-    }
-  } catch (err) {
-    logger.error("Error sending SOS notifications to group members:", err);
-  }
 }
  

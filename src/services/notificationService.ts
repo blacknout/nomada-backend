@@ -2,7 +2,7 @@ import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
 import { 
   NotificationType,
   NotificationPriority,
-} from '../@types/notifications';
+} from '../@types/model';
 import { Notification } from "../models/Notification";
 import { notification } from "../utils/constants/notifications";
 import { LOCATION_GPS_COORDINATES } from "../utils/constants/constants";

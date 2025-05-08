@@ -1,8 +1,17 @@
-import { DataTypes, Model, Optional, Association } from "sequelize";
+import { DataTypes,
+  Model,
+  Optional,
+  Association,
+  BelongsToManyGetAssociationsMixin
+} from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
 import { Location } from "../@types/location";
+import { 
+  RideStatusType
+} from '../@types/model';
+
 
 interface RideAttributes {
     id: string;
@@ -13,7 +22,7 @@ interface RideAttributes {
     route?: Location[];
     startLocation?: Location;
     destination?: Location;
-    status: "pending" | "started" | "completed";
+    status: RideStatusType;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -29,7 +38,11 @@ export class Ride extends Model<RideAttributes, RideCreationAttributes>  impleme
     public route: Location[];
     public startLocation: Location;
     public destination: Location;
-    public status!: "pending" | "started" | "completed";
+    public status!: RideStatusType;
+
+    public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
+
+    public participants?: User[];
 
     public static associations: {
       participants: Association<Ride, User>;
@@ -37,20 +50,22 @@ export class Ride extends Model<RideAttributes, RideCreationAttributes>  impleme
 }
 
 Ride.init(
-    {
-      id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-      name: { type: DataTypes.STRING, allowNull: false },
-      groupId: { type: DataTypes.UUID, allowNull: false, references: { model: Group, key: "id" } },
-      createdBy: { type: DataTypes.UUID, allowNull: false, references: { model: User, key: "id" } },
-      roadCaptainId: { type: DataTypes.UUID, references: { model: User, key: "id" } },
-      route: { type: DataTypes.JSONB },
-      startLocation: { type: DataTypes.JSONB, },
-      destination: { type: DataTypes.JSONB, },
-      status: {
-        type: DataTypes.ENUM("pending", "started", "completed"),
-        defaultValue: "pending",
-        allowNull: false,
-      },
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    groupId: { type: DataTypes.UUID, allowNull: false, references: { model: Group, key: "id" } },
+    createdBy: { type: DataTypes.UUID, allowNull: false, references: { model: User, key: "id" } },
+    roadCaptainId: { type: DataTypes.UUID, references: { model: User, key: "id" } },
+    route: { type: DataTypes.JSONB },
+    startLocation: { type: DataTypes.JSONB, },
+    destination: { type: DataTypes.JSONB, },
+    status: {
+      type: DataTypes.ENUM("pending", "started", "completed"),
+      defaultValue: "pending",
+      allowNull: false,
     },
-    { sequelize, modelName: "ride", timestamps: true }
+  },
+  { sequelize, modelName: "ride", timestamps: true }
 );
+
+export default Ride;

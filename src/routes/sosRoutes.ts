@@ -2,13 +2,14 @@ import express from "express";
 import { 
   createSosContact,
   updateSosContact,
-  getOwnSos,
+  getSosContacts,
   contactSos,
   rejectSos,
-  getAllSos
+  getAssignedSos
 } from "../controllers/sosController";
 import {
-  validateSosInputs
+  validateSosInputs,
+  validateContactSosInputs
 } from "../middleware/sosValidation";
 import { authenticateUser } from '../middleware/auth'
 
@@ -53,7 +54,7 @@ router.post("/", authenticateUser, validateSosInputs, createSosContact);
 
 /**
  * @swagger
- * /api/sos/:
+ * /api/sos/{id}:
  *   put:
  *     summary: Update an sos contact
  *     tags:
@@ -110,7 +111,7 @@ router.put("/:id", authenticateUser, validateSosInputs, updateSosContact);
  *         description: Internal server error
  * 
  */
-router.get("/contacts", authenticateUser, getAllSos);
+router.get("/contacts", authenticateUser, getAssignedSos);
 
 /**
  * @swagger
@@ -132,11 +133,64 @@ router.get("/contacts", authenticateUser, getAllSos);
  *         description: Internal server error
  * 
  */
-router.get("/", authenticateUser, getOwnSos);
+router.get("/", authenticateUser, getSosContacts);
 
-router.post("/contact", authenticateUser, validateSosInputs, contactSos);
+/**
+ * @swagger
+ * /api/sos/contact:
+ *   post:
+ *     summary: initiate an SOS to contacts
+ *     tags:
+ *       - Sos
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *               currentRide:
+ *                 type: string
+ *               location:
+ *                 type: object
+ *                 description: The GPS location of the sos.
+ *     responses:
+ *       201:
+ *         description: SOS contact has been created.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         This account no longer exists.
+ *       500:
+ *         description: Internal server error
+ * 
+ */
+router.post("/contact", authenticateUser, validateContactSosInputs, contactSos);
 
+/**
+ * @swagger
+ * /api/sos/{id}:
+ *   delete:
+ *     summary: Reject an sos request
+ *     tags:
+ *       - Sos
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: You have been removed as the SOS contact for this user.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       400:
+ *         It seems you are not the contact ID for this SOS.
+ *       500:
+ *         description: Internal server error
+ * 
+ */
 router.delete("/:id", authenticateUser, rejectSos);
-
 
 export default router;
