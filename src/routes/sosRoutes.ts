@@ -5,8 +5,7 @@ import {
   getSosContacts,
   contactSos,
   rejectSos,
-  getAssignedSos
-  getAllSos,
+  getAssignedSos,
   removeSosContact
 } from "../controllers/sosController";
 import {
