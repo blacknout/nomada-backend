@@ -31,10 +31,11 @@ Group.belongsToMany(User, { through: GroupMember, foreignKey: "groupId", as: "us
 Group.hasMany(Ride, { foreignKey: "groupId", onDelete: "CASCADE" });
 Group.hasMany(GroupMember, { foreignKey: "groupId", onDelete: "CASCADE", as: "members" });
 
-// // Group member associations
+// Group member associations
 GroupMember.belongsTo(Group, { foreignKey: "groupId", as: 'group' });
+GroupMember.belongsTo(User, { foreignKey: "userId", as: 'user' });
 
-// // Ride associations
+// Ride associations
 Ride.belongsTo(Group, { foreignKey: "groupId" });
 Ride.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
 Ride.belongsTo(User, { foreignKey: "roadCaptainId", as: "roadCaptain" });

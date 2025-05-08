@@ -122,8 +122,10 @@ export const validateMemberStatus: RequestHandler[] = [
     .withMessage("Type must be one of: active, ghost, observer or inactive"),
 
   check("groupId")
+    .notEmpty()
+    .withMessage("The Group ID must be provided.")
     .isUUID()
-    .withMessage("Group ID must be a valid UUID"),
+    .withMessage("Group ID must be a valid UUID."),
 
   check("userId")
     .isUUID()

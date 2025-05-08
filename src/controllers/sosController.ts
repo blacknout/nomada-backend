@@ -6,7 +6,6 @@ import {
   sendNotificationToUser,
 } from "../services/notificationService";
 import { sendSos } from "../services/sosService";
-import GroupMembers from "../models/GroupMembers";
 import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
 

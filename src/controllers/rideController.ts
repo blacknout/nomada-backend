@@ -236,10 +236,11 @@ export const updateRideStatus = async (req: Request, res: Response) => {
 
     if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
       if (status === "started") {
-        await startRide(ride, status);
+        const participants = await startRide(ride, status);
         res.status(200).json({ 
           message: "Ride status updated successfully.", 
           ride,
+          participants
         });
         return;
       } else {
@@ -247,7 +248,7 @@ export const updateRideStatus = async (req: Request, res: Response) => {
         await ride.save();
         res.status(200).json({ 
           message: "Ride status updated successfully.", 
-          ride,
+          ride
         });
         return;
       }

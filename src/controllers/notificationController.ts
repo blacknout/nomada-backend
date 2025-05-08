@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import { 
-  isValidExpoPushToken, 
   sendNotificationToUser,
-  sendNotificationToUsers,
   handlePushNotificationReceipts
 } from '../services/notificationService';
 import errorResponse from '../errors/errorResponse';

@@ -196,7 +196,7 @@ router.delete("/:id", authenticateUser, rejectSos);
 
 /**
  * @swagger
- * /api/sos/contact/{contactId}:
+ * /api/sos/contact/{id}:
  *   delete:
  *     summary: Remove a contact from SOS
  *     tags:
