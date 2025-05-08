@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
 import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
+import Ride from "../models/Ride";
 import User from "../models/User";
 import { becomeGroupMember, createInvite, inviteResponse } from "../services/groupServices";
 
@@ -160,18 +161,23 @@ export const leaveGroup = async (req: Request, res: Response) => {
 export const updateGroupMemberType = async (req: Request, res: Response) => {
   try {
     const { groupId, type, userId: updatedUser } = req.body;
-    
-
-    const group = await Group.findByPk(groupId);
+    const { id } = req.user;
+    const group = await Group.findByPk(groupId)
     if (!group) {
       res.status(404).json({ message: "Group not found."});
       return;
     }
 
-    const isCreator = req.user.id === group.createdBy;
-    const userId = isCreator ? (updatedUser || req.user.id) : req.user.id;
+    const isARoadCaptain = await Ride.findOne({
+      where: {
+        groupId,
+        roadCaptainId: id
+      }
+    })
+    const canChangeOthers = id === group.createdBy || Boolean(isARoadCaptain);
+    const userId = canChangeOthers ? (updatedUser || id) : id;
     
-    if (!isCreator && group.isRestricted) {
+    if (!canChangeOthers && group.isRestricted) {
       res.status(403).json({ message: "You are not allowed to update your member type."});
       return;
     }

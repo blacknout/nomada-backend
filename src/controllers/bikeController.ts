@@ -40,7 +40,6 @@ export const createBike = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-
 /**
  * get a bike.
  *
@@ -61,7 +60,6 @@ export const getBike = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
-
 
 /**
  * Update bike details.

@@ -107,14 +107,15 @@ export const startRide = async(ride: Ride, status: RideStatusType) => {
         type: {
           [Op.or]: ["active", "ghost"],
         }
-      }
+      },
+      include: [{ model: User, attributes: ["id", "username", "firstname"], as: "user" }],
     });
     groupMembers.map(async(member) => {
       await (ride as any).addParticipant(member.userId)
     });
     ride.status = status;
     await ride.save();
-    return;
+    return groupMembers;
   } catch (err) {
     return err;
   }
