@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 import User from "../models/User";
 import Sos from "../models/Sos";
 import {
@@ -6,15 +6,9 @@ import {
   sendNotificationToUser,
 } from "../services/notificationService";
 import { sendSos } from "../services/sosService";
+import GroupMembers from "../models/GroupMembers";
 import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
-
-// Define GroupMembers interface if the model file is not accessible
-interface GroupMember {
-  id: string;
-  userId: string;
-  groupId: string;
-}
 
 export const createSosContact = async (
   req: Request,
@@ -43,7 +37,7 @@ export const createSosContact = async (
         userName: contact.username,
         createdAt: sos.createdAt,
         priority: "normal",
-      }
+      };
 
       await createNotification(
         contact.id,
@@ -64,7 +58,6 @@ export const createSosContact = async (
     }
 
     res.status(200).json({ message: "SOS contact has been created.", sos });
-    return;
   } catch (err) {
     errorResponse(res, err);
   }
@@ -166,7 +159,7 @@ export const rejectSos = async (
     if (sos.contactId === user.id) {
       await sos.destroy();
       await sendNotificationToUser(
-        sos.userId, 
+        sos.userId,
         notification.SOS_REJECT_TITLE,
         notification.SOS_REJECT_MESSAGE(user.username)
       );
@@ -190,15 +183,56 @@ export const getAssignedSos = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { id: contactId } = req.user;
+    const { id } = req.user;
+    const sosContacts = await Sos.findAll({
+      where: { userId: id },
+      include: [
+        {
+          model: User,
+          as: "contact",
+          attributes: ["id", "username", "email", "phone"],
+        },
+      ],
+    });
 
-    const allSos = await Sos.findAll({
-      where: {
-        contactId
+    res.status(200).json({
+      message: "SOS contacts retrieved successfully.",
+      sos: sosContacts,
+    });
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const removeSosContact = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id: userId } = req.user;
+    const { id: sosId } = req.params;
+
+    const sos = await Sos.findOne({
+      where: { 
+        userId,
+        id: sosId
       }
     });
-    res.status(200).json({ allSos });
-    return;
+
+    if (!sos) {
+      res.status(404).json({ 
+        message: "SOS contact not found or you don't have permission to remove it." 
+      });
+      return;
+    }
+
+    await sos.destroy();
+
+    res.status(200).json({ 
+      message: "SOS contact has been removed successfully.",
+      sos 
+    });
   } catch (err) {
     errorResponse(res, err);
   }

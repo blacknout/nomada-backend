@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { query, check, validationResult } from "express-validator";
+import logger from "../utils/logger";
 
 export const validateSosInputs: RequestHandler[] = [
   query("id")
