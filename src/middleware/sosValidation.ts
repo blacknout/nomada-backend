@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { query, check, validationResult } from "express-validator";
+import logger from "../utils/logger";
 
 export const validateSosInputs: RequestHandler[] = [
   check("isActivated")
@@ -24,9 +25,9 @@ export const validateSosInputs: RequestHandler[] = [
     .withMessage("This is not a valid phone number.")
     .optional(),
 
-  check("userId")
-    .isUUID()
-    .withMessage("Invalid UUID format for User ID")
+  check("contactName")
+    .isString()
+    .withMessage("Contact name must be a string.")
     .optional(),
 
   ((req: Request, res: Response, next: NextFunction) => {

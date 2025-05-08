@@ -5,7 +5,8 @@ import {
   getOwnSos,
   contactSos,
   rejectSos,
-  getAllSos
+  getAllSos,
+  removeSosContact
 } from "../controllers/sosController";
 import {
   validateSosInputs
@@ -119,5 +120,32 @@ router.post("/contact", authenticateUser, validateSosInputs, contactSos);
 
 router.delete("/:id", authenticateUser, rejectSos);
 
+/**
+ * @swagger
+ * /api/sos/contact/{contactId}:
+ *   delete:
+ *     summary: Remove a contact from SOS
+ *     tags:
+ *       - Sos
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contactId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the contact to remove
+ *     responses:
+ *       200:
+ *         description: SOS contact has been removed successfully.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: SOS contact not found or you don't have permission to remove it.
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/contact/:id", authenticateUser, removeSosContact);
 
 export default router;
