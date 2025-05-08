@@ -88,15 +88,35 @@ router.post("/", authenticateUser, validateSosInputs, createSosContact);
  *         description: Internal server error
  * 
  */
-router.put("/", authenticateUser, validateSosInputs, updateSosContact);
+router.put("/:id", authenticateUser, validateSosInputs, updateSosContact);
 
+/**
+ * @swagger
+ * /api/sos/contacts:
+ *   get:
+ *     summary: Get every sos you have been assigned to by others
+ *     tags:
+ *       - Sos
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: SOS contact.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         Cannot get user or the SOS contact.
+ *       500:
+ *         description: Internal server error
+ * 
+ */
 router.get("/contacts", authenticateUser, getAllSos);
 
 /**
  * @swagger
  * /api/sos/:
  *   get:
- *     summary: Get an sos contact
+ *     summary: Get all your sos contacts
  *     tags:
  *       - Sos
  *     security:
@@ -115,7 +135,6 @@ router.get("/contacts", authenticateUser, getAllSos);
 router.get("/", authenticateUser, getOwnSos);
 
 router.post("/contact", authenticateUser, validateSosInputs, contactSos);
-
 
 router.delete("/:id", authenticateUser, rejectSos);
 

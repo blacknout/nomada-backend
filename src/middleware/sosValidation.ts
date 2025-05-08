@@ -2,6 +2,10 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import { query, check, validationResult } from "express-validator";
 
 export const validateSosInputs: RequestHandler[] = [
+  query("id")
+  .isUUID()
+  .withMessage("Invalid UUID format for ID"),
+
   check("isActivated")
     .isBoolean()
     .withMessage('Activated must be a boolean value.')
@@ -22,11 +26,6 @@ export const validateSosInputs: RequestHandler[] = [
     .withMessage("This is not a valid Phone number.")
     .matches(/\d/)
     .withMessage("This is not a valid phone number.")
-    .optional(),
-
-  check("userId")
-    .isUUID()
-    .withMessage("Invalid UUID format for User ID")
     .optional(),
 
   ((req: Request, res: Response, next: NextFunction) => {

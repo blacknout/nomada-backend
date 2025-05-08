@@ -1,4 +1,9 @@
-import { DataTypes, Model, Optional } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  Optional,
+  BelongsToGetAssociationMixin
+ } from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 
@@ -35,6 +40,9 @@ export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implemen
   public images?: string[];
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  public getUser!: BelongsToGetAssociationMixin<User>;
+
 }
 
 Bike.init(

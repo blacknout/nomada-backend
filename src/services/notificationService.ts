@@ -4,8 +4,13 @@ import {
   NotificationPriority,
 } from '../@types/notifications';
 import { Notification } from "../models/Notification";
+import { notification } from "../utils/constants/notifications";
+import { LOCATION_GPS_COORDINATES } from "../utils/constants/constants";
+import { filterUser } from "../utils/handleData";
 import User from "../models/User";
+import Bike from "../models/Bike";
 import logger from "../utils/logger";
+import { Location } from "../@types/location";
 
 // Create a new Expo SDK client
 const expo = new Expo();
@@ -45,6 +50,36 @@ export const createNotification = async (
     data,
   });
 
+  return notification;
+};
+
+/**
+ * Create multiple notifications message save to database
+ * @param userIds Users ID
+ * @param title Title of the notification
+ * @param message Message of the notification
+ * @param type Type of the notification
+ * @param data Additional data to send with the notification
+ * @returns Notification object
+ **/
+export const createNotifications = async (
+  userIds: string[],
+  title: string,
+  message: string,
+  type: NotificationType,
+  priority: NotificationPriority,
+  data: any
+) => {
+  const notification = userIds.map(async(userId) =>
+     await Notification.create({
+        userId,
+        title,
+        message,
+        type,
+        priority,
+        data,
+      })
+    )
   return notification;
 };
 
@@ -242,3 +277,37 @@ export const handlePushNotificationReceipts = async (
     }
   }
 };
+
+export const sendSearchedVinNotification = async(bikeOwner: User, searchingUser: User, bike: Bike, location: Location) => {
+  const data = {
+    type: 'search-vin',
+    location,
+    bikeId: bike.id,
+    username: searchingUser.username,
+    firstname: searchingUser.firstname,
+    lastname: searchingUser.lastname
+  }
+  const searchLocation = location.address? location.address : LOCATION_GPS_COORDINATES;
+  await createNotification(
+    bike.userId,
+    notification.STOLEN_VIN_SEARCH_TITLE,
+    notification.STOLEN_VIN_SEARCH_MESSAGE(
+      bike.plate,
+      searchLocation
+    ),
+    "search-vin",
+    "high",
+    data
+  );
+  await sendNotificationToUser(
+    bikeOwner.id,
+    notification.STOLEN_VIN_SEARCH_TITLE,
+    notification.STOLEN_VIN_SEARCH_MESSAGE(
+      bike.plate,
+      searchLocation
+    ),
+    data,
+    filterUser(bikeOwner.toJSON()),
+    "high"
+  );
+}

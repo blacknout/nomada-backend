@@ -2,12 +2,7 @@ import { DataTypes, Model, Optional, Association } from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
-
-interface Location {
-  latitude: number;
-  longitude: number;
-  address: string | null;
-}
+import { Location } from "../@types/location";
 
 interface RideAttributes {
     id: string;

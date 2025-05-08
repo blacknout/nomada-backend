@@ -186,8 +186,8 @@ export const handleRideStop = async (data: any) => {
   if (sos) {
     const user = await User.findByPk(data.fromUserId, {
       include: [{ model: Sos, as: "sos" }]
-    }) as User & { sos: Sos | null };
-    await sendSos(user, data.payload.location);
+    }) as User & { sos: Sos | [] };
+    await sendSos(user, data.payload.location, data.rideId);
   } 
   if (action === "create") await createRideStop(data);
   else if (action === "update") await updateRideStop(data);

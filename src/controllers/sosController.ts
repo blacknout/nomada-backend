@@ -2,7 +2,12 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../models/User";
 import Sos from "../models/Sos";
 import GroupMembers from "../models/GroupMembers";
-import { createNotification, sendNotificationToUser, sendNotificationToUsers } from "../services/notificationService";
+import {
+  createNotification,
+  sendNotificationToUser,
+  sendNotificationToUsers
+} from "../services/notificationService";
+import { sendSos } from "../services/sosService";
 import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
 import logger from "../utils/logger";
@@ -53,7 +58,7 @@ export const createSosContact = async (
       );
 
       await sendNotificationToUser(
-        contact.id, 
+        contact.id,
         notification.SOS_CREATE_TITLE,
         notification.SOS_CREATE_MESSAGE(contact.username),
         data,
@@ -75,54 +80,52 @@ export const updateSosContact = async (
 ): Promise<void> => {
   try {
     const { isActivated, contactId, contactName, email, phone } = req.body;
+    const { id: sosId } = req.params;
     const { id: userId } = req.user;
     const contact = await User.findByPk(contactId);
-    const user = await User.findByPk(userId, {
-      include: [{ model: Sos, as: "sos" }]
-    }) as User & { sos: Sos | null };
+    const sos = await Sos.findByPk(sosId);
 
-    if (!user || !user.sos) {
-      res.status(404).json({ message: "Cannot get user or the SOS contact." });
+    if (sos && contact && contact.id == userId) {
+      const sosUpdate = await sos.update({
+        isActivated: isActivated === false ? false : true,
+        contactId: contact?.id || sos.contactId,
+        contactName: contactName || contact.username,
+        email: email || sos.email,
+        phone: phone || sos.phone,
+        userId
+      });
+  
+      if (contact) {
+        const data = {
+          type: "message",
+          userId: contact.id,
+          userName: contact.username,
+          createdAt: sos.createdAt,
+          priority: "normal"
+        }
+  
+        await createNotification(
+          contact.id,
+          notification.SOS_CREATE_TITLE,
+          notification.SOS_CREATE_MESSAGE(contact.username),
+          "message",
+          "low",
+          data
+        );
+  
+        await sendNotificationToUser(
+          contact.id, 
+          notification.SOS_CREATE_TITLE,
+          notification.SOS_CREATE_MESSAGE(contact.username),
+          data,
+          contact
+        );
+      }
+  
+      res.status(200).json({ message: "SOS contact has been updated.", sosUpdate });
       return;
     }
-    const { sos } = user;
-    const sosUpdate = await sos.update({
-      isActivated: isActivated === false ? false : true,
-      contactId: contact?.id || sos.contactId,
-      contactName: contactName || contact.username,
-      email: email || sos.email,
-      phone: phone || sos.phone,
-      userId
-    });
-
-    if (contact) {
-      const data = {
-        type: "message",
-        userId: contact.id,
-        userName: contact.username,
-        createdAt: sos.createdAt,
-        priority: "normal"
-      }
-
-      await createNotification(
-        contact.id,
-        notification.SOS_CREATE_TITLE,
-        notification.SOS_CREATE_MESSAGE(contact.username),
-        "message",
-        "low",
-        data
-      );
-
-      await sendNotificationToUser(
-        contact.id, 
-        notification.SOS_CREATE_TITLE,
-        notification.SOS_CREATE_MESSAGE(contact.username),
-        data,
-        contact
-      );
-    }
-
-    res.status(200).json({ message: "SOS contact has been updated.", sosUpdate });
+    res.status(400).json({ message: "Unable to update SOS contact." });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -138,9 +141,9 @@ export const getOwnSos = async (
     const { id } = req.user;
     const user = await User.findByPk(id, {
       include: [{ model: Sos, as: "sos" }]
-    }) as User & { sos: Sos | null };
+    }) as User & { sos: Sos | [] };
 
-    res.status(200).json({ message: "SOS contact.", sos: user.sos || null });
+    res.status(200).json({ message: "SOS contact.", sos: user.sos || [] });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -153,89 +156,21 @@ export const contactSos = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { userId, location } = req.body;
+    const { userId, location, currentRide } = req.body;
     const { id } = req.user;
     // The option if a user wants to initiate a riders sos
     const user = await User.findByPk(userId || id, {
       include: [{ model: Sos, as: "sos" }]
-    }) as User & { sos: Sos | null };
+    }) as User & { sos: Sos | [] };
 
-    if (!user || !user.sos) {
+    if (!user || !user.sos.length) {
       res.status(404).json({ message: "Cannot get user or the SOS contact." });
       return;
     }
 
-    const { sos } = user;
-    if (sos.isActivated) {
-      // 1. Send notification to SOS contact if they have a push token
-      if (sos.contactId) {
-        try {
-          const contact = await User.findByPk(sos.contactId);
-          if (contact && contact.pushToken) {
-            await sendNotificationToUser(
-              contact.id,
-              "SOS EMERGENCY ALERT!",
-              `${user.username || "Someone"} has triggered an emergency SOS alert!`,
-              {
-                type: "sos",
-                timestamp: new Date().toISOString(),
-                userId: user.id,
-                location
-              }
-            );
-            logger.info(`SOS notification sent to contact ${contact.id} for user ${user.id}`);
-          }
-        } catch (err) {
-          logger.error("Error sending SOS notification to contact:", err);
-        }
-      }
-
-      // 2. Send notification to all group members if user is in any groups
-      try {
-        const groupMemberships = await GroupMembers.findAll({
-          where: { userId: user.id }
-        });
-        
-        if (groupMemberships.length > 0) {
-          const groupIds = groupMemberships.map((member: GroupMember) => member.groupId);
-          
-          // Find all members in these groups
-          const groupMembers = await GroupMembers.findAll({
-            where: { 
-              groupId: groupIds,
-              userId: { [Symbol.for('ne')]: user.id } // Exclude the user sending the SOS
-            }
-          });
-          
-          const memberIds = [...new Set(groupMembers.map((member: GroupMember) => member.userId))];
-          
-          if (memberIds.length > 0) {
-            await sendNotificationToUsers(
-              memberIds as string[],
-              "SOS EMERGENCY ALERT!",
-              `${user.username || "A group member"} has triggered an emergency SOS alert!`,
-              {
-                type: "sos",
-                timestamp: new Date().toISOString(),
-                userId: user.id,
-                location
-              },
-              "high"
-            );
-            logger.info(`SOS notifications sent to ${memberIds.length} group members for user ${user.id}`);
-          }
-        }
-      } catch (err) {
-        logger.error("Error sending SOS notifications to group members:", err);
-      }
-
-      // SOS service - original response
-      res.status(200).json({ message: "SOS has been contacted." });
-      return;
-    } else {
-      res.status(400).json({ message: "This user has deactivated his SOS contact." });
-      return;
-    }
+    await sendSos(user, location, currentRide);
+    res.status(200).json({ message: "SOS has been contacted." });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }

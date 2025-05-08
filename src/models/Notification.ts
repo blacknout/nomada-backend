@@ -48,7 +48,14 @@ Notification.init(
       allowNull: true,
     },
     type: {
-      type: DataTypes.ENUM('invite', 'message', 'upcoming-ride', 'sos', 'group-update', 'system'),
+      type: DataTypes.ENUM(
+        'invite',
+        'message',
+        'upcoming-ride',
+        'sos',
+        'group-update',
+         'search-vin',
+         'system'),
       allowNull: false,
     },
     title: {

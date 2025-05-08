@@ -14,7 +14,7 @@ User.belongsToMany(Group, { through: GroupMember, foreignKey: "userId", onDelete
 User.hasMany(Ride, { foreignKey: "createdBy", onDelete: "CASCADE" });
 User.hasMany(Ride, { foreignKey: "roadCaptainId", onDelete: "CASCADE" });
 User.belongsToMany(Ride, { through: "ride_participants", foreignKey: "userId", as: "trips" });
-User.hasOne(Sos, { foreignKey: "userId", as: "sos", onDelete: "CASCADE" });
+User.hasMany(Sos, { foreignKey: "userId", as: "sos", onDelete: "CASCADE" });
 User.hasMany(Sos, { foreignKey: 'contactId', as: 'contact' });
 
 // // Bike associations
