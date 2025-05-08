@@ -1,9 +1,24 @@
+import { StringColorFormat } from "@faker-js/faker/.";
+
+export type RideStatusType =
+  | 'pending'
+  | 'started'
+  | 'completed';
+
+  export type GroupMemberType =
+  | "active" 
+  | "ghost" 
+  | "observer" 
+  | "inactive";
+  
+
 export type NotificationType =
   | 'invite'
   | 'message'
   | 'upcoming-ride'
   | 'sos'
   | 'group-update'
+  |  'search-vin'
   | 'system';
   
 export type NotificationPriority = 'high' | 'medium' | 'low';
@@ -13,6 +28,7 @@ export type AppNotification =
   | UpcomingRideNotification
   | SOSNotification
   | GroupUpdateNotification
+  | SearchVinNotification
   | SystemNotification;
 
 export interface NotificationBase {
@@ -53,7 +69,7 @@ export interface SOSNotification extends NotificationBase {
     longitude: number;
     address?: string;
   };
-  groupId?: string;
+  currentRide?: string;
   emergencyMessage?: string;
 }
 
@@ -64,6 +80,19 @@ export interface GroupUpdateNotification extends NotificationBase {
   updateType: 'new-member' | 'left-group' | 'role-change' | 'other';
   relatedUserId?: string;
   relatedUserName?: string;
+}
+
+export interface SearchVinNotification extends NotificationBase {
+  type: 'search-vin';
+  location: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+  };
+  bikeId: string;
+  username: string;
+  firstname: String;
+  lastname: string;
 }
 
 export interface SystemNotification extends NotificationBase {

@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
+import { Op } from 'sequelize';
 import { Ride } from "../models/Ride";
 import { User } from "../models/User";
+import { GroupMember } from "../models/GroupMembers";
+import { RideStatusType } from '../@types/model';
+
 
 /**
  * Get a user's ride history with pagination
@@ -85,3 +89,33 @@ export const getAllGroupRides = async (
   }
 };
 
+export const startRide = async(ride: Ride, status: RideStatusType) => {
+  try {
+    const ongoingRide = await Ride.findOne({
+      where: {
+        groupId: ride.groupId,
+        status: "started"
+      }
+    });
+    if (ongoingRide) return { 
+      status: 400, 
+      message: "You cannot start a new ride when another ride in this group is ongoing" 
+    };
+    const groupMembers = await GroupMember.findAll({
+      where: {
+        groupId: ride.groupId,
+        type: {
+          [Op.or]: ["active", "ghost"],
+        }
+      }
+    });
+    groupMembers.map(async(member) => {
+      await (ride as any).addParticipant(member.userId)
+    });
+    ride.status = status;
+    await ride.save();
+    return;
+  } catch (err) {
+    return err;
+  }
+}

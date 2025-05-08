@@ -3,7 +3,7 @@ import sequelize from "../config/sequelize";
 import { 
   NotificationType,
   NotificationPriority,
-} from '../@types/notifications';
+} from '../@types/model';
 
 interface NotificationAttributes {
   id: string;
@@ -48,7 +48,14 @@ Notification.init(
       allowNull: true,
     },
     type: {
-      type: DataTypes.ENUM('invite', 'message', 'upcoming-ride', 'sos', 'group-update', 'system'),
+      type: DataTypes.ENUM(
+        'invite',
+        'message',
+        'upcoming-ride',
+        'sos',
+        'group-update',
+         'search-vin',
+         'system'),
       allowNull: false,
     },
     title: {

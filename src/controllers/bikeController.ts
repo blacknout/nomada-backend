@@ -3,6 +3,7 @@ import errorResponse from "../errors/errorResponse";
 import Bike from "../models/Bike";
 import User from "../models/User";
 import { searchBikeVin } from "../services/searchService";
+import { sendSearchedVinNotification } from "../services/notificationService";
 
 /**
  * Create a new bike.
@@ -181,10 +182,26 @@ export const removeBike = async (req: Request, res: Response) => {
  */
 export const searchByVin = async (req: Request, res: Response) => {
   try {
-    const { vin } = req.query;
-    const bike = await searchBikeVin(vin as string)
-    res.status(200).json({ bike });
-    return;
+    const { vin, location } = req.body;
+    const { id } = req.user;
+ 
+    const searcher = await User.findByPk(id);
+    if (searcher && vin && location) {
+      const bike = await searchBikeVin(vin as string);
+      const bikeOwner = await bike.getUser();
+      (bike.stolen && id !== bikeOwner.id) && 
+        await sendSearchedVinNotification
+        (
+          bikeOwner,
+          searcher, 
+          bike, 
+          location
+        ); 
+      res.status(200).json({ bike });
+      return;
+    } else {
+      res.status(400).json({ message: "Bad request." });
+    }
   } catch (err) {
     errorResponse(res, err);
   }

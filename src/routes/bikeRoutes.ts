@@ -69,16 +69,27 @@ router.post("/", authenticateUser, validateCreateBike, createBike);
 
 /**
  * @swagger
- * /api/bike/search:
+ * /api/bike/vin:
  *   get:
  *     summary: Search bikes by vin
  *     tags:
  *       - Bike
- *     parameters:
- *       - in: query
- *         name: vin
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - vin
+ *               - location
+ *             properties:
+ *               vin:
+ *                 type: string
+ *               location:
+ *                 type: object
  *     responses:
  *       200:
  *         description: Bike details

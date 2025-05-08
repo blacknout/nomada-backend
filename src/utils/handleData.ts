@@ -1,9 +1,11 @@
 import Bike from "../models/Bike";
+import User from "../models/User";
+
 import {
   UNAVAILABLE_PLATE
 } from "../utils/constants/constants";
 
-export const filterUser = (user: any) => {
+export const filterUser = (user: User) => {
   const { password, ...filteredUser } = user;
   return filteredUser;
 }

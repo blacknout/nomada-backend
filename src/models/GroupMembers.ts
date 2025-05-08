@@ -2,12 +2,15 @@ import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
+import { 
+  GroupMemberType
+} from '../@types/model';
 
 interface GroupMemberAttributes {
   id: string;
   userId: string;
   groupId: string;
-  type: "active" | "ghost" | "observer" | "inactive";
+  type: GroupMemberType;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -16,7 +19,7 @@ export class GroupMember extends Model<GroupMemberAttributes> implements GroupMe
   public id!: string;
   public userId!: string;
   public groupId!: string;
-  public type!:  "active" | "ghost" | "observer" | "inactive";
+  public type!:  GroupMemberType;
 }
 
 GroupMember.init(

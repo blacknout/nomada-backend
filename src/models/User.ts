@@ -1,7 +1,14 @@
-import { DataTypes, Model, Association } from "sequelize";
+import {
+  DataTypes,
+  Model,
+  Association,
+  HasManyGetAssociationsMixin
+ } from "sequelize";
 import sequelize from "../config/sequelize";
 import bcrypt from "bcryptjs";
+import { Bike } from "./Bike";
 import { Ride } from "./Ride";
+import { Sos } from "./Sos";
 
 interface UserAttributes {
   id: string;
@@ -41,10 +48,19 @@ export class User extends Model<UserAttributes> {
   public isVerified!: boolean;
   public isDisabled!: boolean;
   public pushToken?: string;
+
+  public getBikes!: HasManyGetAssociationsMixin<Bike>;
+
+  // Optional: if you use eager loading
+  public bikes?: Bike[];
+
+  public getSos!: HasManyGetAssociationsMixin<Sos>;
+  public sos?: Sos[];
+
   public static associations: {
+    bikes: Association<User, Bike>;
     rides: Association<User, Ride>;
   };
-
 }
 
 User.init(

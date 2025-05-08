@@ -6,7 +6,7 @@ import {
   SystemNotification,
   NotificationBase,
   AppNotification
-} from '../@types/notifications';
+} from '../@types/model';
 
 export function parseNotification(base: NotificationBase & { data?: any }): AppNotification {
   const data = base.data ?? {};
