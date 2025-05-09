@@ -25,7 +25,7 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
       createdBy: String(userId),
     });
 
-    if (userIds.length) { response = await createGroupWithUsers(group.id, userIds, userId);}
+    if (userIds?.length) { response = await createGroupWithUsers(group.id, userIds, userId);}
     await GroupMember.create({ groupId: group.id, userId });
     res.status(201).json({ 
       message: "Group created successfully",
