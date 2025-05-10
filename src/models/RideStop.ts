@@ -67,3 +67,5 @@ RideStop.init(
     tableName: "ride_stops",
   }
 );
+
+export default RideStop;

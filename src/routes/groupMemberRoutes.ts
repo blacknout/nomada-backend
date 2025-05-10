@@ -1,7 +1,6 @@
 import express from "express";
 import {
   joinGroup,
-  getGroupUsers,
   inviteUserToGroup,
   respondToInvite,
   removeUserFromGroup,
@@ -61,43 +60,6 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.post("/:groupId/join", authenticateUser, validateGroupQuery, joinGroup);
-
-/**
- * @swagger
- * /api/member/{groupId}/users:
- *   get:
- *     summary: Get all the users in the group
- *     tags:
- *       - Members
- *     parameters:
- *       - in: query
- *         name: groupId
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: The group users
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 username:
- *                   type: string
- *                 firstname:
- *                   type: string
- *                 lastname:
- *                   type: string
- *       401:
- *         description: Access Denied. No Token Provided.
- *       404:
- *         description: Group not found
- *       500:
- *          description: Internal Server Error
- */
-router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupUsers);
 
 /**
  * @swagger

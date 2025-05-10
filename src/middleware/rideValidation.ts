@@ -2,6 +2,12 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import { param, check, body,validationResult } from "express-validator";
 
 export const validateRideInfo: RequestHandler[] = [
+  param("rideId")
+  .notEmpty()
+  .withMessage("Ride ID is required")
+  .isUUID()
+  .withMessage("Ride ID must be a valid UUID"),
+
   check("groupId")
     .notEmpty()
     .isUUID()
@@ -69,6 +75,12 @@ export const validateRideInfo: RequestHandler[] = [
 ];
 
 export const validateRideStatus: RequestHandler[] = [
+  param("rideId")
+  .notEmpty()
+  .withMessage("Ride ID is required")
+  .isUUID()
+  .withMessage("Ride ID must be a valid UUID"),
+
   check("status")
   .isString()
   .withMessage("Status must be a string")
@@ -103,6 +115,12 @@ export const validateRideQuery: RequestHandler[] = [
 ];
 
 export const validateRideRoute: RequestHandler[] = [
+  param("rideId")
+  .notEmpty()
+  .withMessage("Ride ID is required")
+  .isUUID()
+  .withMessage("Ride ID must be a valid UUID"),
+
   body("route")
     .isArray({ min: 1 })
     .withMessage("Route must be a non-empty array")

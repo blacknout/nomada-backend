@@ -1,6 +1,6 @@
 import express from "express";
 import { 
-  register, 
+  register,
   login,
   verifyOtp,
   getCurrentUser,
@@ -423,7 +423,7 @@ router.put("/", authenticateUser, validateUpdateUser, updateUser);
  *       500:
  *         description: Internal server error
  */
-router.put("/change-password/:userId",  authenticateUser, validateChangePassword, changePassword);
+router.put("/change-password",  authenticateUser, validateChangePassword, changePassword);
 
 /**
  * @swagger

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { query, check, validationResult } from "express-validator";
+import { param, query, check, validationResult } from "express-validator";
 import logger from "../utils/logger";
 
 export const validateSosInputs: RequestHandler[] = [
@@ -16,6 +16,11 @@ export const validateSosInputs: RequestHandler[] = [
   check("contactId")
     .isUUID()
     .withMessage("Invalid UUID format for Contact ID")
+    .optional(),
+
+  check("contactName")
+    .isLength({ min: 2 })
+    .withMessage("The contact name cannot be blank.")
     .optional(),
 
   check("email")
@@ -69,6 +74,23 @@ export const validateContactSosInputs: RequestHandler[] = [
     }
     return true;
   }),
+
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return;
+    }
+    next();
+  }) as RequestHandler,
+];
+
+export const validateSosQuery: RequestHandler[] = [
+  param("id")
+    .notEmpty()
+    .withMessage("ID is required")
+    .isUUID()
+    .withMessage("ID must be a valid UUID"),
 
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

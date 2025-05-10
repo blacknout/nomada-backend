@@ -117,7 +117,7 @@ router.post("/", authenticateUser, validateCreateBike, createBike);
  *       500:
  *          description: Internal Server Error
  */
-router.get("/search", authenticateUser, validateVinQuery, searchByVin);
+router.get("/vin", authenticateUser, validateVinQuery, searchByVin);
 
 /**
  * @swagger

@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
 import { Op } from 'sequelize';
 import { Ride } from "../models/Ride";
 import { User } from "../models/User";
 import { GroupMember } from "../models/GroupMembers";
 import { RideStatusType } from '../@types/model';
-
+import { Location } from "../@types/location";
 
 /**
  * Get a user's ride history with pagination
@@ -63,6 +62,74 @@ export const createRideName = (groupName: string) => {
   return `${groupName} ride on ${formattedDate} ${formattedTime}`;
 }
 
+export const startRide = async(ride: Ride, status: RideStatusType, location: Location) => {
+  try {
+    const ongoingRide = await Ride.findOne({
+      where: {
+        groupId: ride.groupId,
+        status: "started"
+      }
+    });
+    if (ongoingRide) return { 
+      status: 400, 
+      message: "You cannot start a new ride when another ride in this group is ongoing" 
+    };
+    const groupMembers = await GroupMember.findAll({
+      where: {
+        groupId: ride.groupId,
+        type: {
+          [Op.or]: ["active", "ghost"],
+        }
+      },
+      include: [{ model: User, attributes: ["id", "username", "firstname"], as: "user" }],
+    });
+    groupMembers.map(async(member) => {
+      await (ride as any).addParticipant(member.userId)
+    });
+    ride.startLocation = location;
+    ride.status = status;
+    await ride.save();
+    return groupMembers;
+  } catch (err) {
+    return err;
+  }
+}
+
+export const handleRideStatus = async(id: string, ride: Ride, status: RideStatusType, location: Location) => {
+  if (ride.createdBy === id || ride.roadCaptainId === id) {
+    if (ride.status !== "started" && status === "started") {
+      const participants = await startRide(ride, status, location);
+      return {
+        status: 200,
+        message: "Ride status updated successfully.", 
+        ride,
+        participants
+      };
+    } else if (status === "completed") {
+      ride.destination = location;
+      ride.status = status;
+      await ride.save();
+      return {
+        status: 200,
+        message: "Ride status updated successfully.", 
+        ride
+      };
+    } else {
+      ride.status = status;
+      await ride.save();
+      return { 
+        message: "Ride status updated successfully.", 
+        ride
+      };
+    }
+  } else {
+    return {
+      status: 403,
+      message: "You are not allowed to update the status of this ride."
+    }
+  }
+}
+
 export const getAllGroupRides = async (
   groupId: string,
   page: number = 1,
@@ -88,35 +155,3 @@ export const getAllGroupRides = async (
     throw new Error(`Error fetching ride history: ${error}`);
   }
 };
-
-export const startRide = async(ride: Ride, status: RideStatusType) => {
-  try {
-    const ongoingRide = await Ride.findOne({
-      where: {
-        groupId: ride.groupId,
-        status: "started"
-      }
-    });
-    if (ongoingRide) return { 
-      status: 400, 
-      message: "You cannot start a new ride when another ride in this group is ongoing" 
-    };
-    const groupMembers = await GroupMember.findAll({
-      where: {
-        groupId: ride.groupId,
-        type: {
-          [Op.or]: ["active", "ghost"],
-        }
-      },
-      include: [{ model: User, attributes: ["id", "username", "firstname"], as: "user" }],
-    });
-    groupMembers.map(async(member) => {
-      await (ride as any).addParticipant(member.userId)
-    });
-    ride.status = status;
-    await ride.save();
-    return groupMembers;
-  } catch (err) {
-    return err;
-  }
-}

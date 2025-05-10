@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import errorResponse from "../errors/errorResponse";
-import Bike from "../models/Bike";
-import User from "../models/User";
+import { Bike, User } from "../models/associations";
 import { searchBikeVin } from "../services/searchService";
 import { sendSearchedVinNotification } from "../services/notificationService";
 
@@ -186,7 +185,7 @@ export const searchByVin = async (req: Request, res: Response) => {
     const searcher = await User.findByPk(id);
     if (searcher && vin && location) {
       const bike = await searchBikeVin(vin as string);
-      const bikeOwner = await bike.getUser();
+      const bikeOwner = bike?.owner;
       (bike.stolen && id !== bikeOwner.id) && 
         await sendSearchedVinNotification
         (

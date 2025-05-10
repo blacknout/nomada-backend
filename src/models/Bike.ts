@@ -2,23 +2,23 @@ import {
   DataTypes,
   Model,
   Optional,
-  BelongsToGetAssociationMixin
+  Association
  } from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 
 interface BikeAttributes {
-  id: string;
-  userId: string;
-	plate?: string;
-	make:  string;
-	model: string;
-  color?: string;
-	year: string;
-  vin?: string;
-  stolen: boolean;
-	notInUse:  boolean;
-  images?: string[];
+  id:         string;
+  userId:     string;
+	plate?:     string;
+	make:       string;
+	model:      string;
+  color?:     string;
+	year:       string;
+  vin?:       string;
+  stolen:     boolean;
+	notInUse:   boolean;
+  images?:    string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,22 +27,25 @@ interface BikeCreationAttributes extends Optional<BikeAttributes, "id"> {}
 
 
 export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implements BikeAttributes {
-  public id!: string;
-  public userId!: string;
-  public plate?: string;
-  public make!: string;
-  public model!: string;
-  public color?: string;
-  public year!: string;
-  public vin?: string;
-  public stolen: boolean;
-  public notInUse!: boolean;
-  public images?: string[];
+  public id!:                 string;
+  public userId!:             string;
+  public plate?:              string;
+  public make!:               string;
+  public model!:              string;
+  public color?:              string;
+  public year!:               string;
+  public vin?:                string;
+  public stolen:              boolean;
+  public notInUse!:           boolean;
+  public images?:             string[];
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  public getUser!: BelongsToGetAssociationMixin<User>;
+  public owner?: User;
 
+  public static associations: {
+    owner: Association<Bike, User>;
+  };
 }
 
 Bike.init(
@@ -82,6 +85,7 @@ Bike.init(
     },
     vin: {
       type: DataTypes.STRING,
+      unique: true,
     },
     stolen: {
       type: DataTypes.BOOLEAN,

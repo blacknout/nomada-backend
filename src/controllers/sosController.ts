@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../models/User";
-import Sos from "../models/Sos";
+import { User, Sos } from "../models/associations";
 import {
   createNotification,
   sendNotificationToUser,
@@ -17,6 +16,17 @@ export const createSosContact = async (
   try {
     const { contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
+
+    const alreadySet = await Sos.findOne({
+      where: {
+        userId,
+        contactId
+      }
+    });
+    if (alreadySet) {
+      res.status(400).json({ message: "You alreaady set this user as an SOS contact." });
+      return
+    }
     const contact = contactId ? await User.findByPk(contactId) : null;
     const sosData = {
       contactId: contact?.id || null,
@@ -57,6 +67,7 @@ export const createSosContact = async (
     }
 
     res.status(200).json({ message: "SOS contact has been created.", sos });
+    return
   } catch (err) {
     errorResponse(res, err);
   }
@@ -155,7 +166,7 @@ export const rejectSos = async (
     const user = await User.findByPk(userId);
     const sos = await Sos.findByPk(id);
 
-    if (sos.contactId === user.id) {
+    if (sos?.contactId === user?.id) {
       await sos.destroy();
       await sendNotificationToUser(
         sos.userId,
@@ -182,13 +193,13 @@ export const getAssignedSos = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { id } = req.user;
+    const { id: contactId } = req.user;
     const sosContacts = await Sos.findAll({
-      where: { userId: id },
+      where: { contactId },
       include: [
         {
           model: User,
-          as: "contact",
+          as: "user",
           attributes: ["id", "username", "email", "phone"],
         },
       ],
@@ -210,12 +221,12 @@ export const removeSosContact = async (
 ): Promise<void> => {
   try {
     const { id: userId } = req.user;
-    const { id: sosId } = req.params;
+    const { id } = req.params;
 
     const sos = await Sos.findOne({
       where: { 
         userId,
-        id: sosId
+        id
       }
     });
 

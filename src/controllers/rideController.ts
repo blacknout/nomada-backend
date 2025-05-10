@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
-import { Ride } from "../models/Ride";
-import { Group } from "../models/Group";
-import { GroupMember } from "../models/GroupMembers";
-import { User } from "../models/User";
+import { User, GroupMember, Group, Ride } from "../models/associations";
 import { 
   getUserRideHistory,
   createRideName,
-  getAllGroupRides,
-  startRide
- } from "../services/riderServices";
+  handleRideStatus,
+  getAllGroupRides
+ } from "../services/rideServices";
+ import { getRideDistance } from "../utils/calc";
 
 /**
  * @typedef {Object} GeoPoint
@@ -78,29 +76,29 @@ import {
  */
 export const createRide = async (req: Request, res: Response) => {
   try {
-    const { groupId, roadCaptainId, startLocation, destination } = req.body;
-    let { name } = req.body;
+    const { name, groupId, roadCaptainId, startLocation, destination } = req.body;
     const userId = req.user?.id;
 
-    const isMember = await GroupMember.count({
+    const isMember = await GroupMember.findOne({
       where: { userId, groupId },
-    });
-    if (isMember < 1) {
+      include: [{
+        model: Group,
+        as: "group",
+        attributes: ["id", "name"]
+      }]
+    }) as GroupMember & { group: Group}
+
+    if (!isMember) {
       res
         .status(404)
         .json({ message: "Group does not exist or this user is not part of this group." });
       return;
     }
 
-    if (!name) {
-      const group = await Group.findByPk(groupId);
-      name = createRideName(group.name);
-    }
-    const createdBy = userId;
     const newRide = await Ride.create({
-      name,
+      name: name || createRideName(isMember.group.name),
       groupId,
-      createdBy,
+      createdBy: userId,
       roadCaptainId,
       startLocation,
       destination,
@@ -226,39 +224,18 @@ export const updateRide = async (req: Request, res: Response) => {
 export const updateRideStatus = async (req: Request, res: Response) => {
   try {
     const { rideId } = req.params;
-    const { status } = req.body;
+    const { status, location } = req.body;
 
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
       res.status(404).json({ message: "Ride not found." });
       return;
     }
+    const response = await handleRideStatus(req.user.id, ride, status, location);
 
-    if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
-      if (status === "started") {
-        const participants = await startRide(ride, status);
-        res.status(200).json({ 
-          message: "Ride status updated successfully.", 
-          ride,
-          participants
-        });
-        return;
-      } else {
-        ride.status = status;
-        await ride.save();
-        res.status(200).json({ 
-          message: "Ride status updated successfully.", 
-          ride
-        });
-        return;
-      }
-    } else {
-      res.status(403)
-      .json({ 
-        message: "You are not allowed to update the status of this ride."
-      });
-      return;
-    }
+    res.status(response.status).json({
+      response
+    })
   } catch (err) {
     errorResponse(res, err);
   }
@@ -302,16 +279,74 @@ export const updateRideStatus = async (req: Request, res: Response) => {
  *
  * @response 200 - Ride details retrieved successfully
  * {
- *   "id": "ride123",
- *   "groupId": "group567",
- *   "creatorId": "user123",
- *   "roadCaptainId": "captain789",
- *   "startLocation": { "latitude": 12.345, "longitude": 67.890 },
- *   "destination": { "latitude": 98.765, "longitude": 43.210 },
- *   "started": "started",
- *   "createdAt": "2025-03-19T12:00:00.000Z",
- *   "updatedAt": "2025-03-19T12:30:00.000Z"
- * }
+    "ride": {
+        "id": "06bb0062-9bcf-4f87-83b8-eb2cc631423b",
+        "name": "Lekki Sunday Ride",
+        "groupId": "7dee00f4-5f2f-44a4-9b2a-4bfef2828121",
+        "createdBy": "ea36c4c6-2f88-46fe-937f-091ff41cfc6f",
+        "roadCaptainId": "7898133b-172a-4628-b52b-f1bad62cf58d",
+        "route": [
+            {
+                "address": null,
+                "latitude": 6.5244,
+                "longitude": 3.3792
+            },
+            {
+                "latitude": 6.535,
+                "longitude": 3.3932
+            },
+            {
+                "latitude": 6.545,
+                "longitude": 3.4032
+            }
+        ],
+        "startLocation": {
+            "address": null,
+            "latitude": 6.5244,
+            "longitude": 3.3792
+        },
+        "destination": {
+            "latitude": 6.545,
+            "longitude": 3.4032
+        },
+        "status": "completed",
+        "createdAt": "2025-05-10T17:09:08.242Z",
+        "updatedAt": "2025-05-10T17:09:08.242Z",
+        "group": {
+            "id": "7dee00f4-5f2f-44a4-9b2a-4bfef2828121",
+            "name": "Lagos Riders",
+            "description": "Weekend rides around Lagos",
+            "isPrivate": false,
+            "isRestricted": false,
+            "createdBy": "ea36c4c6-2f88-46fe-937f-091ff41cfc6f",
+            "createdAt": "2025-05-10T17:09:08.223Z",
+            "updatedAt": "2025-05-10T17:09:08.223Z"
+        },
+        "creator": {
+            "id": "ea36c4c6-2f88-46fe-937f-091ff41cfc6f",
+            "username": "John.Doe"
+        },
+        "roadCaptain": {
+            "id": "7898133b-172a-4628-b52b-f1bad62cf58d",
+            "username": "Jane Smith"
+        }
+    },
+    "participants": [
+        {
+            "id": "ea36c4c6-2f88-46fe-937f-091ff41cfc6f",
+            "username": "John.Doe",
+            "firstname": "John",
+            "avatar": null
+        },
+        {
+            "id": "7898133b-172a-4628-b52b-f1bad62cf58d",
+            "username": "Jane Smith",
+            "firstname": "Jane",
+            "avatar": null
+        }
+    ],
+    "distance": 3.5
+ *}
  *
  * @response 404 - Ride not found
  * {
@@ -334,25 +369,29 @@ export const getRideDetails = async (req: Request, res: Response) => {
         { model: User, as: "roadCaptain", attributes: ["id", "username"] },
       ],
     });
-    res.status(200).json({ ride });
+
+    if (!ride) {
+      res.status(404).json({ message: "Ride not found" });
+      return;
+    }
+
+    const participants = await ride.getParticipants({
+      attributes: ['id', 'username', 'firstname', 'avatar'],
+      joinTableAttributes: []
+    });
+    const { startLocation, destination } = ride;
+    const distance = (startLocation && destination)
+      ? getRideDistance(
+          startLocation.latitude,
+          startLocation.longitude,
+          destination.latitude,
+          destination.longitude
+        )
+      : null;
+    res.status(200).json({ ride, participants, distance });
     return;
   } catch (err) {
     errorResponse(res, err);
-  }
-};
-
-export const getGroupRides = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 5;
-
-    const rides = await getAllGroupRides(groupId, page, limit);
-
-    res.status(200).json({ rides });
-    return;
-  } catch (error) {
-    errorResponse(res, error);
   }
 };
 
@@ -397,9 +436,7 @@ export const deleteRide = async (req: Request, res: Response) => {
     const { rideId } = req.params;
     const userId = req.user?.id;
 
-    const ride = await Ride.findByPk(rideId, {
-      include: [{ model: Group, as: "group" }],
-    });
+    const ride = await Ride.findByPk(rideId);
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
@@ -481,7 +518,7 @@ export const deleteRide = async (req: Request, res: Response) => {
 export const saveRideRoute = async (req: Request, res: Response) => {
   try {
     const { rideId } = req.params;
-    const { route, name } = req.body;
+    const { route } = req.body;
 
     const ride = await Ride.findByPk(rideId);
     if (!ride) {
@@ -489,20 +526,19 @@ export const saveRideRoute = async (req: Request, res: Response) => {
       return;
     }
 
-    if (ride.route) {
-      res.status(400).json({ message: "This route has already been saved." });
-      return
-    } else if (!ride.name && name) {
-      res.status(400).json({ message: "This route must have a name." });
-      return
-    } else if (ride.status == "completed" && route.length) {
-      await ride.update({ route, name });
-      res.status(200).json({ message: "Ride route saved."});
-      return;
-    } else if (ride.status !== "completed") {
+    if (ride.status !== "completed") {
       res.status(400).json({ message: "Cannot save ride route until ride is completed." });
       return;
     }
+
+    if (ride.route) {
+      res.status(400).json({ message: "This route has already been saved." });
+      return
+    } else if (ride.status == "completed" && route.length) {
+      await ride.update({ route });
+      res.status(200).json({ message: "Ride route saved."});
+      return;
+    } 
   } catch (err) {
     errorResponse(res, err);
   }
@@ -565,7 +601,7 @@ export const getRideRoute = async (req: Request, res: Response) => {
     const { rideId } = req.params;
 
     const ride = await Ride.findByPk(rideId, {
-      attributes: ["id", "route"],
+      attributes: ["id", "name", "route"],
     });
 
     if (!ride) {
@@ -660,3 +696,103 @@ export const getRideHistory = async (req: Request, res: Response) => {
   }
 }
 
+export const getGroupRides = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 5;
+
+    const rides = await getAllGroupRides(groupId, page, limit);
+
+    res.status(200).json({ rides });
+    return;
+  } catch (error) {
+    errorResponse(res, error);
+  }
+};
+
+export const getGroupRidesDistance = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+
+    const rides = await Ride.findAll({
+      where: { groupId },
+    });
+
+    let totalDistance = 0;
+    let totalRiders = 0;
+
+    for (const ride of rides) {
+      totalRiders += await (ride as any).countParticipants();
+
+      const { startLocation, destination } = ride;
+
+      if (startLocation && destination) {
+        const distance = getRideDistance(
+          startLocation.latitude,
+          startLocation.longitude,
+          destination.latitude,
+          destination.longitude
+        );
+
+        totalDistance += distance;
+      }
+    }
+
+    const averageRiders = Math.ceil(totalRiders / rides.length);
+    const totalDistanceKm = totalDistance / 1000;
+
+    res.status(200).json({
+      groupId,
+      rideCount: rides.length,
+      totalDistanceMeters: totalDistance,
+      totalDistanceKm,
+      averageRiders
+    });
+
+  } catch (error) {
+    errorResponse(res, error);
+  }
+}
+
+export const getUserRidesDistance = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.user;
+
+    const rides = await Ride.findAll({
+      include: [{
+        model: User,
+        as: "participants",
+        where: { id },
+        attributes: []
+      }],
+    });
+
+    let totalDistance = 0;
+
+    for (const ride of rides) {
+      const { startLocation, destination } = ride;
+
+      if (startLocation && destination) {
+        const distance = getRideDistance(
+          startLocation.latitude,
+          startLocation.longitude,
+          destination.latitude,
+          destination.longitude
+        );
+
+        totalDistance += distance;
+      }
+    }
+
+    const totalDistanceKm = totalDistance / 1000;
+
+    res.status(200).json({
+      rideCount: rides.length,
+      totalDistanceMeters: totalDistance,
+      totalDistanceKm,
+    });
+  } catch (error) {
+    errorResponse(res, error);
+  }
+}

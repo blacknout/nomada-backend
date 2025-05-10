@@ -88,6 +88,9 @@ User.init(
     modelName: "User",
     tableName: "users",
 
+    defaultScope: {
+      attributes: { exclude: ["password"], },
+    },
     hooks: {
       beforeCreate: async (user: User) => {
         user.password = await bcrypt.hash(user.password, 10);

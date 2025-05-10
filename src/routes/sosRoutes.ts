@@ -10,6 +10,7 @@ import {
 } from "../controllers/sosController";
 import {
   validateSosInputs,
+  validateSosQuery,
   validateContactSosInputs
 } from "../middleware/sosValidation";
 import { authenticateUser } from '../middleware/auth'
@@ -192,7 +193,7 @@ router.post("/contact", authenticateUser, validateContactSosInputs, contactSos);
  *         description: Internal server error
  * 
  */
-router.delete("/:id", authenticateUser, rejectSos);
+router.delete("/:id", authenticateUser, validateSosQuery, rejectSos);
 
 /**
  * @swagger
@@ -220,6 +221,6 @@ router.delete("/:id", authenticateUser, rejectSos);
  *       500:
  *         description: Internal server error
  */
-router.delete("/contact/:id", authenticateUser, removeSosContact);
+router.delete("/contact/:id", authenticateUser, validateSosQuery, removeSosContact);
 
 export default router;
