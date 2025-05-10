@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import errorResponse from "../errors/errorResponse";
 import { Sequelize, Op } from "sequelize";
-import Group from "../models/Group";
-import GroupMember from "../models/GroupMembers";
-import { createGroupWithUsers } from "../services/groupServices";
+import { GroupMember, Group, User } from "../models/associations";
+import { 
+  inviteUsersToGroup
+ } from "../services/groupServices";
 
 
 /**
@@ -25,7 +26,7 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
       createdBy: String(userId),
     });
 
-    if (userIds?.length) { response = await createGroupWithUsers(group.id, userIds, userId);}
+    if (userIds?.length) { response = await inviteUsersToGroup(group.id, group.name, userIds, userId);}
     await GroupMember.create({ groupId: group.id, userId });
     res.status(201).json({ 
       message: "Group created successfully",
@@ -48,7 +49,16 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
 export const getGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
-    const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(groupId, {
+      include: [
+        {
+          model: User,
+          as: 'users',
+          attributes: ['id', 'username', 'email'],
+          through: { attributes: [] },
+        },
+      ],
+    });
     res.status(200).json({ group });
     return;
   } catch (err) {

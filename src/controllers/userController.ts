@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import User from "../models/User";
-import Notification from "../models/Notification";
+import { User, Notification } from "../models/associations";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import errorResponse from "../errors/errorResponse";
@@ -61,7 +60,7 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = await User.findOne({ where: { email: req.body.email } });
+    const user = await User.unscoped().findOne({ where: { email: req.body.email } });
 
     if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
       res.status(400).json({ message: "Invalid credentials" });
@@ -79,6 +78,7 @@ export const login = async (
       return;
     }
   } catch (err) {
+    console.log("err----------------", err)
     errorResponse(res, err);
   }
 };
@@ -231,13 +231,13 @@ export const updateUser: RequestHandler = async (req, res, next) => {
 export const changePassword: RequestHandler = async (req, res, next) => {
   try {
     const { newPassword, oldPassword } = req.body;
-    const userId = req.user?.id || req.params.userId;
+    const { id } = req.user;
 
-    if (!userId) {
+    if (!id) {
       res.status(401).json({ message: "Unauthorized" });
     }
 
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(id);
     if (!user) {
       res.status(404).json({ message: "User not found" });
     }

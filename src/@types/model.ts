@@ -1,5 +1,3 @@
-import { StringColorFormat } from "@faker-js/faker/.";
-
 export type RideStatusType =
   | 'pending'
   | 'started'
@@ -18,7 +16,7 @@ export type NotificationType =
   | 'upcoming-ride'
   | 'sos'
   | 'group-update'
-  |  'search-vin'
+  | 'search-vin'
   | 'system';
   
 export type NotificationPriority = 'high' | 'medium' | 'low';
@@ -44,7 +42,6 @@ export interface NotificationBase {
 
 export interface GroupInviteNotification extends NotificationBase {
   type: 'invite';
-  inviteId: string;
   groupId: string;
   groupName: string;
   senderId: string;

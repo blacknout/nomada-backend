@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
-import { RideStop } from "../models/RideStop";
+import { RideStop } from "../models/associations";
 
 /**
  * @typedef {Object} Coordinates

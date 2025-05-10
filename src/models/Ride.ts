@@ -1,8 +1,11 @@
-import { DataTypes,
+import { 
+  DataTypes,
   Model,
   Optional,
   Association,
-  BelongsToManyGetAssociationsMixin
+  BelongsToManyGetAssociationsMixin,
+  BelongsToManyAddAssociationMixin,
+  BelongsToManyAddAssociationsMixin,
 } from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
@@ -12,19 +15,18 @@ import {
   RideStatusType
 } from '../@types/model';
 
-
 interface RideAttributes {
-    id: string;
-    name: string;
-    groupId: string;
-    createdBy: string;
-    roadCaptainId?: string;
-    route?: Location[];
-    startLocation?: Location;
-    destination?: Location;
-    status: RideStatusType;
-    createdAt?: Date;
-    updatedAt?: Date;
+  id: string;
+  name: string;
+  groupId: string;
+  createdBy: string;
+  roadCaptainId?: string;
+  route?: Location[];
+  startLocation?: Location;
+  destination?: Location;
+  status: RideStatusType;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface RideCreationAttributes extends Optional<RideAttributes, "id"> {}
@@ -41,6 +43,8 @@ export class Ride extends Model<RideAttributes, RideCreationAttributes>  impleme
     public status!: RideStatusType;
 
     public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
+    public addParticipant!: BelongsToManyAddAssociationMixin<User, string>;
+    public addParticipants!: BelongsToManyAddAssociationsMixin<User, string>;
 
     public participants?: User[];
 

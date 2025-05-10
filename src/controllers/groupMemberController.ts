@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
-import Group from "../models/Group";
-import GroupMember from "../models/GroupMembers";
-import Ride from "../models/Ride";
-import User from "../models/User";
-import { becomeGroupMember, createInvite, inviteResponse } from "../services/groupServices";
+import { GroupMember, Group, Ride } from "../models/associations";
+import { 
+  becomeGroupMember, 
+  createInvite, 
+  handleInviteResponse 
+} from "../services/groupServices";
 
 
 /**
@@ -29,32 +30,6 @@ export const joinGroup = async (req: Request, res: Response) => {
 };
 
 /**
- * get group members.
- *
- * @param {Request} req - Express request object containing group id in req.params
- * @param {Response} res - Express response object
- * @param {NextFunction} next - Express next middleware function
- * @returns {Promise<Response>} - Returns JSON response with group users or error
- */
-export const getGroupUsers = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
-    const groupWithUsers = await Group.findOne({
-      where: { id: groupId },
-      include: {
-        model: User,
-        as: "users", 
-        attributes: ["id", "username", "email"],
-      },
-    });
-    res.status(200).json({ groupWithUsers });
-    return;
-  } catch (err) {
-    errorResponse(res, err);
-  }
-};
-
-/**
  * Add a user to a group.
  *
  * @param {Request} req - Express request object containing group Id and user Id in req.body
@@ -69,7 +44,8 @@ export const inviteUserToGroup = async (req: Request, res: Response) => {
     const { userIds } = req.body;
     const { id: senderId } = req.user;
 
-    createInvite(req, res, userIds, groupId, senderId);
+    const response = await createInvite(userIds, groupId, senderId);
+    res.status(response.status).json({ message: response.message });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -79,9 +55,10 @@ export const inviteUserToGroup = async (req: Request, res: Response) => {
 export const respondToInvite = async (req: Request, res: Response) => {
   try {
     const { inviteId } = req.params;
-    const { response } = req.body;
+    const { response: inviteResponse } = req.body;
 
-    inviteResponse(req, res, inviteId, response);
+    const response = await handleInviteResponse(req.user.id, inviteId, inviteResponse);
+    res.status(response.status).json({ message: response.message });
     return;
   } catch (err) {
     errorResponse(res, err);

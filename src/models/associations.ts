@@ -57,3 +57,14 @@ Sos.belongsTo(User, { foreignKey: "contactId", as: "contact" });
 
 // Notification association
 Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+export {
+  User,
+  Bike,
+  Group,
+  GroupMember,
+  Notification,
+  Sos,
+  Ride,
+  RideStop
+}

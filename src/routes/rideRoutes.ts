@@ -9,7 +9,9 @@ import {
   getRideRoute,
   deleteRideRoute,
   getRideHistory,
-  updateRideStatus
+  updateRideStatus,
+  getUserRidesDistance,
+  getGroupRidesDistance
 } from "../controllers/rideController";
 import { 
   validateRideInfo,
@@ -220,7 +222,6 @@ router.post("/",
  */
 router.put("/:rideId", 
   authenticateUser, 
-  validateRideQuery,
   validateRideInfo, 
   updateRide
 );
@@ -324,7 +325,6 @@ router.put("/:rideId",
  */
 router.patch("/:rideId", 
   authenticateUser, 
-  validateRideQuery,
   validateRideStatus,
   updateRideStatus
 );
@@ -503,6 +503,97 @@ router.get("/group/:groupId",
 
 /**
  * @swagger
+ * /ride/group/{groupId}/data:
+ *   get:
+ *     summary: Get a groups rides data
+ *     description: Retrieve details of a specific ride by its ID.
+ *     tags:
+ *       - Rides
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         description: The ID of the ride to retrieve.
+ *         schema:
+ *           type: string
+ *           example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: string
+ *         description: pagination option
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: string
+ *         description: pagination option
+ *     responses:
+ *       200:
+ *         description: Rides.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *                 groupId:
+ *                   type: string
+ *                   example: "55f32400-e29b-423f-a716-446f4nfe000"
+ *                 creatorId:
+ *                   type: string
+ *                   example: "1a2b3c4d5e6f7g8h9i0j"
+ *                 roadCaptainId:
+ *                   type: string
+ *                   example: "2b3c4d5e6f7g8h9i0j1a"
+ *                 status:
+ *                   type: string
+ *                   enum: ["pending", "started", "completed"]
+ *                   example: "started"
+ *                 startLocation:
+ *                   type: object
+ *                   properties:
+ *                     latitude:
+ *                       type: number
+ *                       example: 40.7128
+ *                     longitude:
+ *                       type: number
+ *                       example: -74.0060
+ *                 endLocation:
+ *                   type: object
+ *                   properties:
+ *                     latitude:
+ *                       type: number
+ *                       example: 34.0522
+ *                     longitude:
+ *                       type: number
+ *                       example: -118.2437
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T12:00:00.000Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T14:00:00.000Z"
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Server error.
+ */
+router.get("/group/:groupId/data", 
+  authenticateUser,
+  validateGroupQuery,
+  getGroupRidesDistance
+);
+
+/**
+ * @swagger
  * /ride/{rideId}:
  *   delete:
  *     summary: Delete a ride
@@ -657,7 +748,6 @@ router.delete("/:rideId",
  */
 router.post("/route/:rideId", 
   authenticateUser,
-  validateRideQuery,
   validateRideRoute,
   saveRideRoute
 );
@@ -812,7 +902,6 @@ router.delete("/route/:rideId",
   deleteRideRoute
 );
 
-
 /**
  * @swagger
  * /ride/user/history:
@@ -890,6 +979,85 @@ router.delete("/route/:rideId",
 router.get("/user/history", 
   authenticateUser, 
   getRideHistory
+);
+
+/**
+ * @swagger
+ * /ride/user/data:
+ *   get:
+ *     summary: Get your ride history
+ *     description: Retrieves the ride history of the current user
+ *     tags:
+ *       - Rides
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         description: The page of the history
+ *         schema:
+ *           type: number
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Ride details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *                 groupId:
+ *                   type: string
+ *                   example: "55f32400-e29b-423f-a716-446f4nfe000"
+ *                 creatorId:
+ *                   type: string
+ *                   example: "1a2b3c4d5e6f7g8h9i0j"
+ *                 roadCaptainId:
+ *                   type: string
+ *                   example: "2b3c4d5e6f7g8h9i0j1a"
+ *                 status:
+ *                   type: string
+ *                   enum: ["pending", "started", "completed"]
+ *                   example: "started"
+ *                 startLocation:
+ *                   type: object
+ *                   properties:
+ *                     latitude:
+ *                       type: number
+ *                       example: 40.7128
+ *                     longitude:
+ *                       type: number
+ *                       example: -74.0060
+ *                 endLocation:
+ *                   type: object
+ *                   properties:
+ *                     latitude:
+ *                       type: number
+ *                       example: 34.0522
+ *                     longitude:
+ *                       type: number
+ *                       example: -118.2437
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T12:00:00.000Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-03-19T14:00:00.000Z"
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Server error.
+ */
+router.get("/user/data", 
+  authenticateUser, 
+  getUserRidesDistance
 );
 
 export default router;
