@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { User } from "../models/associations";
+import { User, Notification } from "../models/associations";
 import { 
   sendNotificationToUser,
   handlePushNotificationReceipts
@@ -170,3 +170,82 @@ export const sendNotificationToSpecificUser = async (req: Request, res: Response
     errorResponse(res, error);
   }
 }; 
+
+export const getUserNotifications  = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id: userId } = req.user;
+    const { count: total, rows: notifications } = await Notification.findAndCountAll({
+      where: {
+        userId
+      },
+      order: [["createdAt", "DESC"]],
+    });
+    res.status(200).json({ 
+      message: 'All Notifications',
+      total,
+      notifications
+    });
+
+  } catch (error) {
+    logger.error('Error getting notifications', error);
+    errorResponse(res, error);
+  }
+}
+
+export const markAllAsRead  = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id: userId } = req.user;
+    await Notification.update(
+      { read: true,
+        readDate: new Date().toISOString()
+      },
+      {
+        where: {
+          userId,
+          read: false
+        }
+      }
+    );
+
+    res.status(200).json({ 
+      message: 'Notifications marked as read'
+    });
+  } catch (error) {
+    logger.error('Error updating notifications', error);
+    errorResponse(res, error);
+  }
+}
+
+export const markAsRead  = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id: userId } = req.user;
+    const { id } = req.params;
+
+    const [updatedCount] = await Notification.update(
+      { read: true,
+        readDate: new Date().toISOString()
+      },
+      {
+        where: {
+          id,
+          userId
+        }
+      }
+    );
+    
+    if (!updatedCount) {
+      res.status(400).json({ 
+        message: 'This notification does not exist or has already been deleted.' 
+      });
+      return;
+    }
+    
+    res.status(200).json({ 
+      message: 'Notification marked as read'
+    });
+    return
+  } catch (error) {
+    logger.error('Error updating notifications', error);
+    errorResponse(res, error);
+  }
+}

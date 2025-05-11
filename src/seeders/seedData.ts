@@ -163,13 +163,14 @@ async function seedDatabase() {
     },
   });
 
-  const group2 = await Group.create({
-    id: uuidv4(),
-    name: 'Lagos Riders',
-    description: 'Weekend rides around Lagos',
-    isPrivate: false,
-    isRestricted: false,
-    createdBy: user1.id
+  const [group2] = await Group.findOrCreate({
+    where: { name: 'Lagos Riders' },
+    defaults: {
+      description: 'Weekend rides around Lagos',
+      isPrivate: false,
+      isRestricted: false,
+      createdBy: user1.id
+    },
   });
 
   await GroupMember.findOrCreate({
@@ -249,7 +250,6 @@ async function seedDatabase() {
     title: 'SOS Alert Sent',
     message: 'You triggered an SOS alert during the ride.',
     read: false,
-    readDate: new Date().toISOString(),
     priority: 'high'
   });
 

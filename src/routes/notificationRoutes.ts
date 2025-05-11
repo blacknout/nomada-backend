@@ -3,7 +3,10 @@ import {
   registerPushToken, 
   unregisterPushToken, 
   sendTestNotification,
-  sendNotificationToSpecificUser
+  sendNotificationToSpecificUser,
+  getUserNotifications,
+  markAllAsRead,
+  markAsRead
 } from '../controllers/notificationController';
 import { authenticateUser } from '../middleware/auth';
 import { validatePushTokenInfo } from '../middleware/notificationValidation';
@@ -132,5 +135,64 @@ router.post('/test', authenticateUser, sendTestNotification);
  *         description: Internal server error
  */
 router.post('/send', authenticateUser, sendNotificationToSpecificUser);
+
+/**
+ * @swagger
+ * /api/notifications/:
+ *   get:
+ *     summary: Get all notifications for user
+ *     tags:
+ *       - Notifications
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All Notifications
+ *       401:
+ *         description: Unauthorized - authentication required
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/', authenticateUser, getUserNotifications);
+
+/**
+ * @swagger
+ * /api/notifications/read-all:
+ *   put:
+ *     summary: Mark all users notifications as read
+ *     tags:
+ *       - Notifications
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Notifications marked as read
+ *       401:
+ *         description: Unauthorized - authentication required
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/read-all', authenticateUser, markAllAsRead);
+
+/**
+ * @swagger
+ * /api/notifications/{id}/read:
+ *   put:
+ *     summary: Mark all users notifications as read
+ *     tags:
+ *       - Notifications
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Notification marked as read
+ *       400:
+ *         description: This notification does not exist or has already been deleted
+ *       401:
+ *         description: Unauthorized - authentication required
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/:id/read', authenticateUser, markAsRead);
 
 export default router;

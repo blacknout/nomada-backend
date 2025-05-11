@@ -7,6 +7,7 @@ import {
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 
+
 interface BikeAttributes {
   id:         string;
   userId:     string;
