@@ -1,11 +1,10 @@
 import { DataTypes, Model } from "sequelize";
+import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
 import { 
   GroupMemberType
 } from '../@types/model';
-
-const sequelize = require('../config/sequelize');
 
 interface GroupMemberAttributes {
   id: string;

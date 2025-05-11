@@ -3,8 +3,8 @@ import http from "http";
 import "./models/associations";
 import { initializeWebSocketServer } from "./services/websocketService";
 import logger from "./utils/logger";
+import sequelize from "./config/sequelize";
 
-const sequelize = require('./config/sequelize')
 const { runMigrations } = require('./migrations/migrations');
 
 

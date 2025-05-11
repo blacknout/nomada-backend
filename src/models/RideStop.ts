@@ -1,9 +1,8 @@
 import { DataTypes, Model, Optional } from "sequelize";
+import sequelize from "../config/sequelize";
 import { Ride } from "./Ride";
 import { User } from "./User";
 import { Location } from "../@types/location";
-
-const sequelize = require('../config/sequelize');
 
 export interface RideStopAttributes {
   id: string;
