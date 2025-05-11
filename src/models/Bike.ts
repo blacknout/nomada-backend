@@ -4,8 +4,10 @@ import {
   Optional,
   Association
  } from "sequelize";
-import sequelize from "../config/sequelize";
 import { User } from "./User";
+
+const sequelize = require('../config/sequelize');
+
 
 interface BikeAttributes {
   id:         string;

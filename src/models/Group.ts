@@ -1,6 +1,7 @@
 import { DataTypes, Model } from "sequelize";
-import sequelize from "../config/sequelize";
 import { User } from "./User";
+
+const sequelize = require('../config/sequelize');
 
 interface GroupAttributes {
 	id: string;
@@ -25,12 +26,12 @@ export class Group extends Model<GroupAttributes> implements GroupAttributes {
 
 Group.init(
 	{
-			id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-			name: { type: DataTypes.STRING, allowNull: false },
-			description: { type: DataTypes.TEXT, allowNull: true },
-			isPrivate: { type: DataTypes.BOOLEAN, defaultValue: false },
-			isRestricted: { type: DataTypes.BOOLEAN, defaultValue: false },
-			createdBy: { type: DataTypes.UUID, allowNull: false, references: { model: User, key: "id" } },
+		id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+		name: { type: DataTypes.STRING, allowNull: false, unique: true, },
+		description: { type: DataTypes.TEXT, allowNull: true },
+		isPrivate: { type: DataTypes.BOOLEAN, defaultValue: false },
+		isRestricted: { type: DataTypes.BOOLEAN, defaultValue: false },
+		createdBy: { type: DataTypes.UUID, allowNull: false, references: { model: User, key: "id" } },
 	},
 	{ sequelize, modelName: "group", timestamps: true }
 );

@@ -3,11 +3,14 @@ import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
 import Notification from "../models/Notification";
 import { notification } from "../utils/constants/notifications";
+import { GROUP_NAME_CLASH, LEVENSHTEIN_THRESHOLD } from "../utils/constants/constants";
 import { Op } from "sequelize";
 import { 
   NotificationType,
   NotificationPriority,
 } from '../@types/model';
+import logger from '../utils/logger';
+import { levenshtein } from "../utils/calc";
 
 /**
  * Invite multiple users to an existing group.
@@ -110,6 +113,7 @@ export const createInvite = async (userIds: string[], groupId: string, sender: s
         },
       ],
     }) as GroupMember & { group: Group }
+
     if (!groupMember) {
       return { 
         status: 404,
@@ -130,14 +134,14 @@ export const createInvite = async (userIds: string[], groupId: string, sender: s
 
 export const handleInviteResponse = async (
   userId: string,
-  inviteId: string,
+  id: string,
   response: string
 ) => {
   try {
     const invitation = await Notification.findOne({
       where: {
         type: "invite",
-        data: { inviteId },
+        id,
       },
     });
   
@@ -172,3 +176,35 @@ export const handleInviteResponse = async (
     return { status: 500, message: "Internal server error" };
   }
 };
+
+export const checkNameSimilarity = async(name: string) => {
+  try {
+    const groupNameSplit = name
+    .split(" ")
+    .filter(word => word.length > 3);
+
+    const whereClause = {
+      [Op.or]: groupNameSplit.map(word => ({
+        name: {
+          [Op.iLike]: `%${word}%`,
+        },
+      })),
+    };
+
+    const matchedGroups = await Group.findAll({
+      where: whereClause
+    });
+
+    for (let match of matchedGroups) {
+      const levenshteinDistance = levenshtein(match.name, name);
+  
+      if (levenshteinDistance < LEVENSHTEIN_THRESHOLD) {
+        return GROUP_NAME_CLASH;
+      }
+    }
+    return null
+  } catch (error) {
+    logger.error('Error updating notifications', error);
+    return error
+  }
+}

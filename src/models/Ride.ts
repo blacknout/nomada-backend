@@ -7,13 +7,15 @@ import {
   BelongsToManyAddAssociationMixin,
   BelongsToManyAddAssociationsMixin,
 } from "sequelize";
-import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
 import { Location } from "../@types/location";
 import { 
   RideStatusType
 } from '../@types/model';
+
+const sequelize = require('../config/sequelize');
+
 
 interface RideAttributes {
   id: string;

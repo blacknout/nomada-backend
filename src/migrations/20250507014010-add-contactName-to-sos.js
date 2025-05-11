@@ -3,9 +3,12 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.addColumn('sos', 'contactName', {
-      type: Sequelize.STRING,
-    });
+    const tableDescription = await queryInterface.describeTable('sos');
+    if (!tableDescription.contactName) {
+      await queryInterface.addColumn('sos', 'contactName', {
+        type: Sequelize.STRING,
+      });
+    }
   },
 
   async down (queryInterface, Sequelize) {

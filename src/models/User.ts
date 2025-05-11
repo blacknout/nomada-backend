@@ -4,11 +4,13 @@ import {
   Association,
   HasManyGetAssociationsMixin
  } from "sequelize";
-import sequelize from "../config/sequelize";
 import bcrypt from "bcryptjs";
 import { Bike } from "./Bike";
 import { Ride } from "./Ride";
 import { Sos } from "./Sos";
+
+const sequelize = require('../config/sequelize');
+
 
 interface UserAttributes {
   id: string;

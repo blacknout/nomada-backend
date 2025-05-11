@@ -3,7 +3,8 @@ import errorResponse from "../errors/errorResponse";
 import { Sequelize, Op } from "sequelize";
 import { GroupMember, Group, User } from "../models/associations";
 import { 
-  inviteUsersToGroup
+  inviteUsersToGroup,
+  checkNameSimilarity
  } from "../services/groupServices";
 
 
@@ -18,8 +19,17 @@ import {
 export const createGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { name, description, userIds } = req.body;
+    const similarityResponse = await checkNameSimilarity(name);
     const userId = req.user?.id as string;
-    let response = { invited: 0, total: 0}
+
+    if (similarityResponse) {
+      res.status(400).json({ 
+        message: similarityResponse,
+      });
+      return
+    }
+
+    let response = { invited: 0, total: 0 }
     const group = await Group.create({
       name: String(name),
       description: description ? String(description) : null,

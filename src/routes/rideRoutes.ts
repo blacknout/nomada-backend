@@ -13,8 +13,9 @@ import {
   getUserRidesDistance,
   getGroupRidesDistance
 } from "../controllers/rideController";
-import { 
-  validateRideInfo,
+import {
+  createRideInfo,
+  updateRideInfo,
   validateRideQuery,
   validateRideRoute,
   validateRideStatus
@@ -140,7 +141,7 @@ const router = express.Router();
  */
 router.post("/", 
   authenticateUser, 
-  validateRideInfo, 
+  createRideInfo, 
   createRide
 );
 
@@ -222,7 +223,7 @@ router.post("/",
  */
 router.put("/:rideId", 
   authenticateUser, 
-  validateRideInfo, 
+  updateRideInfo, 
   updateRide
 );
 

@@ -1,9 +1,10 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../config/sequelize";
 import { 
   NotificationType,
   NotificationPriority,
 } from '../@types/model';
+
+const sequelize = require('../config/sequelize');
 
 interface NotificationAttributes {
   id: string;

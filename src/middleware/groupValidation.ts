@@ -3,11 +3,11 @@ import { check, validationResult, body, param } from "express-validator";
 
 export const validateGroupInfo: RequestHandler[] = [
   check("name")
-    .isLength({ min: 3 })
-    .withMessage("The group name must be at least 3 characters."),
+    .isLength({ min: 8 })
+    .withMessage("The group name must be at least 8 characters."),
 
   check("description")
-    .isLength({ min: 3 })
+    .isLength({ min: 10 })
     .withMessage("The group description must be longer."),
  
   check("userIds")

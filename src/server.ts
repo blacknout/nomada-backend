@@ -1,10 +1,12 @@
 import app from "./app";
 import http from "http";
-import sequelize from "./config/sequelize";
 import "./models/associations";
 import { initializeWebSocketServer } from "./services/websocketService";
 import logger from "./utils/logger";
-import { runMigrations } from "./migrations/migrations";
+
+const sequelize = require('./config/sequelize')
+const { runMigrations } = require('./migrations/migrations');
+
 
 const PORT = process.env.PORT || 9000;
 
@@ -17,8 +19,16 @@ sequelize.sync({ force: false }).then(() => {
   logger.info("Database connected successfully");
   server.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
 })
-.catch((error) => {
+.catch((error: any) => {
   logger.error("Error connecting to database:", error);
 });
 
-runMigrations();
+if (require.main === module) {
+  (async () => {
+    try {
+      await runMigrations();
+    } catch (error) {
+      console.error(error);
+    }
+  })();
+}
