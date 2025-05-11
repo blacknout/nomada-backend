@@ -1,8 +1,7 @@
-const { Sequelize } = require('sequelize');
-const { Umzug, SequelizeStorage } = require('umzug');
-require('dotenv').config();
+import { Sequelize } from 'sequelize-typescript';
+import { Umzug, SequelizeStorage } from 'umzug';
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize(process.env.DATABASE_URL!, {
   dialect: 'postgres',
   logging: false,
 });
@@ -14,12 +13,10 @@ const migrator = new Umzug({
   logger: console,
 });
 
-const runMigrations = async () => {
+export const runMigrations = async () => {
   if (process.env.AUTO_MIGRATE === 'true') {
     console.log('Running migrations...');
     await migrator.up();
     console.log('Migrations completed.');
   }
 };
-
-module.exports = { runMigrations };

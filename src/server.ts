@@ -4,8 +4,7 @@ import "./models/associations";
 import { initializeWebSocketServer } from "./services/websocketService";
 import logger from "./utils/logger";
 import sequelize from "./config/sequelize";
-
-const { runMigrations } = require('./migrations/migrations');
+import { runMigrations } from "./migrations/migrations";
 
 
 const PORT = process.env.PORT || 9000;
