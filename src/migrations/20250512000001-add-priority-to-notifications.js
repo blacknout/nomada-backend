@@ -9,8 +9,8 @@ module.exports = {
       if (!tableDescription.priority) {
         // Add priority column with default value 'normal'
         await queryInterface.addColumn('notifications', 'priority', {
-          type: Sequelize.STRING,
-          defaultValue: 'normal',
+          type: Sequelize.ENUM('low', 'medium', 'high'),
+          defaultValue: 'low',
           allowNull: false
         });
         console.log('Successfully added priority column to notifications table');
