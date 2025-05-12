@@ -7,7 +7,7 @@ module.exports = {
       const tableDescription = await queryInterface.describeTable('notifications');
       
       if (!tableDescription.priority) {
-        // Add priority column with default value 'normal'
+        // Add priority column with default value 'low'
         await queryInterface.addColumn('notifications', 'priority', {
           type: Sequelize.ENUM('low', 'medium', 'high'),
           defaultValue: 'low',
