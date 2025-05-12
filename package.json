@@ -9,7 +9,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "ts-node src/seeders/seedData.ts",
-    "migrate": "sequelize db:migrate --config src/config/config.js"
+    "migrate": "node src/migrations/migrate.js",
+    "migrate:old": "sequelize db:migrate --config src/config/config.js",
+    "migrate:generate": "node src/migrations/generate-migration.js"
   },
   "keywords": [],
   "author": "",
