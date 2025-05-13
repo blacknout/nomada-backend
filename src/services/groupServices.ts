@@ -3,7 +3,11 @@ import Group from "../models/Group";
 import GroupMember from "../models/GroupMembers";
 import Notification from "../models/Notification";
 import { notification } from "../utils/constants/notifications";
-import { GROUP_NAME_CLASH, LEVENSHTEIN_THRESHOLD } from "../utils/constants/constants";
+import { 
+  GROUP_NAME_CLASH, 
+  LEVENSHTEIN_THRESHOLD,
+  ALLOWED_GROUP_NAME
+ } from "../utils/constants/constants";
 import { Op } from "sequelize";
 import { 
   NotificationType,
@@ -11,6 +15,12 @@ import {
 } from '../@types/model';
 import logger from '../utils/logger';
 import { levenshtein } from "../utils/calc";
+import { skippedKeywords } from "../utils/constants/groupNameKeywords";
+
+type SimilarityResult = {
+  status: number;
+  message: string;
+} | undefined;
 
 /**
  * Invite multiple users to an existing group.
@@ -177,11 +187,15 @@ export const handleInviteResponse = async (
   }
 };
 
-export const checkNameSimilarity = async(name: string) => {
+export const checkNameSimilarity = async(name: string): Promise<SimilarityResult> => {
   try {
-    const groupNameSplit = name
-    .split(" ")
-    .filter(word => word.length > 3);
+    const groupNameSplit = 
+      name
+      .toLowerCase()
+      .split(" ")
+      .filter(word => word.length > 2)
+      .filter(word => !skippedKeywords.includes(word))
+      .filter(word => word.slice(0, 3))
 
     const whereClause = {
       [Op.or]: groupNameSplit.map(word => ({
@@ -191,20 +205,31 @@ export const checkNameSimilarity = async(name: string) => {
       })),
     };
 
-    const matchedGroups = await Group.findAll({
+    const partiallyMatchedGroups = await Group.findAll({
       where: whereClause
     });
 
-    for (let match of matchedGroups) {
-      const levenshteinDistance = levenshtein(match.name, name);
+    for (let match of partiallyMatchedGroups) {
+      const levenshteinDistance = levenshtein(
+        match.name.toLowerCase(), name.toLowerCase()
+      );
   
       if (levenshteinDistance < LEVENSHTEIN_THRESHOLD) {
-        return GROUP_NAME_CLASH;
+        return {
+          status: 400,
+          message: GROUP_NAME_CLASH
+        }
       }
     }
-    return null
+    return {
+      status: 200,
+      message: ALLOWED_GROUP_NAME
+    }
   } catch (error) {
-    logger.error('Error updating notifications', error);
-    return error
+    logger.error('Error checking name avaiability', error);
+    return {
+      status: 500,
+      message: `Error checking name avaiability ${error}`
+    }
   }
 }

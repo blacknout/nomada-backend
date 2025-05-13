@@ -6,3 +6,4 @@ export const LOCATION_GPS_COORDINATES = "A location with GPS coordinates";
 export const GROUP_NAME_CLASH = `Please pick a more unique group name. 
 It is too close to another already existing group.`;
 export const LEVENSHTEIN_THRESHOLD = 5;
+export const ALLOWED_GROUP_NAME = "Group name is available.";
