@@ -18,13 +18,17 @@ import {
  */
 export const createGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const { name: potentialName } = req.query;
     const { name, description, userIds } = req.body;
-    const similarityResponse = await checkNameSimilarity(name);
+
+    const similarityResponse = potentialName &&
+      await checkNameSimilarity(potentialName as string);
     const userId = req.user?.id as string;
 
     if (similarityResponse) {
-      res.status(400).json({ 
-        message: similarityResponse,
+      const { status, message } = similarityResponse;
+      res.status(status).json({ 
+        message
       });
       return
     }

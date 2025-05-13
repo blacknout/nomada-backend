@@ -8,7 +8,8 @@ export const validateGroupInfo: RequestHandler[] = [
 
   check("description")
     .isLength({ min: 10 })
-    .withMessage("The group description must be longer."),
+    .withMessage("The group description must be longer.")
+    .optional(),
  
   check("userIds")
     .isArray({ min: 1 })
