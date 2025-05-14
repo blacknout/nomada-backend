@@ -43,14 +43,6 @@ export const inviteUserToGroup = async (req: Request, res: Response) => {
     const { userIds } = req.body;
     const { id: senderId } = req.user;
 
-    // Validate userIds
-    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      res.status(400).json({ 
-        message: "Please provide at least one valid user ID to invite" 
-      });
-      return;
-    }
-
     console.log(`Inviting users to group ${groupId}:`, userIds);
     const response = await createInvite(userIds, groupId, senderId);
     
