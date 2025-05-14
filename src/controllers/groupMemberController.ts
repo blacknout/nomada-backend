@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
-import { GroupMember, Group, Ride } from "../models/associations";
+import { GroupMember, Group, Ride, User } from "../models/associations";
 import { 
   becomeGroupMember, 
   createInvite, 
@@ -37,15 +37,32 @@ export const joinGroup = async (req: Request, res: Response) => {
  * @param {NextFunction} next - Express next middleware function
  * @returns {Promise<Response>} - Returns JSON response with success message or error
  */
-
 export const inviteUserToGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
     const { userIds } = req.body;
     const { id: senderId } = req.user;
 
+    // Validate userIds
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      res.status(400).json({ 
+        message: "Please provide at least one valid user ID to invite" 
+      });
+      return;
+    }
+
+    console.log(`Inviting users to group ${groupId}:`, userIds);
     const response = await createInvite(userIds, groupId, senderId);
-    res.status(response.status).json({ message: response.message });
+    
+    // Provide more detailed error messages for debugging
+    if (response.status !== 200) {
+      console.log("Invitation error:", response.message);
+    }
+    
+    res.status(response.status).json({ 
+      message: response.message,
+      details: response.details || null
+    });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -172,6 +189,46 @@ export const updateGroupMemberType = async (req: Request, res: Response) => {
       type
     });
     res.status(200).json({ message: `This group members' status has been updated to ${type}.` });
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+/**
+ * Get all members of a specific group
+ *
+ * @param {Request} req - Express request object containing groupId in req.params
+ * @param {Response} res - Express response object
+ * @returns {Promise<Response>} - Returns JSON response with group members or error
+ */
+export const getGroupMembersByGroupId = async (req: Request, res: Response) => {
+  try {
+    const { groupId } = req.params;
+
+    // Check if group exists
+    const group = await Group.findByPk(groupId);
+    if (!group) {
+      res.status(404).json({ message: "Group not found" });
+      return;
+    }
+
+    // Find all group members with user details
+    const members = await GroupMember.findAll({
+      where: { groupId },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'email', 'avatar', 'firstname', 'lastname']
+        }
+      ]
+    });
+
+    res.status(200).json({ 
+      message: "Group members retrieved successfully", 
+      members,
+      count: members.length
+    });
   } catch (err) {
     errorResponse(res, err);
   }

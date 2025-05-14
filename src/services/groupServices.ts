@@ -15,21 +15,43 @@ import { levenshtein } from "../utils/calc";
 /**
  * Invite multiple users to an existing group.
  * @param {string} groupId - ID of the group
+ * @param {string} groupName - Name of the group
  * @param {string[]} userIds - List of user IDs to add
+ * @param {string} senderId - ID of the user sending invitations
+ * @returns {Object} Result with invited and total counts, and skipped users info
  */
-export const inviteUsersToGroup = async (groupId: string, groupName:string, userIds: string[], senderId: string) => {
+export const inviteUsersToGroup = async (groupId: string, groupName: string, userIds: string[], senderId: string) => {
   try {
-    const { username: senderName } = await User.findByPk(senderId);
+    console.log("Inviting users to group:", groupId, groupName, userIds, senderId);
+    // Skip empty user lists
+    if (!userIds || userIds.length === 0) {
+      return { invited: 0, total: 0, skippedUsers: [] };
+    }
+
+    // Get sender info
+    const sender = await User.findByPk(senderId, {
+      attributes: ["id", "username"]
+    });
+    
+    if (!sender) {
+      throw new Error("Sender not found");
+    }
+
+    // Find all valid users from the input user IDs
     const validUsers = await User.findAll({
       where: { id: { [Op.in]: userIds } },
-      attributes: ["id"],
+      attributes: ["id", "username"],
     });
 
-    if (!validUsers.length) throw new Error("No valid users found.");
+    
+    if (!validUsers.length) {
+      return { invited: 0, total: userIds.length, skippedUsers: userIds, reason: "No valid users found" };
+    }
 
+    // Find users that have already been invited to this group
     const alreadyInvited = await Notification.findAll({
       where: {
-        userId: userIds,
+        userId: { [Op.in]: userIds },
         type: "invite",
         data: {
           groupId,
@@ -39,29 +61,73 @@ export const inviteUsersToGroup = async (groupId: string, groupName:string, user
     });
 
     const alreadyInvitedIds = new Set(alreadyInvited.map(invite => invite.userId));
+    
+    interface SkippedUser {
+      id: string;
+      username: string;
+      reason: string;
+    }
+    
+    const skippedUsers: SkippedUser[] = [];
 
-    // remove users that have already been invited to the group
+    // Create notification objects for valid invitations
     const groupInvites = validUsers
-    .filter((user) => !alreadyInvitedIds.has(user.id))
-    .filter((user) => user.id !== senderId)
-    .map((user) => ({
-      userId: user.id,
-      title: notification.GROUP_INVITE,
-      priority: "low" as NotificationPriority,
-      type: "invite" as NotificationType,
-      message: notification.GROUP_INVITE_MESSAGE,
-      data: {
-        type: "invite",
-        groupId,
-        groupName,
-        senderId,
-        senderName
+      .filter((user) => {
+        // Skip users who have already been invited
+        if (alreadyInvitedIds.has(user.id)) {
+          skippedUsers.push({ id: user.id, username: user.username, reason: "already invited" });
+          return false;
+        }
+        
+        // Skip the sender (can't invite yourself)
+        if (user.id === senderId) {
+          skippedUsers.push({ id: user.id, username: user.username, reason: "cannot invite yourself" });
+          return false;
+        }
+        
+        return true;
+      })
+      .map((user) => {
+        return {
+          userId: user.id,
+          title: notification.GROUP_INVITE,
+          priority: "low" as NotificationPriority,
+          type: "invite" as NotificationType,
+          message: notification.GROUP_INVITE_MESSAGE.replace('{sender}', sender.username).replace('{group}', groupName),
+          data: {
+            type: "invite",
+            groupId,
+            groupName,
+            senderId,
+            senderName: sender.username
+          }
+        };
+      });
+
+    // Log detailed information for debugging
+    if (skippedUsers.length > 0) {
+    }
+    
+    // Create the invitations
+    let createdInvites = [];
+    if (groupInvites.length > 0) {
+      try {
+        createdInvites = await Notification.bulkCreate(groupInvites, { 
+          ignoreDuplicates: true,
+          returning: true
+        });
+      } catch (error) {
+        console.error(`Error creating invitations:`, error);
       }
-    }));
+    } else {
+      console.log(`No invitations to create after filtering`);
+    }
 
-    const groupPendingInvites = await Notification.bulkCreate(groupInvites, { ignoreDuplicates: true });
-
-    return { invited: groupPendingInvites.length, total: userIds.length};
+    return {
+      invited: createdInvites.length, 
+      total: userIds.length,
+      skippedUsers 
+    };
   } catch (error) {
     throw new Error(`Error adding users: ${error}`);
   }
@@ -100,6 +166,15 @@ export const becomeGroupMember = async (
 
 export const createInvite = async (userIds: string[], groupId: string, sender: string) => {
   try {
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return { 
+        status: 400,
+        message: "No valid user IDs provided",
+        details: { error: "EMPTY_USER_IDS" }
+      };
+    }
+
+    // Check if group exists and sender is a member
     const groupMember = await GroupMember.findOne({
       where: {
         userId: sender,
@@ -109,7 +184,7 @@ export const createInvite = async (userIds: string[], groupId: string, sender: s
         {
           model: Group,
           as: 'group',
-          attributes: ['id', 'name'],
+          attributes: ['id', 'name', 'isPrivate', 'isRestricted'],
         },
       ],
     }) as GroupMember & { group: Group }
@@ -117,18 +192,74 @@ export const createInvite = async (userIds: string[], groupId: string, sender: s
     if (!groupMember) {
       return { 
         status: 404,
-        message: "You are not a member of this group or this group does not exist." };
+        message: "You are not a member of this group or this group does not exist.",
+        details: { error: "NOT_GROUP_MEMBER" }
+      };
     }
+
+    // Check if users already in group
+    const existingMembers = await GroupMember.findAll({
+      where: {
+        groupId,
+        userId: { [Op.in]: userIds }
+      },
+      attributes: ['userId']
+    });
+
+    const alreadyMemberIds = existingMembers.map(member => member.userId);
+    const filteredUserIds = userIds.filter(id => !alreadyMemberIds.includes(id));
+
+    if (filteredUserIds.length === 0) {
+      return { 
+        status: 400,
+        message: "All users are already members of this group",
+        details: { 
+          error: "ALL_ALREADY_MEMBERS",
+          alreadyMembers: alreadyMemberIds 
+        }
+      };
+    }
+
+    // Now attempt to create invitations
     const invitations = await inviteUsersToGroup(
-      groupId, groupMember.group.name, userIds, sender
+      groupId, groupMember.group.name, filteredUserIds, sender
     );
+
+    // More detailed response message
+    if (invitations?.invited === 0) {
+      let message = "No users were invited.";
+      
+      if (alreadyMemberIds.length > 0) {
+        message += ` ${alreadyMemberIds.length} users are already members.`;
+      }
+      
+      return {
+        status: 400,
+        message,
+        details: {
+          error: "NO_INVITATIONS_CREATED",
+          skippedUsers: invitations.skippedUsers,
+          alreadyMembers: alreadyMemberIds
+        }
+      };
+    }
+
     return { 
       status: 200,
-      message: `${invitations?.invited} out of ${invitations?.total} users invited.`
-    }
+      message: `${invitations?.invited} out of ${invitations?.total} users invited.`,
+      details: {
+        invited: invitations?.invited,
+        total: invitations?.total,
+        skippedUsers: invitations?.skippedUsers,
+        alreadyMembers: alreadyMemberIds
+      }
+    };
   } catch (error) {
-    console.error("Error adding group member:", error);
-    return { status: 500, message: "Internal server error" };
+    return { 
+      status: 500, 
+      message: "Internal server error",
+      details: { error: String(error) }
+    };
   }
 }
 

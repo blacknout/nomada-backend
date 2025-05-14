@@ -2,7 +2,7 @@ export const notification = {
   SOS_NOTIFICATION: (username:string = "Someone") => `${username} has triggered an emergency SOS alert!`,
   SOS_TITLE: "SOS EMERGENCY ALERT!",
   GROUP_INVITE: "Group Invite",
-  GROUP_INVITE_MESSAGE: "You have been invited to join this group",
+  GROUP_INVITE_MESSAGE: "{sender} has invited you to join the group '{group}'",
   SOS_CREATE_TITLE: "Someone made you an SOS contact.",
   SOS_CREATE_MESSAGE: (username: string) => `You have been added by ${username} as their SOS contact.
   If you do not know this person or do not want it, you can reject this request.`,
