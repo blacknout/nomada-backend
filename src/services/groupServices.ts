@@ -28,6 +28,7 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
       return { invited: 0, total: 0, skippedUsers: [] };
     }
 
+
     // Get sender info
     const sender = await User.findByPk(senderId, {
       attributes: ["id", "username"]
