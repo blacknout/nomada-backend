@@ -3,27 +3,27 @@ import sequelize from "../config/sequelize";
 import { User } from "./User";
 
 interface SosAttributes {
-	id: string;
-	isActivated: boolean;
-  contactId?: string;
-  contactName?: string;
-  email?: string;
-  phone?: string;
-  userId: string;
-  createdAt?: Date;
-	updatedAt?: Date;
+	id:            string;
+	isActivated:   boolean;
+  contactId?:    string;
+  contactName?:  string;
+  email?:        string;
+  phone?:        string;
+  userId:        string;
+  createdAt?:    Date;
+	updatedAt?:    Date;
 }
 
 export class Sos extends Model<SosAttributes> {
-  public id!: string;
-  public isActivated!: boolean;
-  public contactId?: string;
-  public contactName?: string;
-  public email?: string;
-  public phone?: string;
-  public userId!: string;
-	public createdAt?: Date;
-	public updatedAt?: Date;
+  public id!:           string;
+  public isActivated!:  boolean;
+  public contactId?:    string;
+  public contactName?:  string;
+  public email?:        string;
+  public phone?:        string;
+  public userId!:       string;
+	public createdAt?:    Date;
+	public updatedAt?:    Date;
 }
 
 Sos.init(

@@ -11,6 +11,11 @@ import { Notification } from "./Notification";
 User.hasMany(Bike, { foreignKey: "userId", onDelete: "CASCADE" });
 User.hasMany(Group, { foreignKey: "createdBy", onDelete: "CASCADE" });
 User.belongsToMany(Group, { through: GroupMember, foreignKey: "userId", onDelete: "CASCADE"});
+User.belongsToMany(Group, {
+  through: 'GroupAdmins',
+  as: 'adminGroups',
+  foreignKey: 'userId',
+});
 User.hasMany(Ride, { foreignKey: "createdBy", onDelete: "CASCADE" });
 User.hasMany(Ride, { foreignKey: "roadCaptainId", onDelete: "CASCADE" });
 User.belongsToMany(Ride, { 
@@ -27,16 +32,34 @@ Bike.belongsTo(User, { foreignKey: "userId", as: "owner" });
 
 // // Group associations
 Group.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
-Group.belongsToMany(User, { through: GroupMember, foreignKey: "groupId", as: "users", onDelete: "CASCADE" });
-Group.hasMany(Ride, { foreignKey: "groupId", onDelete: "CASCADE" });
-Group.hasMany(GroupMember, { foreignKey: "groupId", onDelete: "CASCADE", as: "members" });
+Group.belongsToMany(User, 
+  { through: GroupMember, 
+    foreignKey: "groupId", 
+    as: "users", 
+    onDelete: "CASCADE"
+  }
+);
+Group.belongsToMany(User, {
+  through: 'GroupAdmins',
+  as: 'groupAdmins',
+  foreignKey: 'groupId',
+});
+Group.hasMany(Ride, {
+  foreignKey: "groupId", 
+  onDelete: "CASCADE" 
+});
+Group.hasMany(GroupMember, 
+  { foreignKey: "groupId", 
+    onDelete: "CASCADE", 
+    as: "members" 
+  });
 
 // Group member associations
 GroupMember.belongsTo(Group, { foreignKey: "groupId", as: 'group' });
 GroupMember.belongsTo(User, { foreignKey: "userId", as: 'user' });
 
 // Ride associations
-Ride.belongsTo(Group, { foreignKey: "groupId" });
+Ride.belongsTo(Group, { foreignKey: "groupId", as: 'rideGroup' });
 Ride.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
 Ride.belongsTo(User, { foreignKey: "roadCaptainId", as: "roadCaptain" });
 Ride.hasMany(RideStop, { foreignKey: "rideId", as: "stops" });

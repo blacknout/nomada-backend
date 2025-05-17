@@ -11,51 +11,50 @@ import { Ride } from "./Ride";
 import { Sos } from "./Sos";
 
 interface UserAttributes {
-  id: string;
-  username: string;
-  firstname: string;
-  lastname: string;
-  email: string;
-  password: string;
-  state: string;
-  country: string;
-  phone?: string;
-  token?: string;
-  isAdmin: boolean;
-  avatar?: string;
-  otp?: string;
-  otpExpires?: Date;
-  isVerified: boolean;
-  isDisabled: boolean;
-  pushToken?: string;
+  id:           string;
+  username:     string;
+  firstname:    string;
+  lastname:     string;
+  email:        string;
+  password:     string;
+  state:        string;
+  country:      string;
+  phone?:       string;
+  token?:       string;
+  isAdmin:      boolean;
+  avatar?:      string;
+  otp?:         string;
+  otpExpires?:  Date;
+  isVerified:   boolean;
+  isDisabled:   boolean;
+  pushToken?:   string;
 }
 
 export class User extends Model<UserAttributes> {
-  public id!: string;
-  public username!: string;
-  public email!: string;
-  public password!: string;
-  public firstname!: string;
-  public lastname!: string;
-  public state!: string;
-  public country!: string;
-  public phone?: string;
-  public token?: string;
-  public isAdmin!: boolean;
-  public avatar?: string;
-  public otp?: string;
-  public otpExpires?: Date;
-  public isVerified!: boolean;
-  public isDisabled!: boolean;
-  public pushToken?: string;
+  public id!:           string;
+  public username!:     string;
+  public email!:        string;
+  public password!:     string;
+  public firstname!:    string;
+  public lastname!:     string;
+  public state!:        string;
+  public country!:      string;
+  public phone?:        string;
+  public token?:        string;
+  public isAdmin!:      boolean;
+  public avatar?:       string;
+  public otp?:          string;
+  public otpExpires?:   Date;
+  public isVerified!:   boolean;
+  public isDisabled!:   boolean;
+  public pushToken?:    string;
 
-  public getBikes!: HasManyGetAssociationsMixin<Bike>;
+  public getBikes!:     HasManyGetAssociationsMixin<Bike>;
 
-  // Optional: if you use eager loading
-  public bikes?: Bike[];
+  public bikes?:        Bike[];
 
-  public getSos!: HasManyGetAssociationsMixin<Sos>;
-  public sos?: Sos[];
+  public getSos!:       HasManyGetAssociationsMixin<Sos>;
+  public sos?:          Sos[];
 
   public static associations: {
     bikes: Association<User, Bike>;

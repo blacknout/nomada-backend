@@ -427,7 +427,7 @@ router.get("/:stopId",
  *                   example: "Server error."
  */
 
-router.get("/ride/:rideId", 
+router.get("/ride/:id", 
   authenticateUser,
   validateRideQuery,
   getAllRideStops

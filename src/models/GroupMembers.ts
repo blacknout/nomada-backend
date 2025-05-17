@@ -7,19 +7,19 @@ import {
 } from '../@types/model';
 
 interface GroupMemberAttributes {
-  id: string;
-  userId: string;
-  groupId: string;
-  type: GroupMemberType;
+  id:         string;
+  userId:     string;
+  groupId:    string;
+  type:       GroupMemberType;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export class GroupMember extends Model<GroupMemberAttributes> implements GroupMemberAttributes {
-  public id!: string;
-  public userId!: string;
-  public groupId!: string;
-  public type!:  GroupMemberType;
+  public id!:       string;
+  public userId!:   string;
+  public groupId!:  string;
+  public type!:     GroupMemberType;
 }
 
 GroupMember.init(

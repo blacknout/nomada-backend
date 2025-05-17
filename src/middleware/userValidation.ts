@@ -183,7 +183,7 @@ export const validatePasswordOTP: RequestHandler[] = [
 ];
 
 export const validateUserQuery: RequestHandler[] = [
-  check("userId")
+  check("id")
     .notEmpty()
     .withMessage("User ID is required")
     .isUUID()

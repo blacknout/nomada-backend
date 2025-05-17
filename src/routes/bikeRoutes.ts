@@ -156,7 +156,7 @@ router.get("/vin", authenticateUser, validateVinQuery, searchByVin);
  *       500:
  *          description: Internal Server Error
  */
-router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
+router.get("/:id", authenticateUser, validateBikeQuery, getBike);
 
 
 /**
@@ -223,7 +223,7 @@ router.get("/:bikeId", authenticateUser, validateBikeQuery, getBike);
  *       500:
  *         description: Internal server error
  */
-router.put("/:bikeId", 
+router.put("/:id", 
   authenticateUser, 
   validateBikeQuery,
   validateUpdateBike,
@@ -267,7 +267,7 @@ router.put("/:bikeId",
  *       500:
  *          description: Internal Server Error
  */
-router.get("/:userId/bikes", authenticateUser, validateUserQuery, getUserBikes);
+router.get("/:id/bikes", authenticateUser, validateUserQuery, getUserBikes);
 
 /**
  * @swagger
@@ -348,6 +348,6 @@ router.get("/", authenticateUser, getCurrentUserBikes);
  *       500:
  *         description: Internal server error
  */
-router.delete("/:bikeId", authenticateUser, validateBikeQuery, removeBike);
+router.delete("/:id", authenticateUser, validateBikeQuery, removeBike);
 
 export default router;

@@ -18,10 +18,10 @@ import {
  */
 export const joinGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id } = req.params;
     const userId = req.user?.id;
 
-    const response = await becomeGroupMember(userId, groupId);
+    const response = await becomeGroupMember(userId, id);
     res.status(response.status).json({ message: response.message });
     return;
   } catch (err) {
@@ -39,12 +39,13 @@ export const joinGroup = async (req: Request, res: Response) => {
  */
 export const inviteUserToGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id } = req.params;
     const { userIds } = req.body;
     const { id: senderId } = req.user;
 
-    console.log(`Inviting users to group ${groupId}:`, userIds);
-    const response = await createInvite(userIds, groupId, senderId);
+
+    console.log(`Inviting users to group ${id}:`, userIds);
+    const response = await createInvite(userIds, id, senderId);
     
     // Provide more detailed error messages for debugging
     if (response.status !== 200) {
@@ -122,7 +123,7 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
  */
 export const leaveGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id: groupId } = req.params;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -195,7 +196,7 @@ export const updateGroupMemberType = async (req: Request, res: Response) => {
  */
 export const getGroupMembersByGroupId = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id: groupId } = req.params;
 
     // Check if group exists
     const group = await Group.findByPk(groupId);

@@ -27,7 +27,6 @@ import { authenticateUser } from '../middleware/auth'
 
 const router = express.Router();
 
-
 /**
  * @swagger
  * /api/user/register:
@@ -270,7 +269,7 @@ router.get("/invites",
  *       500:
  *         description: Internal server error
  */
-router.get("/:userId", authenticateUser, validateUserQuery, getUser);
+router.get("/:id", authenticateUser, validateUserQuery, getUser);
 
 /**
  * @swagger
@@ -543,6 +542,6 @@ router.post("/password-reset-otp", validatePasswordOTP, passwordResetOTP);
  *       500:
  *         description: Internal server error
  */
-router.put("/disable/:userId", authenticateUser, disableUser);
+router.put("/disable/:id", authenticateUser, disableUser);
 
 export default router;

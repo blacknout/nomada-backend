@@ -49,9 +49,9 @@ export const createBike = async (req: Request, res: Response, next: NextFunction
  */
 export const getBike = async (req: Request, res: Response) => {
   try {
-    const { bikeId } = req.params;
+    const { id } = req.params;
 
-    const bike = await Bike.findByPk(bikeId, {
+    const bike = await Bike.findByPk(id, {
       include: [{ model: User, attributes: ["id", "username"], as: "owner" }],
     });
     res.status(200).json({ bike });
@@ -70,10 +70,10 @@ export const getBike = async (req: Request, res: Response) => {
  */
 export const updateBike = async (req: Request, res: Response) => {
   try {
-    const { bikeId } = req.params;
+    const { id } = req.params;
     const { plate, make, model, year, vin, stolen, images } = req.body;
 
-    const bike = await Bike.findByPk(bikeId);
+    const bike = await Bike.findByPk(id);
     if (!bike) {
       res.status(404).json({ message: "Bike not found" });
     } else if (req.user && req.user.id === bike.userId) {
@@ -150,9 +150,9 @@ export const getCurrentUserBikes = async (req: Request, res: Response) => {
  */
 export const removeBike = async (req: Request, res: Response) => {
   try {
-    const { bikeId } = req.params;
+    const { id } = req.params;
 
-    const bike = await Bike.findByPk(bikeId);
+    const bike = await Bike.findByPk(id);
 
     if (!bike) {
       res.status(404).json({ message: "Bike not found" });

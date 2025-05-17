@@ -143,9 +143,9 @@ export const getUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
 
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(id);
 
     if (!user) {
       res.status(404).json({ message: "User not found." });
@@ -323,23 +323,24 @@ export const passwordResetOTP: RequestHandler = async (req, res, next) => {
 
 export const disableUser: RequestHandler = async (req, res, next) => {
   try {
-    const userId = req?.user?.id;
+    const { id } = req.user;
 
-    if (!userId) {
-      res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(id);
     if (!user) {
       res.status(404).json({ message: "User not found" });
-    } else if (user.isAdmin) {
-      const { userId } = req.params;
-      const user = await User.findByPk(userId);
+      return
+    }
+    
+    if (user.isAdmin) {
+      const { id } = req.params;
+      const user = await User.findByPk(id);
       await user.update({ isDisabled: true });
       res.status(200).json({ message: "This account has been disabled." });
+      return
     } else {
       await user.update({ isDisabled: true });
       res.status(200).json({ message: "This account has been disabled." });
+      return
     }
   } catch (err) {
     errorResponse(res, err);

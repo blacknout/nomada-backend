@@ -6,16 +6,16 @@ import {
 } from '../@types/model';
 
 interface NotificationAttributes {
-  id: string;
-  userId?: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  createdAt: string;
-  read: boolean;
-  readDate: string;
-  priority: NotificationPriority;
-  data?: any;
+  id:         string;
+  userId?:    string;
+  type:       NotificationType;
+  title:      string;
+  message:    string;
+  createdAt:  string;
+  read:       boolean;
+  readDate:   string;
+  priority:   NotificationPriority;
+  data?:      any;
 }
 
 interface NotificationCreationAttributes
@@ -24,16 +24,16 @@ interface NotificationCreationAttributes
 export class Notification
 extends Model<NotificationAttributes, NotificationCreationAttributes>
 implements NotificationAttributes {
-id!: string;
-userId?: string;
-type!: NotificationType;
-title!: string;
-message!: string;
+id!:        string;
+userId?:    string;
+type!:      NotificationType;
+title!:     string;
+message!:   string;
 createdAt!: string;
-read!: boolean;
-readDate: string;
-priority!: NotificationPriority;
-data?: any;
+read!:      boolean;
+readDate:   string;
+priority!:  NotificationPriority;
+data?:      any;
 }
 
 Notification.init(

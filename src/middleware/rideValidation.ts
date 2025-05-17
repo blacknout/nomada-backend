@@ -165,7 +165,7 @@ export const validateRideStatus: RequestHandler[] = [
 ];
 
 export const validateRideQuery: RequestHandler[] = [
-  param("rideId")
+  param("id")
     .notEmpty()
     .withMessage("Ride ID is required")
     .isUUID()

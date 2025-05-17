@@ -6,6 +6,8 @@ import {
   BelongsToManyGetAssociationsMixin,
   BelongsToManyAddAssociationMixin,
   BelongsToManyAddAssociationsMixin,
+  BelongsToManyRemoveAssociationMixin,
+  BelongsToManyRemoveAssociationsMixin
 } from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
@@ -16,41 +18,44 @@ import {
 } from '../@types/model';
 
 interface RideAttributes {
-  id: string;
-  name: string;
-  groupId: string;
-  createdBy: string;
+  id:             string;
+  name:           string;
+  groupId:        string;
+  createdBy:      string;
   roadCaptainId?: string;
-  route?: Location[];
+  route?:         Location[];
   startLocation?: Location;
-  destination?: Location;
-  status: RideStatusType;
-  createdAt?: Date;
-  updatedAt?: Date;
+  destination?:   Location;
+  status:         RideStatusType;
+  createdAt?:     Date;
+  updatedAt?:     Date;
 }
 
 interface RideCreationAttributes extends Optional<RideAttributes, "id"> {}
 
 export class Ride extends Model<RideAttributes, RideCreationAttributes>  implements RideAttributes {
-    public id!: string;
-    public name!: string;
-    public groupId!: string;
-    public createdBy!: string;
-    public roadCaptainId: string;
-    public route: Location[];
-    public startLocation: Location;
-    public destination: Location;
-    public status!: RideStatusType;
+  public id!:           string;
+  public name!:         string;
+  public groupId!:      string;
+  public createdBy!:    string;
+  public roadCaptainId: string;
+  public route:         Location[];
+  public startLocation: Location;
+  public destination:   Location;
+  public status!:       RideStatusType;
 
-    public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
-    public addParticipant!: BelongsToManyAddAssociationMixin<User, string>;
-    public addParticipants!: BelongsToManyAddAssociationsMixin<User, string>;
+  public getParticipants!:    BelongsToManyGetAssociationsMixin<User>;
+  public addParticipant!:     BelongsToManyAddAssociationMixin<User, string>;
+  public addParticipants!:    BelongsToManyAddAssociationsMixin<User, string>;
+  public removeParticipant!:  BelongsToManyRemoveAssociationMixin<User, string>;
+  public removeParticipants!: BelongsToManyRemoveAssociationsMixin<User, string>;
 
-    public participants?: User[];
+  public participants?:       User[];
+  public rideGroup?:          Group;
 
-    public static associations: {
-      participants: Association<Ride, User>;
-    };
+  public static associations: {
+    participants: Association<Ride, User>;
+  };
 }
 
 Ride.init(
