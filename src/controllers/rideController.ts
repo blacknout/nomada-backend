@@ -115,6 +115,138 @@ export const createRide = async (req: Request, res: Response) => {
   }
 };
 
+export const joinRide = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    const ride = await Ride.findByPk(id, {
+      include: [
+        { model: Group, as: "rideGroup" },
+      ]
+    })
+    if (!ride) {
+      res
+        .status(404)
+        .json({ message: "This ride does not exist." });
+      return;
+    }
+    const group = ride.rideGroup;
+    const groupId = group.id;
+    const isMember = await GroupMember.findOne({
+      where: {
+        userId,
+        groupId
+      }
+    })
+
+    if (isMember) {
+      const newParticipant = await (ride as any).addParticipant(userId);
+      res.status(200)
+        .json({ message: `You have joined ${ride.name}`, 
+        newParticipant
+      });
+      return;
+    }
+    res.status(400)
+    .json({ message: 
+      "You cannot join this ride as you are not a group member.", 
+    });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const addRiders = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const { userIds } = req.body;
+
+    const ride = await Ride.findByPk(id, {
+      include: [
+        { model: Group, as: "rideGroup" },
+      ]
+    });
+    if (!ride) {
+      res
+        .status(404)
+        .json({ message: "This ride does not exist." });
+      return;
+    }
+
+    const group = ride.rideGroup;
+    const isAdmin = group?.groupAdmins?.some(
+      (admin: any) => admin.id === userId) ||
+      ride.createdBy === userId ||
+      ride.roadCaptainId === userId;
+
+    if (!isAdmin) {
+      res
+        .status(403)
+        .json({ message: "You are not authorised to add riders." });
+      return;
+    }
+
+    const users = await User.findAll({
+      where: { id: userIds }
+    });
+    if (users.length > 0) await ride.addParticipants(users);
+    
+    res.status(200)
+      .json({ message: `${users.length} new rider(s) added to ride.`, 
+    });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const removeRiders = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const { userIds } = req.body;
+
+    const ride = await Ride.findByPk(id, {
+      include: [
+        { model: Group, as: "rideGroup" },
+      ]
+    });
+    if (!ride) {
+      res
+        .status(404)
+        .json({ message: "This ride does not exist." });
+      return;
+    }
+    const group = ride.rideGroup;
+    const isAdmin = group?.groupAdmins?.some(
+      (admin: any) => admin.id === userId) ||
+      ride.createdBy === userId ||
+      ride.roadCaptainId === userId;
+
+    if (!isAdmin) {
+      res
+        .status(403)
+        .json({ message: "You are not authorised to add riders." });
+      return;
+    }
+
+    const users = await User.findAll({
+      where: { id: userIds }
+    });
+
+    if (users.length > 0) await ride.removeParticipants(users);
+
+    res.status(200)
+      .json({ message: `${users.length} rider(s) removed from the ride.`, 
+    });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
 
 /**
  * @typedef {Object} GeoPoint
@@ -226,7 +358,21 @@ export const updateRideStatus = async (req: Request, res: Response) => {
     const { rideId } = req.params;
     const { status, location } = req.body;
 
-    const ride = await Ride.findByPk(rideId);
+    const ride = await Ride.findByPk(rideId, {
+      include: [
+        {
+          model: Group,
+          include: [
+            {
+              model: User,
+              as: 'groupAdmins',
+              through: { attributes: [] },
+            },
+          ],
+        },
+      ],
+    });
+    
     if (!ride) {
       res.status(404).json({ message: "Ride not found." });
       return;
@@ -360,9 +506,9 @@ export const updateRideStatus = async (req: Request, res: Response) => {
  */
 export const getRideDetails = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
 
-    const ride = await Ride.findByPk(rideId, {
+    const ride = await Ride.findByPk(id, {
       include: [
         { model: Group, as: "group" },
         { model: User, as: "creator", attributes: ["id", "username"] },
@@ -394,6 +540,30 @@ export const getRideDetails = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
+
+export const getRideParticipants = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const ride = await Ride.findByPk(id);
+
+    if (!ride) {
+      res.status(404).json({ message: "Ride not found" });
+      return;
+    }
+
+    const participants = await ride.getParticipants({
+      attributes: ['id', 'username', 'firstname', 'avatar'],
+      joinTableAttributes: []
+    });
+
+    res.status(200).json({ participants });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
 
 /**
  * @typedef {Object} SuccessResponse
@@ -433,10 +603,10 @@ export const getRideDetails = async (req: Request, res: Response) => {
  */
 export const deleteRide = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
     const userId = req.user?.id;
 
-    const ride = await Ride.findByPk(rideId);
+    const ride = await Ride.findByPk(id);
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
@@ -598,9 +768,9 @@ export const saveRideRoute = async (req: Request, res: Response) => {
  */
 export const getRideRoute = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
 
-    const ride = await Ride.findByPk(rideId, {
+    const ride = await Ride.findByPk(id, {
       attributes: ["id", "name", "route"],
     });
 
@@ -658,9 +828,9 @@ export const getRideRoute = async (req: Request, res: Response) => {
  */
 export const deleteRideRoute = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
     const userId = req.user?.id; 
-    const ride = await Ride.findByPk(rideId);
+    const ride = await Ride.findByPk(id);
 
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });

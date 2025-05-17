@@ -11,7 +11,8 @@ import {
   validateGroupQuery,
   validateInviteToGroup,
   validateRespondToInvite,
-  validateMemberStatus
+  validateMemberStatus,
+  validateUserGroup
 } from "../middleware/groupValidation";
 import {
   validateUserQuery
@@ -59,7 +60,11 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/:groupId/join", authenticateUser, validateGroupQuery, joinGroup);
+router.post("/:id/join", 
+  authenticateUser, 
+  validateGroupQuery, 
+  joinGroup
+);
 
 /**
  * @swagger
@@ -101,8 +106,9 @@ router.post("/:groupId/join", authenticateUser, validateGroupQuery, joinGroup);
  *       500:
  *         description: Internal server error
  */
-router.post("/:groupId/invite",
+router.post("/:id/invite",
   authenticateUser,
+  validateGroupQuery,
   validateInviteToGroup,
   inviteUserToGroup);
 
@@ -190,8 +196,7 @@ router.post("/:inviteId/respond",
  */
 router.post("/remove-user", 
   authenticateUser,
-  validateUserQuery,
-  validateGroupQuery,
+  validateUserGroup,
   removeUserFromGroup);
 
 
@@ -226,7 +231,7 @@ router.post("/remove-user",
  *       500:
  *         description: Internal server error
  */
-router.delete("/leave-group/:groupId", 
+router.delete("/leave-group/:id", 
   authenticateUser, 
   validateGroupQuery,
   leaveGroup);

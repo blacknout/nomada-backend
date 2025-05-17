@@ -5,11 +5,11 @@ import { User } from "./User";
 import { Location } from "../@types/location";
 
 export interface RideStopAttributes {
-  id: string;
-  rideId: string;
-  userId: string;
-  reason?: "safe" | "accident" | "mechanical";
-  location: Location;
+  id:         string;
+  rideId:     string;
+  userId:     string;
+  reason?:    "safe" | "accident" | "mechanical";
+  location:   Location;
   isResolved: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -20,12 +20,12 @@ export interface RideStopCreationAttributes
 
 export class RideStop extends Model<RideStopAttributes, RideStopCreationAttributes> 
   implements RideStopAttributes {
-  public id!: string;
-  public rideId!: string;
-  public userId!: string;
-  public reason?: "safe" | "accident" | "mechanical";
-  public location!: Location;
-  public isResolved!: boolean;
+  public id!:                 string;
+  public rideId!:             string;
+  public userId!:             string;
+  public reason?:             "safe" | "accident" | "mechanical";
+  public location!:           Location;
+  public isResolved!:         boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

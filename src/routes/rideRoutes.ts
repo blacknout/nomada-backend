@@ -1,8 +1,12 @@
 import express from "express";
 import {
   createRide,
+  joinRide,
+  addRiders,
+  removeRiders,
   updateRide,
   getRideDetails,
+  getRideParticipants,
   getGroupRides,
   deleteRide,
   saveRideRoute,
@@ -143,6 +147,140 @@ router.post("/",
   authenticateUser, 
   createRideInfo, 
   createRide
+);
+
+/**
+ * @swagger
+ * /ride/{id}/join:
+ *   post:
+ *     summary: Join a new ride
+ *     description: Allows the current user to join a ride
+ *     tags:
+ *       - Rides
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Join this ride
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "You have joined ride"
+ *                 newParticipant:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "2f6c8b20-98c8-11ec-b909-0242ac120002"
+ *                     userId:
+ *                       type: string
+ *                       example: "55f32400-e29b-423f-a716-446f4nfe000"
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       400:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/:id/join", 
+  authenticateUser, 
+  validateRideQuery, 
+  joinRide
+);
+
+
+/**
+ * @swagger
+ * /ride/{id}/add:
+ *   post:
+ *     summary: Add users to a ride
+ *     description: Add users to a ride
+ *     tags:
+ *       - Rides
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userIds
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: 2 new rider(s) added to ride.
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: You are not authorised to add riders.
+ *       404:
+ *         description: This ride does not exist.
+ *       500:
+ *         description: Internal server error
+ * 
+ */
+router.post("/:id/add", 
+  authenticateUser, 
+  validateRideQuery, 
+  addRiders
+);
+
+
+/**
+ * @swagger
+ * /ride/{id}/remove:
+ *   post:
+ *     summary: Remove users to a ride
+ *     description: Remove users to a ride
+ *     tags:
+ *       - Rides
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userIds
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: 2 new rider(s) removed from ride.
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: You are not authorised to remove riders.
+ *       404:
+ *         description: This ride does not exist.
+ *       500:
+ *         description: Internal server error
+ * 
+ */
+router.post("/:id/remove", 
+  authenticateUser, 
+  validateRideQuery, 
+  removeRiders
 );
 
 /**
@@ -405,10 +543,57 @@ router.patch("/:rideId",
  *       500:
  *         description: Server error.
  */
-router.get("/:rideId", 
+router.get("/:id", 
   authenticateUser,
   validateRideQuery,
   getRideDetails
+);
+
+
+/**
+ * @swagger
+ * /ride/{id}/participants:
+ *   get:
+ *     summary: Get ride participants
+ *     description: Return the users that have joined this ride.
+ *     tags:
+ *       - Rides
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: The ID of the ride to retrieve.
+ *         schema:
+ *           type: string
+ *           example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *     responses:
+ *       200:
+ *         description: Ride Participants
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *                 username:
+ *                   type: string
+ *                 firstname:
+ *                   type: string
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Server error.
+ */
+router.get("/:id/participants", 
+  authenticateUser,
+  validateRideQuery,
+  getRideParticipants
 );
 
 /**
@@ -496,7 +681,7 @@ router.get("/:rideId",
  *       500:
  *         description: Server error.
  */
-router.get("/group/:groupId", 
+router.get("/group/:id", 
   authenticateUser,
   validateGroupQuery,
   getGroupRides
@@ -587,7 +772,7 @@ router.get("/group/:groupId",
  *       500:
  *         description: Server error.
  */
-router.get("/group/:groupId/data", 
+router.get("/group/:id/data", 
   authenticateUser,
   validateGroupQuery,
   getGroupRidesDistance
@@ -655,7 +840,7 @@ router.get("/group/:groupId/data",
  *                   type: string
  *                   example: "Server error."
  */
-router.delete("/:rideId", 
+router.delete("/:id", 
   authenticateUser, 
   validateRideQuery,
   deleteRide
@@ -829,7 +1014,7 @@ router.post("/route/:rideId",
  *                   type: string
  *                   example: "Server error."
  */
-router.get("/route/:rideId", 
+router.get("/route/:id", 
   authenticateUser,
   validateRideQuery,
   getRideRoute
@@ -897,7 +1082,7 @@ router.get("/route/:rideId",
  *                   type: string
  *                   example: "Server error."
  */
-router.delete("/route/:rideId", 
+router.delete("/route/:id", 
   authenticateUser, 
   validateRideQuery,
   deleteRideRoute

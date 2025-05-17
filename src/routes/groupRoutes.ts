@@ -5,7 +5,10 @@ import {
   searchGroup,
   updateGroupData,
   getCurrentUserGroups,
-  deleteGroup
+  deleteGroup,
+  addGroupAdmin,
+  removeAdmin,
+  getGroupAdmin
 } from "../controllers/groupController";
 import { 
   validateGroupInfo,
@@ -15,7 +18,6 @@ import {
 import { authenticateUser } from '../middleware/auth'
 
 const router = express.Router();
-
 
 /**
  * @swagger
@@ -129,7 +131,7 @@ router.get("/me", authenticateUser, getCurrentUserGroups);
  *       500:
  *          description: Internal Server Error
  */
-router.get("/:groupId", authenticateUser, validateGroupQuery, getGroup);
+router.get("/:id", authenticateUser, validateGroupQuery, getGroup);
 
 
 /**
@@ -229,7 +231,7 @@ router.get("/", authenticateUser, searchGroup);
  *       500:
  *         description: Internal server error
  */
-router.put("/:groupId", 
+router.put("/:id", 
   authenticateUser, 
   validateGroupUpdate, 
   validateGroupQuery,
@@ -279,10 +281,95 @@ router.put("/:groupId",
  *       500:
  *         description: Internal server error
  */
-router.delete("/:groupId", 
+router.delete("/:id", 
   authenticateUser, 
   validateGroupQuery,
   deleteGroup
+);
+
+
+/**
+ * @swagger
+ * /api/group/{id}/user/{userId}:
+ *   post:
+ *     summary: Add a group admin
+ *     tags:
+ *       - Group
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *       - in: query
+ *         name: userId
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User has been made an admin.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       400:
+ *         description: This user is not a member of this group.
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/:id/user/:userId", 
+  authenticateUser, 
+  validateGroupQuery, 
+  addGroupAdmin
+);
+
+/**
+ * @swagger
+ * /api/group/{id}/admin:
+ *   get:
+ *     summary: Get group admins
+ *     tags:
+ *       - Group
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: admins
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/:id/admin", 
+  authenticateUser, 
+  validateGroupQuery, 
+  getGroupAdmin
+);
+
+/**
+ * @swagger
+ * /api/group/{id}/user/{userId}:
+ *   delete:
+ *     summary: Remove a group admin
+ *     description: Remove users as group admins
+ *     tags:
+ *       - Group
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *       - in: query
+ *         name: userId
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User has been made an admin.
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       400:
+ *         description: This user is not a member of this group.
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/:id/user/:userId", 
+  authenticateUser, 
+  validateGroupQuery, 
+  removeAdmin
 );
 
 export default router;

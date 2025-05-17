@@ -18,10 +18,10 @@ import {
  */
 export const joinGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id } = req.params;
     const userId = req.user?.id;
 
-    const response = await becomeGroupMember(userId, groupId);
+    const response = await becomeGroupMember(userId, id);
     res.status(response.status).json({ message: response.message });
     return;
   } catch (err) {
@@ -40,11 +40,11 @@ export const joinGroup = async (req: Request, res: Response) => {
 
 export const inviteUserToGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id } = req.params;
     const { userIds } = req.body;
     const { id: senderId } = req.user;
 
-    const response = await createInvite(userIds, groupId, senderId);
+    const response = await createInvite(userIds, id, senderId);
     res.status(response.status).json({ message: response.message });
     return;
   } catch (err) {
@@ -113,7 +113,7 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
  */
 export const leaveGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id: groupId } = req.params;
     const userId = req.user?.id;
 
     if (!userId) {

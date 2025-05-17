@@ -32,7 +32,7 @@ export const validateGroupInfo: RequestHandler[] = [
 ];
 
 export const validateGroupQuery: RequestHandler[] = [
-  check("groupId")
+  check("id")
     .notEmpty()
     .withMessage("Group ID is required")
     .isUUID().withMessage("Group ID must be a valid UUID"),
@@ -56,12 +56,6 @@ export const validateInviteToGroup: RequestHandler[] = [
   check("userIds.*")
     .isUUID()
     .withMessage("User ID must be a valid UUID"),
-
-  check("groupId")
-    .notEmpty()
-    .withMessage("Group ID is required")
-    .isUUID()
-    .withMessage("Group ID must be a valid UUID"),
 
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -180,4 +174,25 @@ export const validateGroupUpdate: RequestHandler[] = [
   }) as RequestHandler
 ];
 
+export const validateUserGroup: RequestHandler[] = [
+  check("groupId")
+   .notEmpty()
+    .withMessage("Group ID is required")
+    .isUUID()
+    .withMessage("Group ID must be a valid UUID"),
 
+    check("userId")
+    .notEmpty()
+     .withMessage("User ID is required")
+     .isUUID()
+     .withMessage("User ID must be a valid UUID"),
+
+  ((req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({ errors: errors.array() });
+      return
+    }
+    next();
+  }) as RequestHandler,
+];

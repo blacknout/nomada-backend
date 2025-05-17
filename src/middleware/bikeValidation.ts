@@ -102,7 +102,7 @@ export const validateUpdateBike: RequestHandler[] = [
 ];
 
 export const validateBikeQuery: RequestHandler[] = [
-  param("bikeId")
+  param("id")
     .notEmpty()
     .withMessage("Bike ID is required")
     .isUUID()

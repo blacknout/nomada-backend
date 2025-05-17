@@ -1,26 +1,42 @@
-import { DataTypes, Model } from "sequelize";
+import { 
+	DataTypes, 
+	Model, 
+	Association,
+	BelongsToManyAddAssociationMixin,
+	BelongsToManyRemoveAssociationMixin,
+	BelongsToManyGetAssociationsMixin
+} from "sequelize";
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 
 interface GroupAttributes {
-	id: string;
-	name: string;
+	id: 					string;
+	name: 				string;
 	description?: string | null;
-	isPrivate: boolean;
+	isPrivate:	  boolean;
 	isRestricted: boolean;
-	createdBy: string;
-	createdAt?: Date;
-	updatedAt?: Date;
+	createdBy: 		string;
+	createdAt?: 	Date;
+	updatedAt?: 	Date;
 }
 
 export class Group extends Model<GroupAttributes> implements GroupAttributes {
-	public id!: string;
-	public name!: string;
-	public description?: string;
-	public isPrivate!: boolean;
+	public id!: 					string;
+	public name!: 				string;
+	public description?: 	string;
+	public isPrivate!: 		boolean;
 	public isRestricted!: boolean;
-	public createdBy!: string;
-	public users?: User[]
+	public createdBy!: 		string;
+	public users?: 				User[];
+	public groupAdmins?: 	User[];
+
+	public addGroupAdmin!: 		BelongsToManyAddAssociationMixin<User, string>;
+	public removeGroupAdmin!: BelongsToManyRemoveAssociationMixin<User, string>;
+	public getGroupAdmins!: BelongsToManyGetAssociationsMixin<User>;
+
+	public static associations: {
+    groupAdmins: Association<Group, User>;
+  };
 }
 
 Group.init(

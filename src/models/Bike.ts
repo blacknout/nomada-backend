@@ -18,7 +18,10 @@ interface BikeAttributes {
 	year:       string;
   vin?:       string;
   stolen:     boolean;
+  stolenDate: Date;
 	notInUse:   boolean;
+  sold:       boolean;
+  soldDate:   Date;
   images?:    string[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -37,7 +40,10 @@ export class Bike extends Model<BikeAttributes, BikeCreationAttributes> implemen
   public year!:               string;
   public vin?:                string;
   public stolen:              boolean;
+  public stolenDate:          Date;
   public notInUse!:           boolean;
+  public sold:                boolean;
+  public soldDate:            Date;
   public images?:             string[];
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -92,10 +98,22 @@ Bike.init(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    stolenDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     notInUse: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+    },
+    sold: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    soldDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     images: {
       type: DataTypes.ARRAY(DataTypes.STRING),

@@ -20,6 +20,7 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
   try {
     const { name: potentialName } = req.query;
     const { name, description, userIds } = req.body;
+    const { id } = req.user;
 
     const similarityResponse = potentialName &&
       await checkNameSimilarity(potentialName as string);
@@ -39,6 +40,7 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
       description: description ? String(description) : null,
       createdBy: String(userId),
     });
+    await group.addGroupAdmin(id);
 
     if (userIds?.length) { response = await inviteUsersToGroup(group.id, group.name, userIds, userId);}
     await GroupMember.create({ groupId: group.id, userId });
@@ -62,8 +64,8 @@ export const createGroup = async (req: Request, res: Response, next: NextFunctio
  */
 export const getGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
-    const group = await Group.findByPk(groupId, {
+    const { id } = req.params;
+    const group = await Group.findByPk(id, {
       include: [
         {
           model: User,
@@ -140,15 +142,16 @@ export const changeGroupPrivacy = async (req: Request, res: Response) => {
  */
 export const updateGroupData = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id } = req.params;
     const { name, description, privacy: isPrivate, restriction: isRestricted } = req.body;
 
-    const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(id);
     if (!group) {
       res.status(404).json({ message: "Group not found" });
       return;
     }
-    if (req.user.id === group.createdBy) {
+    const isCreator = req.user.id === group.createdBy;
+    if (isCreator) {
       await group.update({
         name: name || group.name,
         description: description || group.description,
@@ -220,8 +223,8 @@ export const getCurrentUserGroups = async (req: Request, res: Response) => {
  */
 export const deleteGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
-    const group = await Group.findByPk(groupId);
+    const { id } = req.params;
+    const group = await Group.findByPk(id);
 
     if (!group) {
       res.status(404).json({ message: "Group not found" });
@@ -230,6 +233,77 @@ export const deleteGroup = async (req: Request, res: Response) => {
       res.status(200).json({ message: "Group has been deleted."});
       return;
     }
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const addGroupAdmin = async (req: Request, res: Response) => {
+  try {
+    const { userId, id: groupId } = req.params;
+    const { id } = req.user;
+
+    const isMember = await GroupMember.findOne({
+      where: {
+        userId,
+        groupId
+      }
+    });
+    if (!isMember) {
+      res.status(400).json({ 
+        message: "This user is not a member of this group."});
+      return;
+    }
+
+    const group = await Group.findByPk(groupId, {
+      include: [{ model: User, as: 'groupAdmins' }],
+    });
+
+    const isAdmin = group?.groupAdmins?.some(
+      (admin: any) => admin.id === id) ||
+      group.createdBy === id;
+    if (group && isAdmin) {
+      await group.addGroupAdmin(userId);
+      res.status(200).json({ message: "User has been made an admin."});
+      return;
+    }
+    res.status(400).json({ message: "Unable to make this user an admin."});
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const removeAdmin = async (req: Request, res: Response) => {
+  try {
+    const { userId, id: groupId } = req.params;
+    const { id } = req.user;
+    const group = await Group.findByPk(groupId)
+    const user = await User.findByPk(userId);
+
+    const isCreator = group.createdBy === id;
+    if (user && group && isCreator) {
+      await group.removeGroupAdmin(user);
+      res.status(200).json({ message: "User has been removed as an admin."});
+      return;
+    }
+    res.status(400).json({ message: "Unable to remove this user as an admin."});
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+};
+
+export const getGroupAdmin = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const group = await Group.findByPk(id);
+
+    const admins = await group.getGroupAdmins();
+    res.status(200).json({ 
+      admins
+    });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }

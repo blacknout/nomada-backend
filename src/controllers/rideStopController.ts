@@ -108,7 +108,7 @@ export const updateRideStop = async (req: Request, res: Response) => {
  */
 export const getAllRideStops = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id: rideId } = req.params;
 
     const stops = await RideStop.findAll({
       where: { rideId, isResolved: false },
