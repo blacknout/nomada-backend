@@ -44,8 +44,8 @@ export const inviteUserToGroup = async (req: Request, res: Response) => {
     const { id: senderId } = req.user;
 
 
-    console.log(`Inviting users to group ${groupId}:`, userIds);
-    const response = await createInvite(userIds, groupId, senderId);
+    console.log(`Inviting users to group ${id}:`, userIds);
+    const response = await createInvite(userIds, id, senderId);
     
     // Provide more detailed error messages for debugging
     if (response.status !== 200) {
@@ -86,21 +86,21 @@ export const respondToInvite = async (req: Request, res: Response) => {
  */
 export const removeUserFromGroup = async (req: Request, res: Response) => {
   try {
-    const { groupId1, userId } = req.body;
+    const { groupId, userId } = req.body;
 
-    const group = await Group.findByPk(groupId1);
+    const group = await Group.findByPk(groupId);
     if (!group) {
       res.status(404).json({ message: "Group not found" });
       return;
     }
     if (req.user && req.user.id === group.createdBy) {
-      const membership = await GroupMember.findOne({ where: { groupId: groupId1, userId } });
+      const membership = await GroupMember.findOne({ where: { groupId, userId } });
       if (!membership) {
         res.status(404).json({ message: "User is not in the group" });
         return;
       }
 
-      await GroupMember.destroy({ where: { groupId: groupId1, userId } });
+      await GroupMember.destroy({ where: { groupId, userId } });
       res.status(200).json({ message: "User removed from group successfully" });
       return;
     } else {
@@ -123,20 +123,20 @@ export const removeUserFromGroup = async (req: Request, res: Response) => {
  */
 export const leaveGroup = async (req: Request, res: Response) => {
   try {
-    const { id: groupId2 } = req.params;
+    const { id: groupId } = req.params;
     const userId = req.user?.id;
 
     if (!userId) {
       res.status(401).json({ message: "Unauthorized" });
       return;
     } else {
-      const membership = await GroupMember.findOne({ where: { groupId: groupId2, userId } });
+      const membership = await GroupMember.findOne({ where: { groupId, userId } });
       if (!membership) {
         res.status(404).json({ message: "You are not a member of this group" });
         return;
       }
 
-      await GroupMember.destroy({ where: { groupId: groupId2, userId } });
+      await GroupMember.destroy({ where: { groupId, userId } });
       res.status(200).json({ message: "You have left the group successfully" });
       return;
     }
@@ -147,9 +147,9 @@ export const leaveGroup = async (req: Request, res: Response) => {
 
 export const updateGroupMemberType = async (req: Request, res: Response) => {
   try {
-    const { groupId3, type, userId: updatedUser } = req.body;
+    const { groupId, type, userId: updatedUser } = req.body;
     const { id } = req.user;
-    const group = await Group.findByPk(groupId3)
+    const group = await Group.findByPk(groupId)
     if (!group) {
       res.status(404).json({ message: "Group not found."});
       return;
@@ -157,7 +157,7 @@ export const updateGroupMemberType = async (req: Request, res: Response) => {
 
     const isARoadCaptain = await Ride.findOne({
       where: {
-        groupId: groupId3,
+        groupId,
         roadCaptainId: id
       }
     })
@@ -170,7 +170,7 @@ export const updateGroupMemberType = async (req: Request, res: Response) => {
     }
     const member = await GroupMember.findOne({ 
       where: {
-        groupId: groupId3,
+        groupId,
         userId
       }
     });
@@ -196,7 +196,7 @@ export const updateGroupMemberType = async (req: Request, res: Response) => {
  */
 export const getGroupMembersByGroupId = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id: groupId } = req.params;
 
     // Check if group exists
     const group = await Group.findByPk(groupId);

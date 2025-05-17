@@ -347,6 +347,6 @@ router.put("/type",
  *       500:
  *         description: Internal server error
  */
-router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupMembersByGroupId);
+router.get("/:id/users", authenticateUser, validateGroupQuery, getGroupMembersByGroupId);
 
 export default router;
