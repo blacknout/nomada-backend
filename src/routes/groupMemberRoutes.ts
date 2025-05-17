@@ -5,7 +5,8 @@ import {
   respondToInvite,
   removeUserFromGroup,
   leaveGroup,
-  updateGroupMemberType
+  updateGroupMemberType,
+  getGroupMembersByGroupId
 } from "../controllers/groupMemberController";
 import {
   validateGroupQuery,
@@ -280,5 +281,72 @@ router.put("/type",
   authenticateUser, 
   validateMemberStatus,
   updateGroupMemberType);
+
+/**
+ * @swagger
+ * /api/member/{groupId}/users:
+ *   get:
+ *     summary: Get all members of a specific group
+ *     description: Retrieve all users who are members of the specified group
+ *     tags:
+ *       - Members
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         description: The ID of the group
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Group members retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Group members retrieved successfully
+ *                 members:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       userId:
+ *                         type: string
+ *                       groupId:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *                         enum: [active, ghost, observer, inactive]
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           username:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           profilePicture:
+ *                             type: string
+ *                           fullName:
+ *                             type: string
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/:groupId/users", authenticateUser, validateGroupQuery, getGroupMembersByGroupId);
 
 export default router;
