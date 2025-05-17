@@ -70,7 +70,7 @@ export const getGroup = async (req: Request, res: Response) => {
         {
           model: User,
           as: 'users',
-          attributes: ['id', 'username', 'email'],
+          attributes: ['id', 'username', 'firstname', 'lastname', 'email', 'avatar'],
           through: { attributes: [] },
         },
       ],
