@@ -13,7 +13,9 @@ import logger from "../utils/logger";
 import { Location } from "../@types/location";
 
 // Create a new Expo SDK client
-const expo = new Expo();
+const expo = new Expo({
+  accessToken: process.env.EXPO_ACCESS_TOKEN
+});
 
 /**
  * Validates if a push token is valid for Expo
