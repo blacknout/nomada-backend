@@ -161,7 +161,8 @@ export const sendNotificationToUser = async (
   try {
     // Use provided user object if available, otherwise fetch from database
     const user = userObject || await User.findByPk(userId);
-
+    console.log("🚀 ~ user.pushToken:", user?.pushToken)
+    
     if (!user || !user.pushToken) {
       return null;
     }
