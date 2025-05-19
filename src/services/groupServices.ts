@@ -16,12 +16,12 @@ import {
 import logger from '../utils/logger';
 import { levenshtein } from "../utils/calc";
 import { skippedKeywords } from "../utils/constants/groupNameKeywords";
+import { sendNotificationToUser } from "./notificationService";
 
 type SimilarityResult = {
   status: number;
   message: string;
 } | undefined;
-import { sendNotificationToUser } from "./notificationService";
 
 /**
  * Invite multiple users to an existing group.
@@ -38,7 +38,6 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
       return { invited: 0, total: 0, skippedUsers: [] };
     }
 
-
     // Get sender info
     const sender = await User.findByPk(senderId, {
       attributes: ["id", "username"]
@@ -51,10 +50,9 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
     // Find all valid users from the input user IDs
     const validUsers = await User.findAll({
       where: { id: { [Op.in]: userIds } },
-      attributes: ["id", "username"],
+      attributes: ["id", "username", "pushToken"],
     });
 
-    
     if (!validUsers.length) {
       return { invited: 0, total: userIds.length, skippedUsers: userIds, reason: "No valid users found" };
     }
@@ -95,16 +93,25 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
           skippedUsers.push({ id: user.id, username: user.username, reason: "cannot invite yourself" });
           return false;
         }
+
+        // Skip users without push tokens
+        if (!user.pushToken) {
+          skippedUsers.push({ id: user.id, username: user.username, reason: "no push token" });
+          return false;
+        }
         
         return true;
       })
       .map((user) => {
+        const message = notification.GROUP_INVITE_MESSAGE(sender.username, groupName);
+        logger.info(`Creating invitation for user ${user.username} (${user.id}) with message: ${message}`);
+        
         return {
           userId: user.id,
           title: notification.GROUP_INVITE,
           priority: "low" as NotificationPriority,
           type: "invite" as NotificationType,
-          message: notification.GROUP_INVITE_MESSAGE(sender.username, groupName),
+          message,
           data: {
             type: "invite",
             groupId,
@@ -117,7 +124,7 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
 
     // Log detailed information for debugging
     if (skippedUsers.length > 0) {
-      console.log(`Skipped ${skippedUsers.length} users:`, JSON.stringify(skippedUsers));
+      logger.info(`Skipped ${skippedUsers.length} users:`, JSON.stringify(skippedUsers));
     }
     
     // Create the invitations and send push notifications
@@ -128,10 +135,13 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
           ignoreDuplicates: true,
           returning: true
         });
+        
         // Send push notifications for each created invitation
         for (const invite of createdInvites) {
+          console.log("🚀 ~ inviteUsersToGroup ~ invite:", JSON.stringify(invite));
           try {
-            await sendNotificationToUser(
+            logger.info(`Attempting to send push notification to user ${invite.userId}`);
+            const result = await sendNotificationToUser(
               invite.userId,
               invite.title,
               invite.message,
@@ -139,16 +149,21 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
               undefined,
               invite.priority
             );
-            console.log(`Sent push notification to user ${invite.userId}`);
+            
+            if (result) {
+              logger.info(`Successfully sent push notification to user ${invite.userId}`);
+            } else {
+              logger.warn(`Failed to send push notification to user ${invite.userId} - no result returned`);
+            }
           } catch (error) {
-            console.error(`Failed to send push notification to user ${invite.userId}:`, error);
+            logger.error(`Failed to send push notification to user ${invite.userId}:`, error);
           }
         }
       } catch (error) {
-        console.error(`Error creating invitations:`, error);
+        logger.error(`Error creating invitations:`, error);
       }
     } else {
-      console.log(`No invitations to create after filtering`);
+      logger.info(`No invitations to create after filtering`);
     }
 
     return { 
@@ -157,6 +172,7 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
       skippedUsers 
     };
   } catch (error) {
+    logger.error("Error in inviteUsersToGroup:", error);
     throw new Error(`Error adding users: ${error}`);
   }
 };
