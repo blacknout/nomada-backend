@@ -97,13 +97,16 @@ export const sendPushNotifications = async (
   );
 
   const chunks = expo.chunkPushNotifications(validMessages);
+  console.log("🚀 ~ chunks:", JSON.stringify(validMessages), chunks.length)
   const tickets: ExpoPushTicket[] = [];
 
   try {
     // Send the chunks to Expo's push notification service
     for (const chunk of chunks) {
+      console.log("🚀 ~ chunk:", chunk)
       try {
         const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        console.log("🚀 ~ ticketChunk:", ticketChunk)
         tickets.push(...ticketChunk);
       } catch (error) {
         logger.error("Error sending push notification chunk:", error);
