@@ -82,6 +82,7 @@ export const sendTestNotification = async (req: Request, res: Response): Promise
     const priority = req.body.priority;
 
     const user = await User.findByPk(userId);
+    console.log("🚀 ~ sendTestNotification ~ user:", user?.pushToken)
     
     if (!user) {
       res.status(404).json({ message: 'User not found' });
