@@ -109,7 +109,7 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
         return {
           userId: user.id,
           title: notification.GROUP_INVITE,
-          priority: "normal" as any,
+          priority: "low" as NotificationPriority,
           type: "invite" as NotificationType,
           message,
           data: {
@@ -147,7 +147,7 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
               invite.message,
               invite.data,
               undefined,
-              invite.priority
+              "normal"
             );
             
             if (result) {
