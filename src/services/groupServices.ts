@@ -21,6 +21,7 @@ type SimilarityResult = {
   status: number;
   message: string;
 } | undefined;
+import { sendNotificationToUser } from "./notificationService";
 
 /**
  * Invite multiple users to an existing group.
@@ -32,7 +33,6 @@ type SimilarityResult = {
  */
 export const inviteUsersToGroup = async (groupId: string, groupName: string, userIds: string[], senderId: string) => {
   try {
-    console.log("Inviting users to group:", groupId, groupName, userIds, senderId);
     // Skip empty user lists
     if (!userIds || userIds.length === 0) {
       return { invited: 0, total: 0, skippedUsers: [] };
@@ -117,9 +117,10 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
 
     // Log detailed information for debugging
     if (skippedUsers.length > 0) {
+      console.log(`Skipped ${skippedUsers.length} users:`, JSON.stringify(skippedUsers));
     }
     
-    // Create the invitations
+    // Create the invitations and send push notifications
     let createdInvites = [];
     if (groupInvites.length > 0) {
       try {
@@ -127,6 +128,22 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
           ignoreDuplicates: true,
           returning: true
         });
+        // Send push notifications for each created invitation
+        for (const invite of createdInvites) {
+          try {
+            await sendNotificationToUser(
+              invite.userId,
+              invite.title,
+              invite.message,
+              invite.data,
+              undefined,
+              invite.priority
+            );
+            console.log(`Sent push notification to user ${invite.userId}`);
+          } catch (error) {
+            console.error(`Failed to send push notification to user ${invite.userId}:`, error);
+          }
+        }
       } catch (error) {
         console.error(`Error creating invitations:`, error);
       }
@@ -134,7 +151,7 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
       console.log(`No invitations to create after filtering`);
     }
 
-    return {
+    return { 
       invited: createdInvites.length, 
       total: userIds.length,
       skippedUsers 
