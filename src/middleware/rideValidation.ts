@@ -69,7 +69,7 @@ export const createRideInfo: RequestHandler[] = [
 ];
 
 export const updateRideInfo: RequestHandler[] = [
-  param("rideId")
+  param("id")
   .notEmpty()
   .withMessage("Ride ID is required")
   .isUUID()
@@ -142,7 +142,7 @@ export const updateRideInfo: RequestHandler[] = [
 ];
 
 export const validateRideStatus: RequestHandler[] = [
-  param("rideId")
+  param("id")
   .notEmpty()
   .withMessage("Ride ID is required")
   .isUUID()
@@ -182,7 +182,7 @@ export const validateRideQuery: RequestHandler[] = [
 ];
 
 export const validateRideRoute: RequestHandler[] = [
-  param("rideId")
+  param("id")
   .notEmpty()
   .withMessage("Ride ID is required")
   .isUUID()

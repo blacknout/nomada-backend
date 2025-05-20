@@ -5,7 +5,9 @@ import {
   GroupUpdateNotification,
   SystemNotification,
   NotificationBase,
-  AppNotification
+  AppNotification,
+  NotificationPriority,
+  NotificationType
 } from '../@types/model';
 
 export function parseNotification(base: NotificationBase & { data?: any }): AppNotification {
@@ -41,4 +43,19 @@ export function parseNotification(base: NotificationBase & { data?: any }): AppN
     default:
       return base as SystemNotification;
   }
+}
+
+export const handleNotificationPriority = (
+  priority: NotificationPriority, 
+  notificationType: NotificationType
+) => {
+  if (priority === "high" || 
+    notificationType === "sos") {
+    return "high"
+  }
+  if (notificationType === "group-update" ||
+    notificationType === "invite") {
+      return "normal"
+    } 
+  return "default";
 }

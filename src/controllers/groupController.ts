@@ -107,31 +107,6 @@ export const searchGroup = async (req: Request, res: Response) => {
   }
 };
 
-export const changeGroupPrivacy = async (req: Request, res: Response) => {
-  try {
-    const { groupId } = req.params;
-    const { privacy } = req.body;
-
-    const group = await Group.findByPk(groupId);
-    if (!group) {
-      res.status(404).json({ message: "Group not found" });
-      return;
-    }
-
-    if (group.createdBy === req.user.id) {
-      group.isPrivate = privacy;
-      await group.save();
-      res.status(200).json({ message: "Group privacy updated", group });
-      return;
-    } else {
-      res.status(403).json({ message: "You are not allowed to update this group privacy." });
-      return;
-    }
-  } catch (err) {
-    errorResponse(res, err);
-  }
-};
-
 /**
  * Update group details.
  *

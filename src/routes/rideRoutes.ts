@@ -359,7 +359,7 @@ router.post("/:id/remove",
  *       500:
  *         description: Internal server error
  */
-router.put("/:rideId", 
+router.put("/:id", 
   authenticateUser, 
   updateRideInfo, 
   updateRide
@@ -462,7 +462,7 @@ router.put("/:rideId",
  *       500:
  *         description: Internal server error
  */
-router.patch("/:rideId", 
+router.patch("/:id", 
   authenticateUser, 
   validateRideStatus,
   updateRideStatus
@@ -932,7 +932,7 @@ router.delete("/:id",
  *                   type: string
  *                   example: "Server error."
  */
-router.post("/route/:rideId", 
+router.post("/route/:id", 
   authenticateUser,
   validateRideRoute,
   saveRideRoute

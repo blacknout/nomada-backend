@@ -17,6 +17,7 @@ import logger from '../utils/logger';
 import { levenshtein } from "../utils/calc";
 import { skippedKeywords } from "../utils/constants/groupNameKeywords";
 import { sendNotificationToUser } from "./notificationService";
+import { handleNotificationPriority } from "../utils/notificationParser";
 
 type SimilarityResult = {
   status: number;
@@ -147,7 +148,10 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
               invite.message,
               invite.data,
               undefined,
-              "normal"
+              handleNotificationPriority(
+                invite.priority,
+                invite.type
+              )
             );
             
             if (result) {

@@ -324,10 +324,10 @@ export const removeRiders = async (req: Request, res: Response) => {
  */
 export const updateRide = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
     const { name, startLocation, destination, roadCaptainId } = req.body;
 
-    const ride = await Ride.findByPk(rideId);
+    const ride = await Ride.findByPk(id);
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
       return;
@@ -355,10 +355,10 @@ export const updateRide = async (req: Request, res: Response) => {
 
 export const updateRideStatus = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
     const { status, location } = req.body;
 
-    const ride = await Ride.findByPk(rideId, {
+    const ride = await Ride.findByPk(id, {
       include: [
         {
           model: Group,
@@ -687,10 +687,10 @@ export const deleteRide = async (req: Request, res: Response) => {
  */
 export const saveRideRoute = async (req: Request, res: Response) => {
   try {
-    const { rideId } = req.params;
+    const { id } = req.params;
     const { route } = req.body;
 
-    const ride = await Ride.findByPk(rideId);
+    const ride = await Ride.findByPk(id);
     if (!ride) {
       res.status(404).json({ message: "Ride not found" });
       return;
@@ -868,11 +868,11 @@ export const getRideHistory = async (req: Request, res: Response) => {
 
 export const getGroupRides = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id } = req.params;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 5;
 
-    const rides = await getAllGroupRides(groupId, page, limit);
+    const rides = await getAllGroupRides(id, page, limit);
 
     res.status(200).json({ rides });
     return;
@@ -883,7 +883,7 @@ export const getGroupRides = async (req: Request, res: Response) => {
 
 export const getGroupRidesDistance = async (req: Request, res: Response) => {
   try {
-    const { groupId } = req.params;
+    const { id: groupId } = req.params;
 
     const rides = await Ride.findAll({
       where: { groupId },
