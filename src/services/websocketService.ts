@@ -129,6 +129,13 @@ const handleMessage = (socket: any, data: any) => {
           rideStopPayload
         });
         break;
+      case 'notification-update':
+        sendToUser(target, {
+          type: 'notification-update',
+          fromUserId: socket.data.user.id,
+          payload
+        });
+        break;
       default:
         // Handle unknown message types
         console.warn(`Unknown message type: ${type}`);
@@ -179,6 +186,42 @@ export const broadcastToRide = (data: any) => {
   const { io } = global;
   io.to(room).emit('message', data);
 };
+
+export const sendNotificationUpdate = (userId: string | string[], notificationData: any) => {
+  // Handle single user or array of users
+  const userIds = Array.isArray(userId) ? userId : [userId];
+  
+  userIds.forEach(id => {
+    const userConnections = activeConnections.get(id);
+    if (userConnections) {
+      userConnections.forEach(socketId => {
+        const socket = socketInstances.get(socketId);
+        if (socket) {
+          socket.emit('message', {
+            type: 'notification-update',
+            payload: notificationData
+          });
+        }
+      });
+    }
+  });
+};
+// Send notification to a single user (e.g., group invitation)
+// sendNotificationUpdate('user123', {
+//   title: 'Group Invitation',
+//   message: 'You have been invited to join "Weekend Riders"',
+//   type: 'group_invitation',
+//   groupId: 'group456'
+// });
+
+// // Send notification to multiple users (e.g., ride update)
+// sendNotificationUpdate(['user1', 'user2', 'user3'], {
+//   title: 'Ride Update',
+//   message: 'Your ride has been updated',
+//   type: 'ride_update',
+//   rideId: 'ride789'
+// });
+
 
 export const handleRideStop = async (data: any) => {
   const { reason, action, sos } = data.payload;
