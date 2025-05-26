@@ -187,6 +187,32 @@ export const broadcastToRide = (data: any) => {
   io.to(room).emit('message', data);
 };
 
+/**
+ * Send notification updates to users via WebSocket
+ * @param {string | string[]} userId - Single user ID or array of user IDs to send notification to
+ * @param {any} notificationData - The notification data to send
+ * 
+ * @example
+ * // Send notification to a single user (e.g., group invitation)
+ * sendNotificationUpdate('user123', {
+ *   id: 'notification456',
+ *   groupId: 'group456',
+ *   groupName: 'Weekend Riders',
+ *   senderId: 'user789',
+ *   senderName: 'John Doe',
+ *   createdAt: '2024-01-15T10:30:00Z',
+ *   updatedAt: '2024-01-15T10:30:00Z'
+ * });
+ * 
+ * @example
+ * // Send notification to multiple users (e.g., ride update)
+ * sendNotificationUpdate(['user1', 'user2', 'user3'], {
+ *   title: 'Ride Update',
+ *   message: 'Your ride has been updated',
+ *   type: 'ride_update',
+ *   rideId: 'ride789'
+ * });
+ */
 export const sendNotificationUpdate = (userId: string | string[], notificationData: any) => {
   // Handle single user or array of users
   const userIds = Array.isArray(userId) ? userId : [userId];
@@ -206,22 +232,6 @@ export const sendNotificationUpdate = (userId: string | string[], notificationDa
     }
   });
 };
-// Send notification to a single user (e.g., group invitation)
-// sendNotificationUpdate('user123', {
-//   title: 'Group Invitation',
-//   message: 'You have been invited to join "Weekend Riders"',
-//   type: 'group_invitation',
-//   groupId: 'group456'
-// });
-
-// // Send notification to multiple users (e.g., ride update)
-// sendNotificationUpdate(['user1', 'user2', 'user3'], {
-//   title: 'Ride Update',
-//   message: 'Your ride has been updated',
-//   type: 'ride_update',
-//   rideId: 'ride789'
-// });
-
 
 export const handleRideStop = async (data: any) => {
   const { reason, action, sos } = data.payload;
