@@ -129,6 +129,13 @@ const handleMessage = (socket: any, data: any) => {
           rideStopPayload
         });
         break;
+      case 'notification-update':
+        sendToUser(target, {
+          type: 'notification-update',
+          fromUserId: socket.data.user.id,
+          payload
+        });
+        break;
       default:
         // Handle unknown message types
         console.warn(`Unknown message type: ${type}`);
@@ -178,6 +185,52 @@ export const broadcastToRide = (data: any) => {
   const room = `ride:${data.rideId}`;
   const { io } = global;
   io.to(room).emit('message', data);
+};
+
+/**
+ * Send notification updates to users via WebSocket
+ * @param {string | string[]} userId - Single user ID or array of user IDs to send notification to
+ * @param {any} notificationData - The notification data to send
+ * 
+ * @example
+ * // Send notification to a single user (e.g., group invitation)
+ * sendNotificationUpdate('user123', {
+ *   id: 'notification456',
+ *   groupId: 'group456',
+ *   groupName: 'Weekend Riders',
+ *   senderId: 'user789',
+ *   senderName: 'John Doe',
+ *   createdAt: '2024-01-15T10:30:00Z',
+ *   updatedAt: '2024-01-15T10:30:00Z'
+ * });
+ * 
+ * @example
+ * // Send notification to multiple users (e.g., ride update)
+ * sendNotificationUpdate(['user1', 'user2', 'user3'], {
+ *   title: 'Ride Update',
+ *   message: 'Your ride has been updated',
+ *   type: 'ride_update',
+ *   rideId: 'ride789'
+ * });
+ */
+export const sendNotificationUpdate = (userId: string | string[], notificationData: any) => {
+  // Handle single user or array of users
+  const userIds = Array.isArray(userId) ? userId : [userId];
+  
+  userIds.forEach(id => {
+    const userConnections = activeConnections.get(id);
+    if (userConnections) {
+      userConnections.forEach(socketId => {
+        const socket = socketInstances.get(socketId);
+        if (socket) {
+          socket.emit('message', {
+            type: 'notification-update',
+            payload: notificationData
+          });
+        }
+      });
+    }
+  });
 };
 
 export const handleRideStop = async (data: any) => {

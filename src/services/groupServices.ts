@@ -17,6 +17,7 @@ import logger from '../utils/logger';
 import { levenshtein } from "../utils/calc";
 import { skippedKeywords } from "../utils/constants/groupNameKeywords";
 import { sendNotificationToUser } from "./notificationService";
+import { sendNotificationUpdate } from "./websocketService";
 import { handleNotificationPriority } from "../utils/notificationParser";
 
 type SimilarityResult = {
@@ -156,6 +157,22 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
             
             if (result) {
               logger.info(`Successfully sent push notification to user ${invite.userId}`);
+              
+              // Send WebSocket notification update
+              try {
+                sendNotificationUpdate(invite.userId, {
+                  id: invite.id,
+                  groupId: invite.data.groupId,
+                  groupName: invite.data.groupName,
+                  senderId: invite.data.senderId,
+                  senderName: invite.data.senderName,
+                  createdAt: invite.createdAt,
+                  updatedAt: invite.createdAt,
+                });
+                logger.info(`Successfully sent WebSocket notification to user ${invite.userId}`);
+              } catch (wsError) {
+                logger.error(`Failed to send WebSocket notification to user ${invite.userId}:`, wsError);
+              }
             } else {
               logger.warn(`Failed to send push notification to user ${invite.userId} - no result returned`);
             }
