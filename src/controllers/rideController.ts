@@ -510,7 +510,7 @@ export const getRideDetails = async (req: Request, res: Response) => {
 
     const ride = await Ride.findByPk(id, {
       include: [
-        { model: Group, as: "group" },
+        { model: Group, as: "rideGroup" },
         { model: User, as: "creator", attributes: ["id", "username"] },
         { model: User, as: "roadCaptain", attributes: ["id", "username"] },
       ],
