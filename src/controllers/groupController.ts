@@ -234,9 +234,9 @@ export const addGroupAdmin = async (req: Request, res: Response) => {
       include: [{ model: User, as: 'groupAdmins' }],
     });
 
-    const isAdmin = group?.groupAdmins?.some(
-      (admin: any) => admin.id === id) ||
-      group.createdBy === id;
+    const isAdmin = group?.groupAdmins
+    ?.some((admin: any) => admin.id === id);
+    
     if (group && isAdmin) {
       await group.addGroupAdmin(userId);
       res.status(200).json({ message: "User has been made an admin."});

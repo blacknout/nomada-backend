@@ -79,24 +79,45 @@ export const createRide = async (req: Request, res: Response) => {
     const { name, groupId, roadCaptainId, startLocation, destination } = req.body;
     const userId = req.user?.id;
 
-    const isMember = await GroupMember.findOne({
-      where: { userId, groupId },
-      include: [{
-        model: Group,
-        as: "group",
-        attributes: ["id", "name"]
-      }]
-    }) as GroupMember & { group: Group}
+    const group = await Group.findByPk(groupId, {
+      include: [{ model: User, as: 'groupAdmins' }],
+    });
 
-    if (!isMember) {
+    if (!group) {
+      res
+      .status(404)
+      .json({ message: "This group does not exist." });
+      return;
+    }
+
+    const userIsAdmin = group?.groupAdmins?.some(
+      (admin: any) => admin.id === userId)
+
+    if (!userIsAdmin) {
+      res
+      .status(403)
+      .json({ message: "Only Group admins can create a ride." });
+      return;
+    }
+
+    const groupMembers = await GroupMember.findAll({
+      where: { groupId },
+      attributes: ['userId'],
+    });
+
+    const memberIds = groupMembers.map((gm) => gm.userId);
+    const creatorIsMember = memberIds.includes(userId);
+    const roadCaptainIsMember = memberIds.includes(roadCaptainId);
+
+    if (!creatorIsMember || !roadCaptainIsMember) {
       res
         .status(404)
-        .json({ message: "Group does not exist or this user is not part of this group." });
+        .json({ message: "The Ride Creator or the Road Captain are not members of this group." });
       return;
     }
 
     const newRide = await Ride.create({
-      name: name || createRideName(isMember.group.name),
+      name: name || createRideName(group.name),
       groupId,
       createdBy: userId,
       roadCaptainId,
@@ -179,7 +200,6 @@ export const addRiders = async (req: Request, res: Response) => {
     const group = ride.rideGroup;
     const isAdmin = group?.groupAdmins?.some(
       (admin: any) => admin.id === userId) ||
-      ride.createdBy === userId ||
       ride.roadCaptainId === userId;
 
     if (!isAdmin) {
@@ -223,7 +243,6 @@ export const removeRiders = async (req: Request, res: Response) => {
     const group = ride.rideGroup;
     const isAdmin = group?.groupAdmins?.some(
       (admin: any) => admin.id === userId) ||
-      ride.createdBy === userId ||
       ride.roadCaptainId === userId;
 
     if (!isAdmin) {
