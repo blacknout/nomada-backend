@@ -95,12 +95,6 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
           skippedUsers.push({ id: user.id, username: user.username, reason: "cannot invite yourself" });
           return false;
         }
-
-        // Skip users without push tokens
-        if (!user.pushToken) {
-          skippedUsers.push({ id: user.id, username: user.username, reason: "no push token" });
-          return false;
-        }
         
         return true;
       })
@@ -140,7 +134,6 @@ export const inviteUsersToGroup = async (groupId: string, groupName: string, use
         
         // Send push notifications for each created invitation
         for (const invite of createdInvites) {
-          console.log("🚀 ~ inviteUsersToGroup ~ invite:", JSON.stringify(invite));
           try {
             logger.info(`Attempting to send push notification to user ${invite.userId}`);
             const result = await sendNotificationToUser(

@@ -89,7 +89,7 @@ export const validateRespondToInvite: RequestHandler[] = [
 ];
 
 export const validateGroupPrivacy: RequestHandler[] = [
-  check("groupId")
+  check("id")
    .notEmpty()
     .withMessage("Group ID is required")
     .isUUID()
@@ -138,7 +138,7 @@ export const validateMemberStatus: RequestHandler[] = [
 ];
 
 export const validateGroupUpdate: RequestHandler[] = [
-  param("groupId")
+  param("id")
     .isUUID(4)
     .withMessage("Invalid group ID format"),
   
