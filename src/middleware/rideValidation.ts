@@ -74,11 +74,6 @@ export const updateRideInfo: RequestHandler[] = [
   .withMessage("Ride ID is required")
   .isUUID()
   .withMessage("Ride ID must be a valid UUID"),
-
-  check("groupId")
-    .notEmpty()
-    .isUUID()
-    .withMessage("Invalid UUID format for Group ID"),
     
   check("roadCaptainId")
     .isUUID()
