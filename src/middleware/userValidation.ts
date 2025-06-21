@@ -201,7 +201,6 @@ export const validateUserQuery: RequestHandler[] = [
 
 export const validateSearchQuery: RequestHandler[] = [
   query("search")
-    .optional()
     .isLength({ min: 1 })
     .withMessage("Search query cannot be empty")
     .matches(/^[A-Za-z0-9\s\-\.]+$/)
