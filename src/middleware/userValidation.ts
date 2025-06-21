@@ -201,8 +201,10 @@ export const validateUserQuery: RequestHandler[] = [
 
 export const validateSearchQuery: RequestHandler[] = [
   query("search")
-    .matches(/^[A-Za-z0-9-]+$/)
-    .withMessage("Search can only contain letters, numbers, or hyphens(-)"),
+    .isLength({ min: 1 })
+    .withMessage("Search query cannot be empty")
+    .matches(/^[A-Za-z0-9\s\-\.]+$/)
+    .withMessage("Search can only contain letters, numbers, spaces, hyphens(-), or dots(.)"),
 
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
