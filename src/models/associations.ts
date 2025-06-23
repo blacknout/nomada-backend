@@ -12,7 +12,7 @@ User.hasMany(Bike, { foreignKey: "userId", onDelete: "CASCADE" });
 User.hasMany(Group, { foreignKey: "createdBy", onDelete: "CASCADE" });
 User.belongsToMany(Group, { through: GroupMember, foreignKey: "userId", onDelete: "CASCADE"});
 User.belongsToMany(Group, {
-  through: 'GroupAdmins',
+  through: 'group_admins',
   as: 'adminGroups',
   foreignKey: 'userId',
 });
@@ -40,7 +40,7 @@ Group.belongsToMany(User,
   }
 );
 Group.belongsToMany(User, {
-  through: 'GroupAdmins',
+  through: 'group_admins',
   as: 'groupAdmins',
   foreignKey: 'groupId',
 });

@@ -5,7 +5,8 @@ import {
   getUserRideHistory,
   createRideName,
   handleRideStatus,
-  getAllGroupRides
+  getAllGroupRides,
+  handleSaveRideRoute
  } from "../services/rideServices";
  import { getRideDistance } from "../utils/calc";
 
@@ -90,6 +91,7 @@ export const createRide = async (req: Request, res: Response) => {
       return;
     }
 
+    console.log("group?.groupAdmins >>>> ", group?.groupAdmins);
     const userIsAdmin = group?.groupAdmins?.some(
       (admin: any) => admin.id === userId)
 
@@ -381,6 +383,7 @@ export const updateRideStatus = async (req: Request, res: Response) => {
       include: [
         {
           model: Group,
+          as: 'rideGroup',
           include: [
             {
               model: User,
@@ -724,8 +727,11 @@ export const saveRideRoute = async (req: Request, res: Response) => {
       res.status(400).json({ message: "This route has already been saved." });
       return
     } else if (ride.status == "completed" && route.length) {
-      await ride.update({ route });
-      res.status(200).json({ message: "Ride route saved."});
+      const response = await handleSaveRideRoute(ride, route);
+      res.status(response.status).json({
+        message: response.message,
+        ride: response.ride
+      })
       return;
     } 
   } catch (err) {

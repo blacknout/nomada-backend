@@ -151,6 +151,7 @@ export const validateRideStatus: RequestHandler[] = [
 
   ((req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
+    console.log("🚀 ~ errors:", errors)
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
       return;
