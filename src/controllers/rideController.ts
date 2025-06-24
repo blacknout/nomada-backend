@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import errorResponse from "../errors/errorResponse";
 import { User, GroupMember, Group, Ride } from "../models/associations";
-import { 
+import {
   getUserRideHistory,
   createRideName,
   handleRideStatus,
-  getAllGroupRides
- } from "../services/rideServices";
- import { getRideDistance } from "../utils/calc";
+  getAllGroupRides,
+  handleSaveRideRoute,
+} from "../services/rideServices";
+import { getRideDistance } from "../utils/calc";
 
 /**
  * @typedef {Object} GeoPoint
@@ -68,7 +69,7 @@ import {
  * {
  *   "error": "Group does not exist or this user is not part of this group."
  * }
- * 
+ *
  * @response 500 - Internal Server Error
  * {
  *   "error": "Internal Server Error"
@@ -76,33 +77,36 @@ import {
  */
 export const createRide = async (req: Request, res: Response) => {
   try {
-    const { name, groupId, roadCaptainId, startLocation, destination } = req.body;
+    const { name, groupId, roadCaptainId, startLocation, destination } =
+      req.body;
     const userId = req.user?.id;
 
     const group = await Group.findByPk(groupId, {
-      include: [{ model: User, as: 'groupAdmins' }],
+      include: [
+        {
+          model: User,
+          as: "groupAdmins",
+        },
+      ],
     });
 
     if (!group) {
-      res
-      .status(404)
-      .json({ message: "This group does not exist." });
+      res.status(404).json({ message: "This group does not exist." });
       return;
     }
 
     const userIsAdmin = group?.groupAdmins?.some(
-      (admin: any) => admin.id === userId)
+      (admin: any) => admin.id === userId
+    );
 
     if (!userIsAdmin) {
-      res
-      .status(403)
-      .json({ message: "Only Group admins can create a ride." });
+      res.status(403).json({ message: "Only Group admins can create a ride." });
       return;
     }
 
     const groupMembers = await GroupMember.findAll({
       where: { groupId },
-      attributes: ['userId'],
+      attributes: ["userId"],
     });
 
     const memberIds = groupMembers.map((gm) => gm.userId);
@@ -112,7 +116,10 @@ export const createRide = async (req: Request, res: Response) => {
     if (!creatorIsMember || !roadCaptainIsMember) {
       res
         .status(404)
-        .json({ message: "The Ride Creator or the Road Captain are not members of this group." });
+        .json({
+          message:
+            "The Ride Creator or the Road Captain are not members of this group.",
+        });
       return;
     }
 
@@ -126,10 +133,9 @@ export const createRide = async (req: Request, res: Response) => {
       status: "pending",
     });
 
-    res.status(201)
-      .json({ message: "Ride created successfully", 
-      ride: newRide
-    });
+    res
+      .status(201)
+      .json({ message: "Ride created successfully", ride: newRide });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -142,14 +148,10 @@ export const joinRide = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     const ride = await Ride.findByPk(id, {
-      include: [
-        { model: Group, as: "rideGroup" },
-      ]
-    })
+      include: [{ model: Group, as: "rideGroup" }],
+    });
     if (!ride) {
-      res
-        .status(404)
-        .json({ message: "This ride does not exist." });
+      res.status(404).json({ message: "This ride does not exist." });
       return;
     }
     const group = ride.rideGroup;
@@ -157,22 +159,22 @@ export const joinRide = async (req: Request, res: Response) => {
     const isMember = await GroupMember.findOne({
       where: {
         userId,
-        groupId
-      }
-    })
+        groupId,
+      },
+    });
 
     if (isMember) {
       const newParticipant = await (ride as any).addParticipant(userId);
-      res.status(200)
-        .json({ message: `You have joined ${ride.name}`, 
-        newParticipant
-      });
+      res
+        .status(200)
+        .json({ message: `You have joined ${ride.name}`, newParticipant });
       return;
     }
-    res.status(400)
-    .json({ message: 
-      "You cannot join this ride as you are not a group member.", 
-    });
+    res
+      .status(400)
+      .json({
+        message: "You cannot join this ride as you are not a group member.",
+      });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -186,20 +188,16 @@ export const addRiders = async (req: Request, res: Response) => {
     const { userIds } = req.body;
 
     const ride = await Ride.findByPk(id, {
-      include: [
-        { model: Group, as: "rideGroup" },
-      ]
+      include: [{ model: Group, as: "rideGroup" }],
     });
     if (!ride) {
-      res
-        .status(404)
-        .json({ message: "This ride does not exist." });
+      res.status(404).json({ message: "This ride does not exist." });
       return;
     }
 
     const group = ride.rideGroup;
-    const isAdmin = group?.groupAdmins?.some(
-      (admin: any) => admin.id === userId) ||
+    const isAdmin =
+      group?.groupAdmins?.some((admin: any) => admin.id === userId) ||
       ride.roadCaptainId === userId;
 
     if (!isAdmin) {
@@ -210,13 +208,13 @@ export const addRiders = async (req: Request, res: Response) => {
     }
 
     const users = await User.findAll({
-      where: { id: userIds }
+      where: { id: userIds },
     });
     if (users.length > 0) await ride.addParticipants(users);
-    
-    res.status(200)
-      .json({ message: `${users.length} new rider(s) added to ride.`, 
-    });
+
+    res
+      .status(200)
+      .json({ message: `${users.length} new rider(s) added to ride.` });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -230,19 +228,15 @@ export const removeRiders = async (req: Request, res: Response) => {
     const { userIds } = req.body;
 
     const ride = await Ride.findByPk(id, {
-      include: [
-        { model: Group, as: "rideGroup" },
-      ]
+      include: [{ model: Group, as: "rideGroup" }],
     });
     if (!ride) {
-      res
-        .status(404)
-        .json({ message: "This ride does not exist." });
+      res.status(404).json({ message: "This ride does not exist." });
       return;
     }
     const group = ride.rideGroup;
-    const isAdmin = group?.groupAdmins?.some(
-      (admin: any) => admin.id === userId) ||
+    const isAdmin =
+      group?.groupAdmins?.some((admin: any) => admin.id === userId) ||
       ride.roadCaptainId === userId;
 
     if (!isAdmin) {
@@ -253,14 +247,14 @@ export const removeRiders = async (req: Request, res: Response) => {
     }
 
     const users = await User.findAll({
-      where: { id: userIds }
+      where: { id: userIds },
     });
 
     if (users.length > 0) await ride.removeParticipants(users);
 
-    res.status(200)
-      .json({ message: `${users.length} rider(s) removed from the ride.`, 
-    });
+    res
+      .status(200)
+      .json({ message: `${users.length} rider(s) removed from the ride.` });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -357,16 +351,17 @@ export const updateRide = async (req: Request, res: Response) => {
       if (startLocation) ride.startLocation = startLocation;
       if (destination) ride.destination = destination;
       if (roadCaptainId) ride.roadCaptainId = roadCaptainId;
-  
+
       await ride.save();
-  
+
       res.status(200).json({ message: "Ride updated successfully", ride });
       return;
     } else {
-      res.status(403).json({ message: "You are not allowed to update this ride." });
+      res
+        .status(403)
+        .json({ message: "You are not allowed to update this ride." });
       return;
     }
-
   } catch (err) {
     errorResponse(res, err);
   }
@@ -381,26 +376,32 @@ export const updateRideStatus = async (req: Request, res: Response) => {
       include: [
         {
           model: Group,
+          as: "rideGroup",
           include: [
             {
               model: User,
-              as: 'groupAdmins',
+              as: "groupAdmins",
               through: { attributes: [] },
             },
           ],
         },
       ],
     });
-    
+
     if (!ride) {
       res.status(404).json({ message: "Ride not found." });
       return;
     }
-    const response = await handleRideStatus(req.user.id, ride, status, location);
+    const response = await handleRideStatus(
+      req.user.id,
+      ride,
+      status,
+      location
+    );
 
     res.status(response.status).json({
-      response
-    })
+      response,
+    });
   } catch (err) {
     errorResponse(res, err);
   }
@@ -541,18 +542,19 @@ export const getRideDetails = async (req: Request, res: Response) => {
     }
 
     const participants = await ride.getParticipants({
-      attributes: ['id', 'username', 'firstname', 'avatar'],
-      joinTableAttributes: []
+      attributes: ["id", "username", "firstname", "avatar"],
+      joinTableAttributes: [],
     });
     const { startLocation, destination } = ride;
-    const distance = (startLocation && destination)
-      ? getRideDistance(
-          startLocation.latitude,
-          startLocation.longitude,
-          destination.latitude,
-          destination.longitude
-        )
-      : null;
+    const distance =
+      startLocation && destination
+        ? getRideDistance(
+            startLocation.latitude,
+            startLocation.longitude,
+            destination.latitude,
+            destination.longitude
+          )
+        : null;
     res.status(200).json({ ride, participants, distance });
     return;
   } catch (err) {
@@ -572,8 +574,8 @@ export const getRideParticipants = async (req: Request, res: Response) => {
     }
 
     const participants = await ride.getParticipants({
-      attributes: ['id', 'username', 'firstname', 'avatar'],
-      joinTableAttributes: []
+      attributes: ["id", "username", "firstname", "avatar"],
+      joinTableAttributes: [],
     });
 
     res.status(200).json({ participants });
@@ -582,7 +584,6 @@ export const getRideParticipants = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
-
 
 /**
  * @typedef {Object} SuccessResponse
@@ -688,7 +689,7 @@ export const deleteRide = async (req: Request, res: Response) => {
  * {
  *   "error": "Route must be a non-empty array of valid GPS points"
  * }
- * 
+ *
  * @response 400 - Invalid request
  * {
  *   "error": "Cannot save ride route until ride is completed."
@@ -716,23 +717,27 @@ export const saveRideRoute = async (req: Request, res: Response) => {
     }
 
     if (ride.status !== "completed") {
-      res.status(400).json({ message: "Cannot save ride route until ride is completed." });
+      res
+        .status(400)
+        .json({ message: "Cannot save ride route until ride is completed." });
       return;
     }
 
     if (ride.route) {
       res.status(400).json({ message: "This route has already been saved." });
-      return
-    } else if (ride.status == "completed" && route.length) {
-      await ride.update({ route });
-      res.status(200).json({ message: "Ride route saved."});
       return;
-    } 
+    } else if (ride.status == "completed" && route.length) {
+      const response = await handleSaveRideRoute(ride, route);
+      res.status(response.status).json({
+        message: response.message,
+        ride: response.ride,
+      });
+      return;
+    }
   } catch (err) {
     errorResponse(res, err);
   }
 };
-
 
 /**
  * @typedef {Object} Location
@@ -779,7 +784,7 @@ export const saveRideRoute = async (req: Request, res: Response) => {
  * {
  *   "error": "No route data available for this ride"
  * }
- * 
+ *
  * @response 500 - Internal Server Error
  * {
  *   "error": "Internal Server Error"
@@ -803,7 +808,6 @@ export const getRideRoute = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
-
 
 /**
  * @typedef {Object} SuccessResponse
@@ -834,7 +838,7 @@ export const getRideRoute = async (req: Request, res: Response) => {
  * {
  *   "message": "You are not allowed to delete this route"
  * }
- * 
+ *
  * @response 404 - Ride not found
  * {
  *   "error": "Ride not found"
@@ -848,7 +852,7 @@ export const getRideRoute = async (req: Request, res: Response) => {
 export const deleteRideRoute = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.id; 
+    const userId = req.user?.id;
     const ride = await Ride.findByPk(id);
 
     if (!ride) {
@@ -857,7 +861,9 @@ export const deleteRideRoute = async (req: Request, res: Response) => {
     }
 
     if (ride.createdBy !== userId) {
-      res.status(403).json({ message: "You are not allowed to delete this route" });
+      res
+        .status(403)
+        .json({ message: "You are not allowed to delete this route" });
       return;
     } else if (ride.route || ride.route.length > 0) {
       ride.route = [];
@@ -872,7 +878,7 @@ export const deleteRideRoute = async (req: Request, res: Response) => {
 
 export const getRideHistory = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id; 
+    const userId = req.user?.id;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 5;
 
@@ -883,7 +889,7 @@ export const getRideHistory = async (req: Request, res: Response) => {
   } catch (err) {
     errorResponse(res, err);
   }
-}
+};
 
 export const getGroupRides = async (req: Request, res: Response) => {
   try {
@@ -936,25 +942,26 @@ export const getGroupRidesDistance = async (req: Request, res: Response) => {
       rideCount: rides.length,
       totalDistanceMeters: totalDistance,
       totalDistanceKm,
-      averageRiders
+      averageRiders,
     });
-
   } catch (error) {
     errorResponse(res, error);
   }
-}
+};
 
 export const getUserRidesDistance = async (req: Request, res: Response) => {
   try {
     const { id } = req.user;
 
     const rides = await Ride.findAll({
-      include: [{
-        model: User,
-        as: "participants",
-        where: { id },
-        attributes: []
-      }],
+      include: [
+        {
+          model: User,
+          as: "participants",
+          where: { id },
+          attributes: [],
+        },
+      ],
     });
 
     let totalDistance = 0;
@@ -984,4 +991,4 @@ export const getUserRidesDistance = async (req: Request, res: Response) => {
   } catch (error) {
     errorResponse(res, error);
   }
-}
+};

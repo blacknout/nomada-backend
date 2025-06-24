@@ -63,7 +63,7 @@ export const createRideName = (groupName: string) => {
 }
 
 export const handleRideStatus = async(id: string, ride: Ride, status: RideStatusType, location: Location) => {
-  const group = (ride as any).Group;
+  const group = (ride as any).rideGroup;
   const isAdmin = group?.groupAdmins?.some(
     (admin: any) => admin.id === id);
   if (ride.createdBy === id ||
@@ -82,6 +82,20 @@ export const handleRideStatus = async(id: string, ride: Ride, status: RideStatus
       status: 403,
       message: "You are not allowed to update the status of this ride."
     }
+  }
+}
+
+export const handleSaveRideRoute = async (ride: Ride, route: Location[]) => {
+  try {
+    ride.route = route;
+    await ride.save();
+    return {
+      status: 200,
+      message: "Ride route saved successfully.",
+      ride,
+    };
+  } catch (error) {
+    throw new Error(`Error saving ride route: ${error}`);
   }
 }
 
