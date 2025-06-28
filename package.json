@@ -48,6 +48,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.4",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.17",
     "@types/cron": "^2.0.1",
