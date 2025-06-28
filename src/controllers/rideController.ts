@@ -7,6 +7,8 @@ import {
   handleRideStatus,
   getAllGroupRides,
   handleSaveRideRoute,
+  getDirections,
+  generateMockRoute
 } from "../services/rideServices";
 import { getRideDistance } from "../utils/calc";
 
@@ -123,6 +125,11 @@ export const createRide = async (req: Request, res: Response) => {
       return;
     }
 
+    let rideDirections =
+      startLocation && destination
+        ? await getDirections(startLocation, destination)
+        : null;
+
     const newRide = await Ride.create({
       name: name || createRideName(group.name),
       groupId,
@@ -130,12 +137,24 @@ export const createRide = async (req: Request, res: Response) => {
       roadCaptainId,
       startLocation,
       destination,
+      rideDirections,
       status: "pending",
     });
 
+    const responseRide = {
+      ...newRide.toJSON(),
+      rideDirections: rideDirections ?? (
+        startLocation && destination
+          ? generateMockRoute(startLocation, destination)
+          : null
+      ),
+    };
     res
       .status(201)
-      .json({ message: "Ride created successfully", ride: newRide });
+      .json({ 
+        message: "Ride created successfully", 
+        ride: responseRide,
+      });
     return;
   } catch (err) {
     errorResponse(res, err);
@@ -345,23 +364,43 @@ export const updateRide = async (req: Request, res: Response) => {
       res.status(404).json({ message: "Ride not found" });
       return;
     }
+    const isAuthorized = 
+      ride.createdBy === req.user.id || 
+      ride.roadCaptainId === req.user.id;
 
-    if (ride.createdBy === req.user.id || ride.roadCaptainId === req.user.id) {
-      if (name) ride.name = name;
-      if (startLocation) ride.startLocation = startLocation;
-      if (destination) ride.destination = destination;
-      if (roadCaptainId) ride.roadCaptainId = roadCaptainId;
-
-      await ride.save();
-
-      res.status(200).json({ message: "Ride updated successfully", ride });
-      return;
-    } else {
+    if (!isAuthorized) {
       res
         .status(403)
         .json({ message: "You are not allowed to update this ride." });
       return;
     }
+
+    if (name) ride.name = name;
+    if (roadCaptainId) ride.roadCaptainId = roadCaptainId;
+    let directions: any = null;
+
+    if (startLocation && destination) {
+      ride.startLocation = startLocation;
+      ride.destination = destination;
+
+      directions = await getDirections(startLocation, destination);
+      if (directions) ride.rideDirections = directions;
+    }
+
+    await ride.save();
+    const responseRide = {
+      ...ride.toJSON(),
+      rideDirections: ride.rideDirections ?? (
+        startLocation && destination
+          ? generateMockRoute(startLocation, destination)
+          : null
+      ),
+    };
+    res.status(200).json({ 
+      message: "Ride updated successfully", 
+      ride: responseRide
+    });
+    return;
   } catch (err) {
     errorResponse(res, err);
   }
@@ -561,6 +600,37 @@ export const getRideDetails = async (req: Request, res: Response) => {
     errorResponse(res, err);
   }
 };
+
+export const getRideDirections = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const ride = await Ride.findByPk(id);
+
+    if (!ride) {
+      res.status(404).json({ message: "Ride not found" });
+      return;
+    }
+    const { startLocation, destination } = ride;
+    if (!startLocation || !destination) {
+      return res.status(400).json({
+        message: "This Ride does not have both start and destination locations.",
+      });
+    }
+    const rideDirections =
+      ride.rideDirections ||
+      (await getDirections(startLocation, destination)) ||
+      generateMockRoute(startLocation, destination);
+
+    res.status(200).json({ 
+      message: "directions retrieved successfully.",
+      directions: rideDirections
+    });
+    return;
+  } catch (err) {
+    errorResponse(res, err);
+  }
+}
 
 export const getRideParticipants = async (req: Request, res: Response) => {
   try {

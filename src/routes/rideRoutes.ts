@@ -6,6 +6,7 @@ import {
   removeRiders,
   updateRide,
   getRideDetails,
+  getRideDirections,
   getRideParticipants,
   getGroupRides,
   deleteRide,
@@ -466,6 +467,50 @@ router.patch("/:id",
   authenticateUser, 
   validateRideStatus,
   updateRideStatus
+);
+
+/**
+ * @swagger
+ * /ride/{rideId}/directions:
+ *   get:
+ *     summary: Get ride directions
+ *     description: Retrieve directions of a ride.
+ *     tags:
+ *       - Rides
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: rideId
+ *         required: true
+ *         description: The ID of the ride to retrieve.
+ *         schema:
+ *           type: string
+ *           example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *     responses:
+ *       200:
+ *         description: Ride directions retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "d4f6e8a2-9b7c-4f3a-8a2d-1b3e5f7c9d4e"
+ *                 rideDirections:
+ *                   type: string
+ *       401:
+ *         description: Access Denied. No Token Provided.
+ *       404:
+ *         description: Ride not found
+ *       500:
+ *         description: Server error.
+ */
+router.get("/:id/directions", 
+  authenticateUser,
+  validateRideQuery,
+  getRideDirections
 );
 
 /**
