@@ -43,8 +43,6 @@ export const inviteUserToGroup = async (req: Request, res: Response) => {
     const { userIds } = req.body;
     const { id: senderId } = req.user;
 
-
-    console.log(`Inviting users to group ${id}:`, userIds);
     const response = await createInvite(userIds, id, senderId);
     
     // Provide more detailed error messages for debugging

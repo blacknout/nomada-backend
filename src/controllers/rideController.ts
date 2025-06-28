@@ -141,6 +141,8 @@ export const createRide = async (req: Request, res: Response) => {
       status: "pending",
     });
 
+    await (newRide as any).addParticipant(userId);
+
     const responseRide = {
       ...newRide.toJSON(),
       rideDirections: rideDirections ?? (
