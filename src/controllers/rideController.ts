@@ -611,12 +611,15 @@ export const getRideDirections = async (req: Request, res: Response) => {
       res.status(404).json({ message: "Ride not found" });
       return;
     }
+
     const { startLocation, destination } = ride;
     if (!startLocation || !destination) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "This Ride does not have both start and destination locations.",
       });
+      return;
     }
+
     const rideDirections =
       ride.rideDirections ||
       (await getDirections(startLocation, destination)) ||
