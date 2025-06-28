@@ -12,37 +12,39 @@ import {
 import sequelize from "../config/sequelize";
 import { User } from "./User";
 import { Group } from "./Group";
-import { Location } from "../@types/location";
+import { Location, DirectionsResult } from "../@types/location";
 import { 
   RideStatusType
 } from '../@types/model';
 
 interface RideAttributes {
-  id:             string;
-  name:           string;
-  groupId:        string;
-  createdBy:      string;
-  roadCaptainId?: string;
-  route?:         Location[];
-  startLocation?: Location;
-  destination?:   Location;
-  status:         RideStatusType;
-  createdAt?:     Date;
-  updatedAt?:     Date;
+  id:                string;
+  name:              string;
+  groupId:           string;
+  createdBy:         string;
+  roadCaptainId?:    string;
+  route?:            Location[];
+  rideDirections?:   DirectionsResult;
+  startLocation?:    Location;
+  destination?:      Location;
+  status:            RideStatusType;
+  createdAt?:        Date;
+  updatedAt?:        Date;
 }
 
 interface RideCreationAttributes extends Optional<RideAttributes, "id"> {}
 
 export class Ride extends Model<RideAttributes, RideCreationAttributes>  implements RideAttributes {
-  public id!:           string;
-  public name!:         string;
-  public groupId!:      string;
-  public createdBy!:    string;
-  public roadCaptainId: string;
-  public route:         Location[];
-  public startLocation: Location;
-  public destination:   Location;
-  public status!:       RideStatusType;
+  public id!:             string;
+  public name!:           string;
+  public groupId!:        string;
+  public createdBy!:      string;
+  public roadCaptainId:   string;
+  public route:           Location[];
+  public rideDirections?: DirectionsResult;
+  public startLocation:   Location;
+  public destination:     Location;
+  public status!:         RideStatusType;
 
   public getParticipants!:    BelongsToManyGetAssociationsMixin<User>;
   public addParticipant!:     BelongsToManyAddAssociationMixin<User, string>;
@@ -66,6 +68,7 @@ Ride.init(
     createdBy: { type: DataTypes.UUID, allowNull: false, references: { model: User, key: "id" } },
     roadCaptainId: { type: DataTypes.UUID, references: { model: User, key: "id" } },
     route: { type: DataTypes.JSONB },
+    rideDirections: { type: DataTypes.JSONB },
     startLocation: { type: DataTypes.JSONB, },
     destination: { type: DataTypes.JSONB, },
     status: {

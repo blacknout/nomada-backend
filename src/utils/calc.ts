@@ -1,3 +1,5 @@
+import { Location } from "../@types/location";
+
 export const getRideDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const toRad = (x: number) => (x * Math.PI) / 180;
 
@@ -38,3 +40,20 @@ export const levenshtein = (a: string, b: string) => {
 
   return tmp[alen][blen];
 }
+
+export  const calculateDistance = (point1: Location, point2: Location): number => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRad(point2.latitude - point1.latitude);
+  const dLon = toRad(point2.longitude - point1.longitude);
+  const lat1 = toRad(point1.latitude);
+  const lat2 = toRad(point2.latitude);
+
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+const toRad = (value: number): number => {
+  return value * Math.PI / 180;
+};

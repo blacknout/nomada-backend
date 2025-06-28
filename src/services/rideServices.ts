@@ -1,9 +1,10 @@
-import { Op } from 'sequelize';
+import axios from 'axios';
 import { Ride } from "../models/Ride";
 import { User } from "../models/User";
-import { GroupMember } from "../models/GroupMembers";
 import { RideStatusType } from '../@types/model';
-import { Location } from "../@types/location";
+import { Location, DirectionsResult } from "../@types/location";
+import { decodePolyline } from '../utils/handleData';
+import { calculateDistance } from '../utils/calc';
 
 /**
  * Get a user's ride history with pagination
@@ -123,4 +124,105 @@ export const getAllGroupRides = async (
   } catch (error) {
     throw new Error(`Error fetching ride history: ${error}`);
   }
+};
+
+export const getDirections = async (
+  origin: Location,
+  destination: Location,
+  options?: {
+    mode?: 'driving' | 'walking' | 'bicycling' | 'transit';
+    alternatives?: boolean;
+    optimize?: boolean;
+    waypoints?: Location[];
+  }
+): Promise<DirectionsResult | null> => {
+  try {
+    // Try both possible environment variable names
+    const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+    
+    if (!GOOGLE_MAPS_API_KEY) {
+      console.warn('No Google Maps API key provided');
+      return null;
+    }
+
+    const waypointsParam = options?.waypoints
+      ? `&waypoints=${options.waypoints.map(wp => `${wp.latitude},${wp.longitude}`).join('|')}`
+      : '';
+
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/directions/json?` +
+      `origin=${origin.latitude},${origin.longitude}` +
+      `&destination=${destination.latitude},${destination.longitude}` +
+      `&mode=${options?.mode || 'driving'}` +
+      `&alternatives=${options?.alternatives ?? false}` +
+      `&optimize=${options?.optimize ?? true}` +
+      `&units=metric` +
+      waypointsParam +
+      `&key=${GOOGLE_MAPS_API_KEY}`
+    );
+  console.log("🚀 ~ useDirections ~ response.data:", response.data)
+
+    if (response.data.status === 'OK' && response.data.routes.length > 0) {
+      const route = response.data.routes[0];
+      const points = route.overview_polyline.points;
+      const decodedCoordinates = decodePolyline(points);
+      
+      return {
+        coordinates: decodedCoordinates,
+        distance: route.legs[0].distance.text,
+        duration: route.legs[0].duration.text,
+        bounds: {
+          northeast: {
+            latitude: route.bounds.northeast.lat,
+            longitude: route.bounds.northeast.lng
+          },
+          southwest: {
+            latitude: route.bounds.southwest.lat,
+            longitude: route.bounds.southwest.lng
+          }
+        }
+      };
+    }
+
+    console.warn('No route found:', response.data.status);
+    return null;
+  } catch (error) {
+    console.error('Error fetching directions:', error);
+    return null;
+  }
+};
+
+export const generateMockRoute = (
+  origin: Location,
+  destination: Location
+): DirectionsResult => {
+  const numPoints = 10;
+  const mockRoute: Location[] = [];
+  
+  for (let i = 0; i <= numPoints; i++) {
+    const fraction = i / numPoints;
+    mockRoute.push({
+      latitude: origin.latitude + (destination.latitude - origin.latitude) * fraction,
+      longitude: origin.longitude + (destination.longitude - origin.longitude) * fraction
+    });
+  }
+
+  // Calculate rough distance in kilometers
+  const distance = calculateDistance(origin, destination);
+  
+  return {
+    coordinates: mockRoute,
+    distance: `${Math.round(distance)} km`,
+    duration: 'N/A',
+    bounds: {
+      northeast: {
+        latitude: Math.max(origin.latitude, destination.latitude),
+        longitude: Math.max(origin.longitude, destination.longitude)
+      },
+      southwest: {
+        latitude: Math.min(origin.latitude, destination.latitude),
+        longitude: Math.min(origin.longitude, destination.longitude)
+      }
+    }
+  };
 };
