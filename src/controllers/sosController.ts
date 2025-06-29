@@ -7,6 +7,7 @@ import {
 import { sendSos } from "../services/sosService";
 import { notification } from "../utils/constants/notifications";
 import errorResponse from "../errors/errorResponse";
+import { Op } from "sequelize";
 
 export const createSosContact = async (
   req: Request,
@@ -17,16 +18,45 @@ export const createSosContact = async (
     const { contactId, contactName, email, phone } = req.body;
     const { id: userId } = req.user;
 
-    const alreadySet = await Sos.findOne({
-      where: {
-        userId,
-        contactId
-      }
+    // First check total count of user's SOS contacts
+    const totalSosContacts = await Sos.count({
+      where: { userId }
     });
-    if (alreadySet) {
-      res.status(400).json({ message: "You alreaady set this user as an SOS contact." });
-      return
+
+    if (totalSosContacts >= 3) {
+      res.status(400).json({ message: "You can only have up to 3 SOS contacts." });
+      return;
     }
+
+    // Then check for duplicates
+    let duplicateCheckClause: any = { userId };
+    
+    if (contactId) {
+      // If contactId exists, check for duplicate user contact
+      duplicateCheckClause.contactId = contactId;
+    } else if (email || phone) {
+      // If no contactId but email/phone exists, check for duplicate non-user contact
+      duplicateCheckClause = {
+        userId,
+        [Op.or]: [
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : [])
+        ]
+      };
+    }
+
+    const existingContact = await Sos.findOne({
+      where: duplicateCheckClause
+    });
+
+    if (existingContact) {
+      const message = contactId 
+        ? "You already set this user as an SOS contact."
+        : "You already have an SOS contact with this email or phone number.";
+      res.status(400).json({ message });
+      return;
+    }
+
     const contact = contactId ? await User.findByPk(contactId) : null;
     const sosData = {
       contactId: contact?.id || null,
@@ -67,7 +97,7 @@ export const createSosContact = async (
     }
 
     res.status(200).json({ message: "SOS contact has been created.", sos });
-    return
+    return;
   } catch (err) {
     errorResponse(res, err);
   }
@@ -84,23 +114,28 @@ export const updateSosContact = async (
     const { id: userId } = req.user;
     const contact = contactId ? await User.findByPk(contactId) : null;
     const sos = await Sos.findByPk(sosId);
+
+    if (!sos) {
+      res.status(404).json({ message: "SOS contact not found." });
+      return;
+    }
+
+    if (sos.userId !== userId) {
+      res.status(403).json({ message: "You are not authorized to update this SOS contact." });
+      return;
+    }
+
     const updateData = {
       isActivated: isActivated === false ? false : true,
       contactId: contact?.id || sos.contactId,
-      contactName: contactName || contact.username,
+      contactName: contactName || contact?.username || sos.contactName,
       ...(email && { email }),
       ...(phone && { phone }),
-      ...(contactName && { contactName }),
       userId
     };
-
-    if (sos && contact && contact.id == userId) {
-      const sosUpdate = await sos.update(updateData);
-  
-      res.status(200).json({ message: "SOS contact has been updated.", sos: sosUpdate });
-      return;
-    }
-    res.status(400).json({ message: "Unable to update SOS contact." });
+    
+    const sosUpdate = await sos.update(updateData);
+    res.status(200).json({ message: "SOS contact has been updated.", sos: sosUpdate });
     return;
   } catch (err) {
     errorResponse(res, err);

@@ -107,7 +107,7 @@ export const updateBike = async (req: Request, res: Response) => {
  */
 export const getUserBikes = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { id: userId } = req.params;
     const bikes = await Bike.findAll({ where: { userId, notInUse: false } });
     res.status(200).json({ bikes });
     return;

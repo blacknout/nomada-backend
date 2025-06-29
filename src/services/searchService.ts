@@ -28,7 +28,7 @@ export const searchUser = async (search: string) => {
           { lastname: { [Op.iLike]: `%${search}%` } },
         ],
       },
-      attributes: ["id", "username", "firstname", "lastname", "avatar"],
+      attributes: ["id", "username", "firstname", "lastname", "avatar", "phone", "email"],
     })
     return searchUser;
   } catch (err) {
